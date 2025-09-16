@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Camera, Upload, X, ImageIcon, Video, FileText, User, Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { createSuggestionWithMedia } from '@/lib/api';
 
 const categories = ['academic', 'administrative', 'infrastructure', 'other'];
 const roles = ['student', 'teacher', 'staff', 'alumni', 'admin'];
@@ -179,13 +180,22 @@ export default function SubmitPage() {
     setError(null);
     setSuccessId(null);
     try {
-      // Simulate submission
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      setSuccessId(`SUG-${Math.random().toString(36).substr(2, 9).toUpperCase()}`);
+      const form = new FormData();
+      form.append('category', category);
+      form.append('description', description);
+      form.append('anonymous', String(anonymous));
+      files.forEach((f) => form.append('media', f, f.name));
+      const res = await createSuggestionWithMedia(form);
+      const id = (res.suggestion._id || res.suggestion.id)!;
+      setSuccessId(id);
       setDescription('');
       setFiles([]);
-    } catch (e) {
-      setError('Submit failed');
+      if (!anonymous) {
+        navigate('/'); // optional: take them home
+      }
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : 'Submit failed';
+      setError(msg);
     } finally {
       setSubmitting(false);
     }
@@ -211,7 +221,7 @@ export default function SubmitPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
       <div className="max-w-4xl mx-auto px-4 py-8 space-y-8">
-        <div className="text-center space-y-4">
+        {/* <div className="text-center space-y-4">
           <div className="w-16 h-16 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl mx-auto flex items-center justify-center">
             <FileText className="w-8 h-8 text-white" />
           </div>
@@ -219,11 +229,11 @@ export default function SubmitPage() {
             Submit Suggestion
           </h1>
           <p className="text-gray-600 text-lg">Share your ideas to help improve our institution</p>
-        </div>
+        </div> */}
 
         <Card className="border-0 shadow-xl bg-white/80 backdrop-blur-sm">
-          <CardHeader className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-t-lg">
-            <CardTitle className="text-xl flex items-center gap-2">
+          <CardHeader className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-t-lg p-2">
+            <CardTitle className="text-xl flex items-center gap-2 px-2 py-3">
               <FileText className="w-5 h-5" />
               Suggestion Details
             </CardTitle>

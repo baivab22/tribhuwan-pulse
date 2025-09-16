@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { useTranslation } from 'react-i18next';
-import { trackSuggestion } from '@/lib/api';
+import { adminList, trackSuggestion } from '@/lib/api';
 import { Link } from 'react-router-dom';
 import { 
   MessageSquare, 
@@ -44,6 +44,7 @@ import {
   ExternalLink,
   Calendar
 } from 'lucide-react';
+import EnhancedTrackingCard from '@/components/SearchSuggest';
 
 export default function HomePage() {
   const { t } = useTranslation();
@@ -191,40 +192,90 @@ export default function HomePage() {
       bgColor: "from-teal-50 to-cyan-50"
     }
   ];
+  const [publicSuggestions, setPublicSuggestions] = useState<any[]>([]);
+  const [loadingPublic, setLoadingPublic] = useState(true);
+
+
+const fetchPublicSuggestions = async () => {
+  try {
+    setLoadingPublic(true);
+    const data = await adminList({ 
+      limit: 3,
+      page: 1
+    });
+
+    // Transform API response into UI format
+    const mappedSuggestions = data.suggestions.map((s: any, index: number) => {
+      return {
+        id: `SUG-${100000 + index + 1}`, // Generate readable ID
+        title: s.description || "No title provided",
+        category: s.category || "General",
+        status: s.status || "Pending",
+        impact: s.impact || "Impact not available", // If you don’t have it yet
+        resolvedDate: s.updatedAt 
+          ? new Date(s.updatedAt).toLocaleDateString() 
+          : "Not resolved",
+        department: s.assignedDepartment || "Unassigned",
+        resolutionTime: s.createdAt && s.updatedAt 
+          ? `${Math.ceil(
+              (new Date(s.updatedAt).getTime() - new Date(s.createdAt).getTime()) / 
+              (1000 * 60 * 60 * 24)
+            )} days`
+          : "N/A"
+      };
+    });
+
+    setPublicSuggestions(mappedSuggestions);
+  } catch (error) {
+    console.error('Failed to fetch public suggestions:', error);
+  } finally {
+    setLoadingPublic(false);
+  }
+};
+
+
+  useEffect(() => {
+
+    fetchPublicSuggestions();
+
+  }, []);
 
   // Sample public suggestions data
-  const publicSuggestions = [
-    {
-      id: "SUG-123457",
-      title: "Extended Library Hours During Exams",
-      category: "Academic",
-      status: "Resolved",
-      impact: "Library hours extended from 10 PM to 2 AM during exam weeks. 89% increase in late-night library usage.",
-      resolvedDate: "1/25/2024",
-      department: "Academic Affairs",
-      resolutionTime: "15 days"
-    },
-    {
-      id: "SUG-123458",
-      title: "Install More Bike Racks Near Dormitories",
-      category: "Infrastructure",
-      status: "Resolved",
-      impact: "Added 50 new bike racks across campus. Reduced bike theft by 40% and improved campus mobility.",
-      resolvedDate: "1/15/2024",
-      department: "Facilities Management",
-      resolutionTime: "12 days"
-    },
-    {
-      id: "SUG-123459",
-      title: "Online Course Registration System",
-      category: "Administrative",
-      status: "Resolved",
-      impact: "New digital system reduced registration time by 70% and eliminated long queues during enrollment.",
-      resolvedDate: "1/10/2024",
-      department: "IT Services",
-      resolutionTime: "45 days"
-    }
-  ];
+  // const publicSuggestions = [
+  //   {
+  //     id: "SUG-123457",
+  //     title: "Extended Library Hours During Exams",
+  //     category: "Academic",
+  //     status: "Resolved",
+  //     impact: "Library hours extended from 10 PM to 2 AM during exam weeks. 89% increase in late-night library usage.",
+  //     resolvedDate: "1/25/2024",
+  //     department: "Academic Affairs",
+  //     resolutionTime: "15 days"
+  //   },
+  //   {
+  //     id: "SUG-123458",
+  //     title: "Install More Bike Racks Near Dormitories",
+  //     category: "Infrastructure",
+  //     status: "Resolved",
+  //     impact: "Added 50 new bike racks across campus. Reduced bike theft by 40% and improved campus mobility.",
+  //     resolvedDate: "1/15/2024",
+  //     department: "Facilities Management",
+  //     resolutionTime: "12 days"
+  //   },
+  //   {
+  //     id: "SUG-123459",
+  //     title: "Online Course Registration System",
+  //     category: "Administrative",
+  //     status: "Resolved",
+  //     impact: "New digital system reduced registration time by 70% and eliminated long queues during enrollment.",
+  //     resolvedDate: "1/10/2024",
+  //     department: "IT Services",
+  //     resolutionTime: "45 days"
+  //   }
+  // ];
+
+
+
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -249,180 +300,94 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 font-inter">
+    <div className=" bg-gradient-to-br from-slate-50 via-white to-blue-50 font-inter "
+    style={{ }}
+    >
       {/* Enhanced Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 min-h-screen flex items-center">
-        {/* Animated Background Elements */}
-        <div className="absolute inset-0">
-          <div className="absolute top-20 left-20 w-72 h-72 bg-white/10 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute bottom-20 right-20 w-96 h-96 bg-purple-300/20 rounded-full blur-3xl animate-bounce"></div>
-          <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-pink-300/15 rounded-full blur-2xl transform -translate-x-1/2 -translate-y-1/2 animate-ping"></div>
+<section className="relative overflow-hidden bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 min-h-[80dvh] flex items-center">
+
+  {/* Animated Background Elements */}
+  {/* <div className="absolute inset-0">
+    <div className="absolute top-20 left-20 w-72 h-72 bg-white/10 rounded-full blur-3xl animate-pulse"></div>
+    <div className="absolute bottom-20 right-20 w-96 h-96 bg-purple-300/20 rounded-full blur-3xl animate-bounce"></div>
+    <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-pink-300/15 rounded-full blur-2xl transform -translate-x-1/2 -translate-y-1/2 animate-ping"></div>
+  </div> */}
+  
+  <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
+    <div className="grid lg:grid-cols-2 gap-12 items-center">
+      {/* Left Content - Main Call to Action */}
+      <div className={`space-y-8 transform transition-all duration-1000 ${isVisible ? 'translate-x-0 opacity-100' : '-translate-x-10 opacity-0'}`}>
+        <div className="space-y-6">
+          {/* <div className="inline-flex items-center px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full text-sm font-medium text-white border border-white/30 hover:bg-white/30 transition-all duration-300 mb-4">
+            <Target className="w-4 h-4 mr-2 animate-pulse" />
+            University Feedback Management System
+          </div> */}
+          
+          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-white leading-tight font-poppins">
+            Your Voice,
+            <span className=" block mt-2">
+              Our Action
+            </span>
+          </h1>
+          
+          <p className="text-xl text-purple-100 leading-relaxed max-w-xl font-inter">
+            Connect students, faculty, staff, and alumni with administration. 
+            Share feedback anonymously, track progress in real-time, and create meaningful changes.
+          </p>
         </div>
-        
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            {/* Left Content */}
-            <div className={`space-y-8 transform transition-all duration-1000 ${isVisible ? 'translate-x-0 opacity-100' : '-translate-x-10 opacity-0'}`}>
-              <div className="space-y-6">
-                <div className="inline-flex items-center px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full text-xs font-medium text-white border border-white/30 hover:bg-white/30 transition-all duration-300">
-                  <Target className="w-3 h-3 mr-2 animate-pulse" />
-                  University Feedback Management System
+
+        {/* Action Buttons */}
+        <div className="flex flex-col sm:flex-row gap-4">
+          <Link to="/submit" className="flex-1">
+<Button className="bg-[#3ab2ea99] text-white px-8 py-6 h-16 text-lg font-semibold rounded-2xl transition-all duration-300 transform hover:scale-105 hover:shadow-2xl shadow-lg">
+
+                <Send className="w-6 h-6 mr-3 group-hover:rotate-12 transition-transform duration-300" />
+                Submit Feedback
+            </Button> 
+
+         
+          </Link>
+          
+          {/* <Link to="/public" className="flex-1">
+            <Button variant="outline" className="group w-full border-3 border-white/40 text-white hover:bg-white/20 backdrop-blur-sm px-8 py-6 h-16 text-lg font-semibold rounded-2xl transition-all duration-300 transform hover:scale-105 shadow-lg">
+              <Eye className="w-6 h-6 mr-3 group-hover:scale-110 transition-transform duration-300" />
+              View Public Board
+            </Button>
+          </Link> */}
+        </div>
+
+        {/* Stats Section */}
+        {/* <div className="grid grid-cols-2 gap-4 pt-6">
+          {stats.map((stat, index) => {
+            const IconComponent = stat.icon;
+            return (
+              <div 
+                key={stat.label} 
+                className={`text-center transform transition-all duration-700 hover:scale-105 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}
+                style={{ transitionDelay: `${index * 100}ms` }}
+              >
+                <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4 border border-white/30 hover:bg-white/30 transition-all duration-300">
+                  <IconComponent className="w-6 h-6 text-yellow-300 mx-auto mb-2 animate-bounce" />
+                  <div className="text-xl font-bold text-white font-poppins">{stat.value}</div>
+                  <div className="text-xs text-purple-100 font-inter uppercase tracking-wide">{stat.label}</div>
+                  <div className="text-xs text-green-300 font-medium mt-1 animate-pulse font-inter">{stat.trend}</div>
                 </div>
-                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white leading-tight font-poppins">
-                  Your Voice,
-                  <span className="bg-gradient-to-r from-yellow-300 to-orange-300 bg-clip-text text-transparent animate-pulse block">
-                    Our Action
-                  </span>
-                </h1>
-                <p className="text-lg text-purple-100 leading-relaxed max-w-xl font-inter">
-                  Connect students, faculty, staff, and alumni with administration. 
-                  Share feedback anonymously, track progress in real-time, and create meaningful changes.
-                </p>
               </div>
+            );
+          })}
+        </div> */}
+      </div>
 
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Link to="/submit">
-                  <Button className="group bg-white text-purple-600 hover:bg-yellow-300 hover:text-purple-800 px-8 py-4 h-14 text-base font-medium rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-2xl w-full sm:w-auto font-inter">
-                    <Send className="w-5 h-5 mr-2 group-hover:rotate-12 transition-transform duration-300" />
-                    Submit Suggestion
-                  </Button>
-                </Link>
-                <Link to="/public">
-                  <Button variant="outline" className="group border-2 border-white/30 text-white hover:bg-white/20 backdrop-blur-sm px-8 py-4 h-14 text-base font-medium rounded-xl transition-all duration-300 transform hover:scale-105 w-full sm:w-auto font-inter">
-                    <Eye className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform duration-300" />
-                    View Public Board
-                  </Button>
-                </Link>
-              </div>
-            </div>
+      {/* Right Side - Enhanced Tracking Card */}
+      <div className={`transform transition-all duration-1000 ${isVisible ? 'translate-x-0 opacity-100' : 'translate-x-10 opacity-0'}`}>
+        <EnhancedTrackingCard />
+      </div>
+    </div>
+  </div>
+</section>
 
-            {/* Right Side - Enhanced Tracking Card */}
-            <div className={`space-y-6 transform transition-all duration-1000 ${isVisible ? 'translate-x-0 opacity-100' : 'translate-x-10 opacity-0'}`}>
-              {/* Enhanced Tracking Card */}
-              <Card className="border-0 shadow-2xl bg-white/95 backdrop-blur-sm hover:shadow-3xl transition-all duration-300 transform hover:scale-105">
-                <CardHeader className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-t-lg p-6">
-                  <CardTitle className="text-xl font-bold flex items-center font-poppins">
-                    <Search className="w-6 h-6 mr-3 animate-pulse" />
-                    Track Your Suggestion
-                  </CardTitle>
-                  <p className="text-base text-indigo-100 mt-2 font-inter">Enter your suggestion ID to check real-time status updates</p>
-                </CardHeader>
-                <CardContent className="p-6">
-                  <div className="space-y-5">
-                    <div>
-                      <label className="block text-base font-semibold text-gray-700 mb-2 font-inter">
-                        Suggestion ID
-                      </label>
-                      <Input
-                        placeholder="e.g., SUG-2024-001"
-                        value={trackId}
-                        onChange={(e) => setTrackId(e.target.value)}
-                        className="h-12 text-base border-2 border-gray-200 focus:border-purple-500 focus:ring-purple-500 rounded-xl transition-all duration-300 bg-gray-50 focus:bg-white font-inter"
-                      />
-                      <p className="text-sm text-gray-500 mt-2 font-inter">
-                        You received this ID when you submitted your suggestion via email
-                      </p>
-                    </div>
-                    
-                    <Button 
-                      onClick={onTrack} 
-                      disabled={!trackId || loading}
-                      className="w-full h-12 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold disabled:bg-gray-300 disabled:cursor-not-allowed rounded-xl transition-all duration-300 transform hover:scale-105 text-base font-inter"
-                    >
-                      {loading ? (
-                        <div className="flex items-center">
-                          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                          Checking Status...
-                        </div>
-                      ) : (
-                        <div className="flex items-center">
-                          <Search className="w-4 h-4 mr-2" />
-                          Check Status
-                        </div>
-                      )}
-                    </Button>
 
-                    {error && (
-                      <div className="p-4 bg-gradient-to-r from-red-50 to-pink-50 border border-red-200 rounded-xl animate-shake">
-                        <div className="flex items-center">
-                          <AlertCircle className="w-5 h-5 text-red-500 mr-2 flex-shrink-0 animate-pulse" />
-                          <p className="text-red-700 font-medium text-sm font-inter">{error}</p>
-                        </div>
-                      </div>
-                    )}
-
-                    {result && (
-                      <div className="p-5 bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-xl animate-fadeIn">
-                        <div className="space-y-3">
-                          <div className="flex items-center">
-                            <CheckCircle2 className="w-5 h-5 text-emerald-600 mr-2 flex-shrink-0 animate-bounce" />
-                            <span className="font-bold text-emerald-900 text-base font-poppins">Suggestion Found!</span>
-                          </div>
-                          
-                          <div className="space-y-2">
-                            <div className="flex justify-between items-center p-3 bg-white rounded-lg border border-emerald-200 transform hover:scale-105 transition-all duration-200">
-                              <span className="font-semibold text-gray-700 text-sm font-inter">Status:</span>
-                              <Badge className={`text-xs font-semibold border animate-pulse ${getStatusColor(result.status)}`}>
-                                {result.status}
-                              </Badge>
-                            </div>
-                            
-                            <div className="flex justify-between items-center p-3 bg-white rounded-lg border border-emerald-200 transform hover:scale-105 transition-all duration-200">
-                              <span className="font-semibold text-gray-700 text-sm font-inter">Category:</span>
-                              <span className="font-semibold text-gray-900 text-sm font-inter">{result.category}</span>
-                            </div>
-                            
-                            <div className="flex justify-between items-center p-3 bg-white rounded-lg border border-emerald-200 transform hover:scale-105 transition-all duration-200">
-                              <span className="font-semibold text-gray-700 text-sm font-inter">Submitted:</span>
-                              <span className="font-medium text-gray-900 text-sm font-inter">
-                                {new Date(result.createdAt).toLocaleDateString('en-US', { 
-                                  year: 'numeric', 
-                                  month: 'short', 
-                                  day: 'numeric' 
-                                })}
-                              </span>
-                            </div>
-                          </div>
-                          
-                          <div className="pt-3 border-t border-emerald-200">
-                            <Link to={`/suggestion/${result.id}`}>
-                              <Button variant="outline" className="w-full border-emerald-300 text-emerald-700 hover:bg-emerald-50 rounded-lg transform hover:scale-105 transition-all duration-200 font-semibold text-sm font-inter">
-                                View Full Details
-                                <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform duration-200" />
-                              </Button>
-                            </Link>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Compact Stats moved here */}
-              <div className="grid grid-cols-2 gap-4">
-                {stats.map((stat, index) => {
-                  const IconComponent = stat.icon;
-                  return (
-                    <div 
-                      key={stat.label} 
-                      className={`text-center transform transition-all duration-700 hover:scale-105 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}
-                      style={{ transitionDelay: `${index * 100}ms` }}
-                    >
-                      <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4 border border-white/30 hover:bg-white/30 transition-all duration-300">
-                        <IconComponent className="w-5 h-5 text-yellow-300 mx-auto mb-2 animate-bounce" />
-                        <div className="text-lg font-bold text-white font-poppins">{stat.value}</div>
-                        <div className="text-xs text-purple-100 font-inter">{stat.label}</div>
-                        <div className="text-xs text-green-300 font-medium mt-1 animate-pulse font-inter">{stat.trend}</div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+     
 
       {/* Recent Success Stories Section */}
       <section className="py-16 bg-gradient-to-br from-white to-gray-50">
@@ -686,6 +651,6 @@ export default function HomePage() {
           transform: translateX(0.25rem);
         }
       `}</style>
-    </div>
-  );
+    </div>)
+  
 }

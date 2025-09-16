@@ -4,7 +4,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useEffect, useMemo, useState } from 'react';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Badge } from '@/components/ui/badge';
+import { useEffect, useMemo, useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Category,
@@ -33,9 +35,20 @@ import {
   YAxis,
   Cell
 } from 'recharts';
+import { format } from 'date-fns';
+import { Search, Eye, Edit, Trash2, ChevronLeft, ChevronRight, Download, FileText, ImageIcon } from 'lucide-react';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
 const categories: Category[] = ['academic', 'administrative', 'infrastructure', 'other'];
 const statuses: Status[] = ['Received', 'In Process', 'Resolved'];
+
+// Status badge colors mapping
+const statusColors: Record<Status, string> = {
+  'Received': 'bg-blue-100 text-blue-800',
+  'In Process': 'bg-yellow-100 text-yellow-800',
+  'Resolved': 'bg-green-100 text-green-800'
+};
 
 export default function AdminDashboard() {
   const { t } = useTranslation();
@@ -50,6 +63,9 @@ export default function AdminDashboard() {
   const [rows, setRows] = useState<Suggestion[]>([]);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
+  const [selectedSuggestion, setSelectedSuggestion] = useState<Suggestion | null>(null);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   const [summary, setSummary] = useState<{
     byStatus: { _id: Status; count: number }[];
@@ -58,6 +74,10 @@ export default function AdminDashboard() {
   } | null>(null);
 
   const [edits, setEdits] = useState<Record<string, Partial<Suggestion>>>({});
+
+  // Refs for export functionality
+  const analyticsRef = useRef<HTMLDivElement>(null);
+  const suggestionsRef = useRef<HTMLDivElement>(null);
 
   async function onLogin() {
     setLoginLoading(true);
@@ -88,6 +108,9 @@ export default function AdminDashboard() {
       setRows(res.suggestions);
       setPage(res.page);
       setTotal(res.total);
+      // Clear edits when loading new data
+      setEdits({});
+      setEditingId(null);
     } catch {
       // ignore
     } finally {
@@ -120,6 +143,107 @@ export default function AdminDashboard() {
     }));
   }, [summary]);
 
+  const handleViewDetails = (suggestion: Suggestion) => {
+    setSelectedSuggestion(suggestion);
+    setIsDetailOpen(true);
+  };
+
+  const handleEdit = (id: string) => {
+    setEditingId(id === editingId ? null : id);
+  };
+
+  const handleSaveEdit = async (id: string) => {
+    const patch = edits[id];
+    if (!patch || Object.keys(patch).length === 0) return;
+    
+    try {
+      await adminUpdate(id, patch);
+      setEditingId(null);
+      // Reload to get fresh data
+      await loadList(page);
+    } catch (error) {
+      console.error('Failed to update suggestion:', error);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this suggestion?')) return;
+    
+    try {
+      await adminDelete(id);
+      await loadList(page);
+    } catch (error) {
+      console.error('Failed to delete suggestion:', error);
+    }
+  };
+
+  // Export functions
+  const exportAnalyticsAsPDF = async () => {
+    if (!analyticsRef.current) return;
+    
+    try {
+      const canvas = await html2canvas(analyticsRef.current);
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('landscape', 'mm', 'a4');
+      const imgProps = pdf.getImageProperties(imgData);
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+      
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      pdf.save('analytics-report.pdf');
+    } catch (error) {
+      console.error('Error exporting PDF:', error);
+    }
+  };
+
+  const exportAnalyticsAsImage = async () => {
+    if (!analyticsRef.current) return;
+    
+    try {
+      const canvas = await html2canvas(analyticsRef.current);
+      const image = canvas.toDataURL('image/png');
+      const link = document.createElement('a');
+      link.href = image;
+      link.download = 'analytics-report.png';
+      link.click();
+    } catch (error) {
+      console.error('Error exporting image:', error);
+    }
+  };
+
+  const exportSuggestionsAsPDF = async () => {
+    if (!suggestionsRef.current) return;
+    
+    try {
+      const canvas = await html2canvas(suggestionsRef.current);
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('landscape', 'mm', 'a4');
+      const imgProps = pdf.getImageProperties(imgData);
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+      
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      pdf.save('suggestions-report.pdf');
+    } catch (error) {
+      console.error('Error exporting PDF:', error);
+    }
+  };
+
+  const exportSuggestionsAsImage = async () => {
+    if (!suggestionsRef.current) return;
+    
+    try {
+      const canvas = await html2canvas(suggestionsRef.current);
+      const image = canvas.toDataURL('image/png');
+      const link = document.createElement('a');
+      link.href = image;
+      link.download = 'suggestions-report.png';
+      link.click();
+    } catch (error) {
+      console.error('Error exporting image:', error);
+    }
+  };
+
   if (!user || user.role !== 'admin') {
     return (
       <div className="max-w-md mx-auto px-4 py-10">
@@ -147,21 +271,56 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8">
-      <h2 className="text-2xl font-semibold mb-4">{t('admin.title')}</h2>
+    <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-semibold">{t('admin.title')}</h2>
+        <div className="text-sm text-muted-foreground">
+          Welcome, {user.name}
+        </div>
+      </div>
 
       <Tabs defaultValue="manage">
-        <TabsList>
-          <TabsTrigger value="manage">{t('admin.suggestionList')}</TabsTrigger>
-          <TabsTrigger value="analytics">{t('admin.analytics')}</TabsTrigger>
-        </TabsList>
+        <div className="flex justify-between items-center mb-4">
+          <TabsList className="grid w-full max-w-md grid-cols-2">
+            <TabsTrigger value="manage">{t('admin.suggestionList')}</TabsTrigger>
+            <TabsTrigger value="analytics">{t('admin.analytics')}</TabsTrigger>
+          </TabsList>
+          
+          <div className="flex space-x-2">
+            <TabsContent value="manage" className="m-0">
+              <div className="flex space-x-2">
+                <Button variant="outline" size="sm" onClick={exportSuggestionsAsPDF}>
+                  <FileText className="h-4 w-4 mr-2" />
+                  PDF
+                </Button>
+                <Button variant="outline" size="sm" onClick={exportSuggestionsAsImage}>
+                  <ImageIcon className="h-4 w-4 mr-2" />
+                  Image
+                </Button>
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="analytics" className="m-0">
+              <div className="flex space-x-2">
+                <Button variant="outline" size="sm" onClick={exportAnalyticsAsPDF}>
+                  <FileText className="h-4 w-4 mr-2" />
+                  PDF
+                </Button>
+                <Button variant="outline" size="sm" onClick={exportAnalyticsAsImage}>
+                  <ImageIcon className="h-4 w-4 mr-2" />
+                  Image
+                </Button>
+              </div>
+            </TabsContent>
+          </div>
+        </div>
 
         <TabsContent value="manage" className="space-y-4 mt-4">
           <Card>
-            <CardHeader>
+            <CardHeader className="pb-3">
               <CardTitle>{t('admin.filters')}</CardTitle>
             </CardHeader>
-            <CardContent className="grid md:grid-cols-4 gap-3">
+            <CardContent className="grid md:grid-cols-4 gap-4">
               <div className="space-y-1">
                 <Label>{t('admin.category')}</Label>
                 <Select
@@ -190,125 +349,210 @@ export default function AdminDashboard() {
               </div>
               <div className="space-y-1">
                 <Label>{t('admin.query')}</Label>
-                <Input value={filters.q || ''} onChange={(e) => setFilters((f) => ({ ...f, q: e.target.value }))} />
+                <div className="relative">
+                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input 
+                    className="pl-8" 
+                    value={filters.q || ''} 
+                    onChange={(e) => setFilters((f) => ({ ...f, q: e.target.value }))} 
+                    placeholder="Search suggestions..."
+                  />
+                </div>
               </div>
-              <div className="flex items-end">
-                <Button onClick={() => loadList(1)} disabled={loading}>{t('admin.apply')}</Button>
+              <div className="flex items-end space-x-2">
+                <Button onClick={() => loadList(1)} disabled={loading}>
+                  {t('admin.apply')}
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    setFilters({});
+                    loadList(1);
+                  }}
+                  disabled={loading}
+                >
+                  Clear
+                </Button>
               </div>
             </CardContent>
           </Card>
 
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-sm">
-              <thead>
-                <tr className="text-left border-b">
-                  <th className="p-2">{t('admin.id')}</th>
-                  <th className="p-2">{t('admin.category')}</th>
-                  <th className="p-2">{t('admin.status')}</th>
-                  <th className="p-2">{t('admin.assignedDepartment')}</th>
-                  <th className="p-2">{t('admin.assignedTo')}</th>
-                  <th className="p-2">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((r) => {
-                  const id = (r._id || r.id)!;
-                  const e = edits[id] || {};
-                  return (
-                    <tr key={id} className="border-b align-top">
-                      <td className="p-2 max-w-[220px] break-words">{id}</td>
-                      <td className="p-2">
-                        <Select
-                          defaultValue={r.category}
-                          onValueChange={(v: Category) => applyEdit(id, { category: v })}
-                        >
-                          <SelectTrigger><SelectValue /></SelectTrigger>
-                          <SelectContent>
-                            {categories.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                          </SelectContent>
-                        </Select>
-                      </td>
-                      <td className="p-2">
-                        <Select
-                          defaultValue={r.status}
-                          onValueChange={(v: Status) => applyEdit(id, { status: v as Status })}
-                        >
-                          <SelectTrigger><SelectValue /></SelectTrigger>
-                          <SelectContent>
-                            {statuses.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-                          </SelectContent>
-                        </Select>
-                      </td>
-                      <td className="p-2">
-                        <Input
-                          defaultValue={r.assignedDepartment || ''}
-                          onChange={(ev) => applyEdit(id, { assignedDepartment: ev.target.value })}
-                        />
-                      </td>
-                      <td className="p-2">
-                        <Input
-                          defaultValue={r.assignedTo || ''}
-                          onChange={(ev) => applyEdit(id, { assignedTo: ev.target.value })}
-                        />
-                      </td>
-                      <td className="p-2 space-x-2">
-                        <Button
-                          size="sm"
-                          onClick={async () => {
-                            const patch: {
-                              status?: Status;
-                              category?: Category;
-                              assignedDepartment?: string | null;
-                              assignedTo?: string | null;
-                            } = {};
-                            if (e.category) patch.category = e.category as Category;
-                            if (e.status) patch.status = e.status as Status;
-                            if (e.assignedDepartment !== undefined) patch.assignedDepartment = e.assignedDepartment as string | null;
-                            if (e.assignedTo !== undefined) patch.assignedTo = e.assignedTo as string | null;
-                            if (Object.keys(patch).length === 0) return;
-                            await adminUpdate(id, patch);
-                            await loadList(page);
-                          }}
-                        >
-                          {t('admin.update')}
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="destructive"
-                          onClick={async () => {
-                            await adminDelete(id);
-                            await loadList(page);
-                          }}
-                        >
-                          {t('admin.delete')}
-                        </Button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-            <div className="flex items-center justify-between mt-3">
-              <span className="text-sm text-muted-foreground">
-                {rows.length} / {total}
-              </span>
-              <div className="space-x-2">
-                <Button variant="outline" disabled={page <= 1 || loading} onClick={() => loadList(page - 1)}>
-                  Prev
-                </Button>
-                <Button variant="outline" disabled={rows.length + (page - 1) * 20 >= total || loading} onClick={() => loadList(page + 1)}>
-                  Next
-                </Button>
+          <Card ref={suggestionsRef}>
+            <CardHeader className="pb-3">
+              <div className="flex justify-between items-center">
+                <CardTitle>Suggestion Management</CardTitle>
+                <div className="text-sm text-muted-foreground">
+                  Showing {rows.length} of {total} suggestions
+                </div>
               </div>
-            </div>
-          </div>
+            </CardHeader>
+            <CardContent>
+              <div className="rounded-md border overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="min-w-full text-sm">
+                    <thead>
+                      <tr className="bg-muted/50">
+                        <th className="p-3 text-left font-medium">ID</th>
+                        <th className="p-3 text-left font-medium">Category</th>
+                        <th className="p-3 text-left font-medium">Status</th>
+                        <th className="p-3 text-left font-medium">Description</th>
+                        <th className="p-3 text-left font-medium">Created</th>
+                        <th className="p-3 text-left font-medium">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {loading ? (
+                        <tr>
+                          <td colSpan={6} className="p-4 text-center">
+                            <div className="flex justify-center items-center py-8">
+                              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                            </div>
+                          </td>
+                        </tr>
+                      ) : rows.length === 0 ? (
+                        <tr>
+                          <td colSpan={6} className="p-4 text-center text-muted-foreground">
+                            No suggestions found
+                          </td>
+                        </tr>
+                      ) : (
+                        rows.map((r) => {
+                          const id = (r._id || r.id)!;
+                          const e = edits[id] || {};
+                          const isEditing = editingId === id;
+                          
+                          return (
+                            <tr key={id} className="border-b hover:bg-muted/30 transition-colors">
+                              <td className="p-3 max-w-[120px] truncate font-mono text-xs">{id}</td>
+                              <td className="p-3">
+                                {isEditing ? (
+                                  <Select
+                                    defaultValue={r.category}
+                                    onValueChange={(v: Category) => applyEdit(id, { category: v })}
+                                  >
+                                    <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                                    <SelectContent>
+                                      {categories.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                                    </SelectContent>
+                                  </Select>
+                                ) : (
+                                  <Badge variant="outline">{r.category}</Badge>
+                                )}
+                              </td>
+                              <td className="p-3">
+                                {isEditing ? (
+                                  <Select
+                                    defaultValue={r.status}
+                                    onValueChange={(v: Status) => applyEdit(id, { status: v as Status })}
+                                  >
+                                    <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                                    <SelectContent>
+                                      {statuses.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                                    </SelectContent>
+                                  </Select>
+                                ) : (
+                                  <Badge className={statusColors[r.status]}>
+                                    {r.status}
+                                  </Badge>
+                                )}
+                              </td>
+                              <td className="p-3 max-w-[300px]">
+                                <div className="line-clamp-2">{r.description}</div>
+                              </td>
+                              <td className="p-3 whitespace-nowrap">
+                                {format(new Date(r.createdAt), 'MMM dd, yyyy')}
+                              </td>
+                              <td className="p-3">
+                                <div className="flex items-center space-x-2">
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => handleViewDetails(r)}
+                                  >
+                                    <Eye className="h-4 w-4" />
+                                  </Button>
+                                  {isEditing ? (
+                                    <>
+                                      <Button
+                                        size="sm"
+                                        onClick={() => handleSaveEdit(id)}
+                                      >
+                                        Save
+                                      </Button>
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={() => setEditingId(null)}
+                                      >
+                                        Cancel
+                                      </Button>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        onClick={() => handleEdit(id)}
+                                      >
+                                        <Edit className="h-4 w-4" />
+                                      </Button>
+                                      <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        onClick={() => handleDelete(id)}
+                                      >
+                                        <Trash2 className="h-4 w-4" />
+                                      </Button>
+                                    </>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+                
+                {/* Pagination */}
+                <div className="flex items-center justify-between p-3 border-t">
+                  <div className="text-sm text-muted-foreground">
+                    Page {page} of {Math.ceil(total / 20)}
+                  </div>
+                  <div className="flex space-x-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={page <= 1 || loading}
+                      onClick={() => loadList(page - 1)}
+                    >
+                      <ChevronLeft className="h-4 w-4 mr-1" />
+                      Previous
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={rows.length < 20 || loading}
+                      onClick={() => loadList(page + 1)}
+                    >
+                      Next
+                      <ChevronRight className="h-4 w-4 ml-1" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="analytics" className="mt-4">
-          <div className="grid md:grid-cols-2 gap-4">
+          <div ref={analyticsRef} className="grid md:grid-cols-2 gap-6">
             <Card>
-              <CardHeader><CardTitle>{t('admin.byStatus')}</CardTitle></CardHeader>
-              <CardContent className="h-64">
+              <CardHeader>
+                <CardTitle>{t('admin.byStatus')}</CardTitle>
+              </CardHeader>
+              <CardContent className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={summary?.byStatus || []}>
                     <CartesianGrid strokeDasharray="3 3" />
@@ -323,15 +567,28 @@ export default function AdminDashboard() {
             </Card>
 
             <Card>
-              <CardHeader><CardTitle>{t('admin.byCategory')}</CardTitle></CardHeader>
-              <CardContent className="h-64">
+              <CardHeader>
+                <CardTitle>{t('admin.byCategory')}</CardTitle>
+              </CardHeader>
+              <CardContent className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Tooltip />
                     <Legend />
-                    <Pie data={summary?.byCategory || []} dataKey="count" nameKey="_id" outerRadius={80} label>
-                      {(summary?.byCategory || []).map((_, idx) => (
-                        <Cell key={idx} fill={['#2563eb', '#16a34a', '#f59e0b', '#ef4444'][idx % 4]} />
+                    <Pie 
+                      data={summary?.byCategory || []} 
+                      dataKey="count" 
+                      nameKey="_id" 
+                      cx="50%" 
+                      cy="50%" 
+                      outerRadius={80} 
+                      label 
+                    >
+                      {(summary?.byCategory || []).map((entry, index) => (
+                        <Cell 
+                          key={`cell-${index}`} 
+                          fill={['#2563eb', '#16a34a', '#f59e0b', '#ef4444'][index % 4]} 
+                        />
                       ))}
                     </Pie>
                   </PieChart>
@@ -340,8 +597,10 @@ export default function AdminDashboard() {
             </Card>
 
             <Card className="md:col-span-2">
-              <CardHeader><CardTitle>{t('admin.monthlyTrends')}</CardTitle></CardHeader>
-              <CardContent className="h-72">
+              <CardHeader>
+                <CardTitle>{t('admin.monthlyTrends')}</CardTitle>
+              </CardHeader>
+              <CardContent className="h-96">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={monthlyData}>
                     <CartesianGrid strokeDasharray="3 3" />
@@ -349,7 +608,7 @@ export default function AdminDashboard() {
                     <YAxis />
                     <Tooltip />
                     <Legend />
-                    <Line type="monotone" dataKey="count" stroke="#2563eb" />
+                    <Line type="monotone" dataKey="count" stroke="#2563eb" strokeWidth={2} />
                   </LineChart>
                 </ResponsiveContainer>
               </CardContent>
@@ -357,6 +616,102 @@ export default function AdminDashboard() {
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* Suggestion Detail Dialog */}
+      <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Suggestion Details</DialogTitle>
+            <DialogDescription>
+              Complete information for this suggestion
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedSuggestion && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm font-medium">ID</Label>
+                  <p className="text-sm font-mono">{selectedSuggestion._id || selectedSuggestion.id}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Category</Label>
+                  <Badge variant="outline">{selectedSuggestion.category}</Badge>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Status</Label>
+                  <Badge className={statusColors[selectedSuggestion.status]}>
+                    {selectedSuggestion.status}
+                  </Badge>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Created</Label>
+                  <p className="text-sm">
+                    {format(new Date(selectedSuggestion.createdAt), 'PPP pp')}
+                  </p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Last Updated</Label>
+                  <p className="text-sm">
+                    {format(new Date(selectedSuggestion.updatedAt), 'PPP pp')}
+                  </p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Anonymous</Label>
+                  <p className="text-sm">{selectedSuggestion.anonymous ? 'Yes' : 'No'}</p>
+                </div>
+              </div>
+
+              <div>
+                <Label className="text-sm font-medium">Description</Label>
+                <p className="text-sm mt-1 p-3 bg-muted rounded-md whitespace-pre-wrap">
+                  {selectedSuggestion.description}
+                </p>
+              </div>
+
+              {selectedSuggestion.assignedDepartment && (
+                <div>
+                  <Label className="text-sm font-medium">Assigned Department</Label>
+                  <p className="text-sm">{selectedSuggestion.assignedDepartment}</p>
+                </div>
+              )}
+
+              {selectedSuggestion.assignedTo && (
+                <div>
+                  <Label className="text-sm font-medium">Assigned To</Label>
+                  <p className="text-sm">{selectedSuggestion.assignedTo}</p>
+                </div>
+              )}
+
+              {selectedSuggestion.media && selectedSuggestion.media.length > 0 && (
+                <div>
+                  <Label className="text-sm font-medium">Attachments ({selectedSuggestion.media.length})</Label>
+                  <div className="grid grid-cols-2 gap-2 mt-2">
+                    {selectedSuggestion.media.map((media, index) => (
+                      <div key={index} className="border rounded-md p-2">
+                        {media.type === 'image' ? (
+                          <img 
+                            src={media.url} 
+                            alt={`Attachment ${index + 1}`}
+                            className="w-full h-32 object-cover rounded"
+                          />
+                        ) : (
+                          <video 
+                            src={media.url}
+                            className="w-full h-32 object-cover rounded"
+                            controls
+                          />
+                        )}
+                        <p className="text-xs mt-1 truncate">{media.filename}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

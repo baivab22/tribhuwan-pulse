@@ -1,5 +1,8 @@
 import axios from 'axios';
 
+/* ===========================
+   Types
+=========================== */
 export type Role = 'student' | 'teacher' | 'staff' | 'alumni' | 'admin';
 export type Category = 'academic' | 'administrative' | 'infrastructure' | 'other';
 export type Status = 'Received' | 'In Process' | 'Resolved';
@@ -11,6 +14,30 @@ export interface User {
   role: Role;
 }
 
+export interface Suggestion {
+  _id?: string;
+  id?: string;
+  user?: string;
+  anonymous: boolean;
+  category: Category;
+  description: string;
+  status: Status;
+  assignedDepartment?: string | null;
+  assignedTo?: string | null;
+  media?: {
+    type: 'image' | 'video';
+    url: string;
+    filename: string;
+    mimetype: string;
+    size: number;
+  }[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+/* ===========================
+   Storage Helpers
+=========================== */
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:4000';
 
 function getToken(): string | null {
@@ -49,7 +76,9 @@ export function isAdmin(): boolean {
   return !!u && u.role === 'admin';
 }
 
-// Axios instance
+/* ===========================
+   Axios Instance
+=========================== */
 const api = axios.create({
   baseURL: API_BASE,
   headers: { 'Content-Type': 'application/json' }
@@ -69,12 +98,15 @@ api.interceptors.response.use(
   }
 );
 
-/* Auth */
+/* ===========================
+   Auth Services
+=========================== */
 export interface LoginResp {
   user: User;
   token: string;
 }
 
+// POST /api/auth/login
 export async function login(email: string, password: string) {
   const { data } = await api.post<LoginResp>('/api/auth/login', { email, password });
   setToken(data.token);
@@ -82,6 +114,7 @@ export async function login(email: string, password: string) {
   return data;
 }
 
+// POST /api/auth/register
 export async function register(name: string, email: string, password: string, role?: Role) {
   const { data } = await api.post<LoginResp>('/api/auth/register', { name, email, password, role });
   setToken(data.token);
@@ -89,6 +122,7 @@ export async function register(name: string, email: string, password: string, ro
   return data;
 }
 
+// POST /api/auth/logout
 export async function logout() {
   try {
     await api.post('/api/auth/logout');
@@ -97,28 +131,11 @@ export async function logout() {
   setStoredUser(null);
 }
 
-/* Suggestions */
-export interface Suggestion {
-  _id?: string;
-  id?: string;
-  user?: string;
-  anonymous: boolean;
-  category: Category;
-  description: string;
-  status: Status;
-  assignedDepartment?: string | null;
-  assignedTo?: string | null;
-  media?: {
-    type: 'image' | 'video';
-    url: string;
-    filename: string;
-    mimetype: string;
-    size: number;
-  }[];
-  createdAt: string;
-  updatedAt: string;
-}
+/* ===========================
+   Suggestion Services
+=========================== */
 
+// POST /api/suggestions (multipart/form-data)
 export async function createSuggestionWithMedia(form: FormData) {
   const { data } = await api.post<{ suggestion: Suggestion }>('/api/suggestions', form, {
     headers: { 'Content-Type': 'multipart/form-data' }
@@ -126,16 +143,23 @@ export async function createSuggestionWithMedia(form: FormData) {
   return data;
 }
 
-export async function createSuggestion(params: { category: Category; description: string; anonymous: boolean }) {
+// POST /api/suggestions (JSON body)
+export async function createSuggestion(params: {
+  category: Category;
+  description: string;
+  anonymous: boolean;
+}) {
   const { data } = await api.post<{ suggestion: Suggestion }>('/api/suggestions', params);
   return data;
 }
 
+// GET /api/suggestions/my
 export async function mySuggestions() {
   const { data } = await api.get<{ suggestions: Suggestion[] }>('/api/suggestions/my');
   return data;
 }
 
+// GET /api/suggestions/track/:id
 export async function trackSuggestion(id: string) {
   const { data } = await api.get<{
     suggestion: { id: string; status: Status; category: Category; createdAt: string; updatedAt: string };
@@ -143,6 +167,7 @@ export async function trackSuggestion(id: string) {
   return data;
 }
 
+// GET /api/public/resolved
 export async function listResolved(page = 1, limit = 10) {
   const { data } = await api.get<{ page: number; limit: number; total: number; suggestions: Suggestion[] }>(
     '/api/public/resolved',
@@ -151,7 +176,11 @@ export async function listResolved(page = 1, limit = 10) {
   return data;
 }
 
-/* Admin */
+/* ===========================
+   Admin Services
+=========================== */
+
+// GET /api/admin/suggestions
 export async function adminList(params: {
   category?: Category;
   status?: Status;
@@ -169,6 +198,7 @@ export async function adminList(params: {
   return data;
 }
 
+// PATCH /api/admin/suggestions/:id
 export async function adminUpdate(
   id: string,
   updates: Partial<Pick<Suggestion, 'status' | 'category' | 'assignedDepartment' | 'assignedTo'>>
@@ -177,16 +207,28 @@ export async function adminUpdate(
   return data;
 }
 
+// DELETE /api/admin/suggestions/:id
 export async function adminDelete(id: string) {
   const { data } = await api.delete<{ message: string }>(`/api/admin/suggestions/${id}`);
   return data;
 }
 
+// GET /api/admin/reports/summary
 export async function adminSummary() {
   const { data } = await api.get<{
     byStatus: { _id: Status; count: number }[];
     byCategory: { _id: Category; count: number }[];
     monthly: { _id: { year: number; month: number }; count: number }[];
   }>('/api/admin/reports/summary');
+  return data;
+}
+
+/* ===========================
+   Extra (Optional for future)
+=========================== */
+
+// ⚠️ Not implemented in backend yet, but useful to have:
+export async function getSuggestionById(id: string) {
+  const { data } = await api.get<{ suggestion: Suggestion }>(`/api/admin/suggestions/${id}`);
   return data;
 }
