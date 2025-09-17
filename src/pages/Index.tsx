@@ -45,6 +45,7 @@ import {
   Calendar
 } from 'lucide-react';
 import EnhancedTrackingCard from '@/components/SearchSuggest';
+import SuggestionCard from '@/components/suggestionCard';
 
 export default function HomePage() {
   const { t } = useTranslation();
@@ -221,7 +222,8 @@ const fetchPublicSuggestions = async () => {
               (new Date(s.updatedAt).getTime() - new Date(s.createdAt).getTime()) / 
               (1000 * 60 * 60 * 24)
             )} days`
-          : "N/A"
+          : "N/A",
+          actionTaken: s.actionTaken || "No action yet"
       };
     });
 
@@ -306,22 +308,14 @@ const fetchPublicSuggestions = async () => {
       {/* Enhanced Hero Section */}
 <section className="relative overflow-hidden bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 min-h-[80dvh] flex items-center">
 
-  {/* Animated Background Elements */}
-  {/* <div className="absolute inset-0">
-    <div className="absolute top-20 left-20 w-72 h-72 bg-white/10 rounded-full blur-3xl animate-pulse"></div>
-    <div className="absolute bottom-20 right-20 w-96 h-96 bg-purple-300/20 rounded-full blur-3xl animate-bounce"></div>
-    <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-pink-300/15 rounded-full blur-2xl transform -translate-x-1/2 -translate-y-1/2 animate-ping"></div>
-  </div> */}
+
   
   <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
     <div className="grid lg:grid-cols-2 gap-12 items-center">
       {/* Left Content - Main Call to Action */}
       <div className={`space-y-8 transform transition-all duration-1000 ${isVisible ? 'translate-x-0 opacity-100' : '-translate-x-10 opacity-0'}`}>
         <div className="space-y-6">
-          {/* <div className="inline-flex items-center px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full text-sm font-medium text-white border border-white/30 hover:bg-white/30 transition-all duration-300 mb-4">
-            <Target className="w-4 h-4 mr-2 animate-pulse" />
-            University Feedback Management System
-          </div> */}
+
           
           <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-white leading-tight font-poppins">
             Your Voice,
@@ -348,34 +342,10 @@ const fetchPublicSuggestions = async () => {
          
           </Link>
           
-          {/* <Link to="/public" className="flex-1">
-            <Button variant="outline" className="group w-full border-3 border-white/40 text-white hover:bg-white/20 backdrop-blur-sm px-8 py-6 h-16 text-lg font-semibold rounded-2xl transition-all duration-300 transform hover:scale-105 shadow-lg">
-              <Eye className="w-6 h-6 mr-3 group-hover:scale-110 transition-transform duration-300" />
-              View Public Board
-            </Button>
-          </Link> */}
+     
         </div>
 
-        {/* Stats Section */}
-        {/* <div className="grid grid-cols-2 gap-4 pt-6">
-          {stats.map((stat, index) => {
-            const IconComponent = stat.icon;
-            return (
-              <div 
-                key={stat.label} 
-                className={`text-center transform transition-all duration-700 hover:scale-105 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}
-                style={{ transitionDelay: `${index * 100}ms` }}
-              >
-                <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4 border border-white/30 hover:bg-white/30 transition-all duration-300">
-                  <IconComponent className="w-6 h-6 text-yellow-300 mx-auto mb-2 animate-bounce" />
-                  <div className="text-xl font-bold text-white font-poppins">{stat.value}</div>
-                  <div className="text-xs text-purple-100 font-inter uppercase tracking-wide">{stat.label}</div>
-                  <div className="text-xs text-green-300 font-medium mt-1 animate-pulse font-inter">{stat.trend}</div>
-                </div>
-              </div>
-            );
-          })}
-        </div> */}
+    
       </div>
 
       {/* Right Side - Enhanced Tracking Card */}
@@ -402,45 +372,9 @@ const fetchPublicSuggestions = async () => {
           </div>
 
           <div className="grid md:grid-cols-3 gap-6">
-            {publicSuggestions.map((suggestion, index) => (
-              <Card 
-                key={suggestion.id}
-                className="border-0 shadow-lg bg-white hover:shadow-xl transition-all duration-300 transform hover:scale-105 hover:-translate-y-1"
-                style={{ animationDelay: `${index * 100}ms` }}
-              >
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between mb-3">
-                    <h3 className="font-semibold text-gray-900 text-base leading-tight flex-1 mr-3 font-poppins">
-                      {suggestion.title}
-                    </h3>
-                    <div className="flex flex-col space-y-2">
-                      <Badge className={`text-xs font-medium border ${getCategoryColor(suggestion.category)}`}>
-                        {suggestion.category}
-                      </Badge>
-                      <Badge className={`text-xs font-medium border ${getStatusColor(suggestion.status)}`}>
-                        {suggestion.status}
-                      </Badge>
-                    </div>
-                  </div>
-                </CardHeader>
-                
-                <CardContent className="pt-0">
-                  <p className="text-sm text-gray-600 mb-4 leading-relaxed font-inter">
-                    {suggestion.impact}
-                  </p>
-                  
-                  <div className="flex items-center justify-between text-sm text-gray-500 font-inter">
-                    <div className="flex items-center">
-                      <Calendar className="w-4 h-4 mr-1" />
-                      Resolved: {suggestion.resolvedDate}
-                    </div>
-                    <span className="font-medium">
-                      {suggestion.resolutionTime}
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+            {publicSuggestions.map((suggestion, index) =>    {   return (
+  <SuggestionCard suggestion={suggestion}/>
+            )})}
           </div>
           
           <div className="text-center mt-8">
@@ -449,7 +383,7 @@ const fetchPublicSuggestions = async () => {
                 variant="outline" 
                 className="border-2 border-indigo-200 text-indigo-700 hover:bg-indigo-50 rounded-xl transform hover:scale-105 transition-all duration-300 font-semibold px-8 py-3 font-inter"
               >
-                View All Success Stories
+                View All Submitted Suggestion
                 <ExternalLink className="w-4 h-4 ml-2" />
               </Button>
             </Link>

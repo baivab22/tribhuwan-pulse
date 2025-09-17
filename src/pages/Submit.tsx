@@ -234,6 +234,7 @@ export default function SubmitPage() {
       form.append('category', category);
       form.append('description', description);
       form.append('anonymous', String(anonymous));
+            form.append('actionTaken', 'No action yet');
       
       // Handle assignedToDepartment - only append if it has a value and is not 'none'
       if (assignedToDepartment && assignedToDepartment !== 'none' && assignedToDepartment.trim() !== '') {
@@ -294,9 +295,9 @@ export default function SubmitPage() {
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
       <div className="max-w-4xl mx-auto px-4 py-8 space-y-8">
         <div className="text-center space-y-4">
-          <div className="w-16 h-16 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl mx-auto flex items-center justify-center">
+          {/* <div className="w-16 h-16 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl mx-auto flex items-center justify-center">
             <FileText className="w-8 h-8 text-white" />
-          </div>
+          </div> */}
           <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
             Submit Suggestion
           </h1>

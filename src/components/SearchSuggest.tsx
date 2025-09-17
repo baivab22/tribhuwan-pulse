@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Search, AlertCircle, CheckCircle2, ArrowRight, Calendar, Clock, FileText, User, Building, Sparkles, ExternalLink } from 'lucide-react';
+import { Search, AlertCircle, CheckCircle2, ArrowRight, Calendar, Clock, FileText, User, Building, Sparkles, ExternalLink, ClipboardCheck } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { format, formatDistanceToNow } from 'date-fns';
 import { adminList, Suggestion, Category, Status } from '@/lib/api';
@@ -121,7 +121,7 @@ export default function EnhancedTrackingCard({ className = '' }: EnhancedTrackin
             
             <Button 
               onClick={onTrack} 
-              disabled={ loading}
+              disabled={loading}
               className="w-full h-12 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold disabled:bg-gray-300 disabled:cursor-not-allowed rounded-xl transition-all duration-300 transform hover:scale-105 text-base font-inter shadow-lg"
             >
               {loading ? (
@@ -178,7 +178,7 @@ export default function EnhancedTrackingCard({ className = '' }: EnhancedTrackin
                   <div className="pt-3 border-t border-emerald-200">
                     <Button 
                       onClick={handleViewDetails}
-                      className="w-full border-emerald-300rounded-lg transform hover:scale-105 transition-all duration-200 font-semibold font-inter"
+                      className="w-full border-emerald-300 rounded-lg transform hover:scale-105 transition-all duration-200 font-semibold font-inter"
                     >
                       View Full Details
                       <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform duration-200" />
@@ -237,6 +237,21 @@ export default function EnhancedTrackingCard({ className = '' }: EnhancedTrackin
                   {result.description}
                 </p>
               </div>
+
+              {/* Action Taken Section */}
+              {result.actionTaken && (
+                <div>
+                  <h3 className="text-base font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                    <ClipboardCheck className="h-5 w-5 text-green-500" />
+                    Action Taken
+                  </h3>
+                  <div className="bg-green-50 border border-green-200 rounded-md p-4">
+                    <p className="text-gray-700 text-sm leading-relaxed">
+                      {result.actionTaken}
+                    </p>
+                  </div>
+                </div>
+              )}
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div className="space-y-3">

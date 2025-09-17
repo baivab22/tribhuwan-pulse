@@ -11,6 +11,7 @@ import { listResolved, Suggestion, Category, Status } from '@/lib/api';
 import { Search, Filter, ChevronLeft, ChevronRight, Eye, Calendar, Clock, BarChart3, X, Image, Download } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 import { Link } from 'react-router-dom';
+import SuggestionCard from '@/components/suggestionCard';
 
 const categories: Category[] = ['academic', 'administrative', 'infrastructure', 'other'];
 const statuses: Status[] = ['Received', 'In Process', 'Resolved'];
@@ -83,7 +84,7 @@ export default function PublicSuggestionsPage() {
       filtered = filtered.filter(suggestion => suggestion.status === statusFilter);
     }
 
-    setTotal(filtered.length);
+    setTotal(filtered?.length);
     
     // Apply pagination
     const startIndex = (page - 1) * itemsPerPage;
@@ -226,7 +227,7 @@ export default function PublicSuggestionsPage() {
         {/* Results Count */}
         <div className="flex justify-between items-center mb-4">
           <p className="text-sm text-muted-foreground">
-            Showing {filteredSuggestions.length} of {total} suggestions
+            Showing {filteredSuggestions?.length} of {total} suggestions
           </p>
           {total > 0 && (
             <div className="text-sm text-muted-foreground">
@@ -235,31 +236,47 @@ export default function PublicSuggestionsPage() {
           )}
         </div>
 
-        {/* Suggestions Grid */}
-        {filteredSuggestions.length === 0 ? (
-          <Card>
-            <CardContent className="pt-6 text-center">
-              <div className="text-muted-foreground mb-4">
-                {suggestions.length === 0 
-                  ? "No resolved suggestions available yet."
-                  : "No suggestions match your filters."
-                }
-              </div>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="grid md:grid-cols-2 gap-6 mb-6">
-            {filteredSuggestions.map((suggestion) => (
-              <SuggestionCard 
-                key={suggestion._id || suggestion.id} 
-                suggestion={suggestion} 
-                onViewDetails={handleViewDetails}
-              />
-            ))}
-          </div>
-        )}
+{filteredSuggestions?.length === 0 ? (
+  <Card>
+    <CardContent className="pt-6 text-center">
+      <div className="text-muted-foreground mb-4">
+        {suggestions?.length === 0 
+          ? "No resolved suggestions available yet."
+          : "No suggestions match your filters."
+        }
+      </div>
+    </CardContent>
+  </Card>
+) : (
+  <div className="grid md:grid-cols-2 gap-6 mb-6">
+    {filteredSuggestions.map((s: any, index: number) => {
+      const suggestion = {
+        id: `SUG-${100000 + index + 1}`,
+        title: s.description || "No title provided",
+        category: s.category || "General",
+        status: s.status || "Pending",
+        impact: s.impact || "Impact not available",
+        resolvedDate: s.updatedAt 
+          ? new Date(s.updatedAt).toLocaleDateString() 
+          : "Not resolved",
+        department: s.assignedDepartment || "Unassigned",
+        resolutionTime: s.createdAt && s.updatedAt 
+          ? `${Math.ceil(
+              (new Date(s.updatedAt).getTime() - new Date(s.createdAt).getTime()) / 
+              (1000 * 60 * 60 * 24)
+            )} days`
+          : "N/A",
+        actionTaken: s.actionTaken || "No action yet"
+      };
 
-        {/* Pagination */}
+      return <SuggestionCard key={suggestion.id} suggestion={suggestion} />;
+    })}
+  </div>
+)}
+
+   
+
+   
         {totalPages > 1 && (
           <div className="flex justify-center items-center space-x-2">
             <Button
@@ -322,173 +339,82 @@ export default function PublicSuggestionsPage() {
           </CardContent>
         </Card>
 
-        {/* Suggestion Detail Modal */}
-        <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle className="flex items-center justify-between">
-                <span>Suggestion Details</span>
-                <Button variant="ghost" size="icon" onClick={() => setIsModalOpen(false)}>
-                  {/* <X className="h-4 w-4" /> */}
-                </Button>
-              </DialogTitle>
-              <DialogDescription>
-                View all details about this suggestion
-              </DialogDescription>
-            </DialogHeader>
-            
-            {selectedSuggestion && (
-              <div className="space-y-6 py-4">
-                <div className="flex flex-wrap gap-2">
-                  <Badge variant="outline" className="capitalize">
-                    {selectedSuggestion.category}
-                  </Badge>
-                  <Badge className={statusColors[selectedSuggestion.status]}>
-                    {selectedSuggestion.status}
-                  </Badge>
-                  <Badge variant="secondary" className="ml-auto">
-                    ID: {selectedSuggestion._id?.substring(0, 8)}...
-                  </Badge>
-                </div>
-                
-                <div>
-                  <h3 className="text-lg font-semibold mb-2">Description</h3>
-                  <p className="text-muted-foreground bg-muted/30 p-4 rounded-md">
-                    {selectedSuggestion.description}
-                  </p>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <h4 className="text-sm font-medium mb-1 flex items-center gap-1">
-                      <Calendar className="h-4 w-4" />
-                      Submitted
-                    </h4>
-                    <p className="text-sm">
-                      {format(new Date(selectedSuggestion.createdAt), 'PPP')}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {formatDistanceToNow(new Date(selectedSuggestion.createdAt), { addSuffix: true })}
-                    </p>
-                  </div>
-                  
-                  {selectedSuggestion.status === 'Resolved' && (
-                    <div>
-                      <h4 className="text-sm font-medium mb-1 flex items-center gap-1">
-                        <Clock className="h-4 w-4" />
-                        Resolved
-                      </h4>
-                      <p className="text-sm">
-                        {format(new Date(selectedSuggestion.updatedAt), 'PPP')}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {formatDistanceToNow(new Date(selectedSuggestion.updatedAt), { addSuffix: true })}
-                      </p>
-                    </div>
-                  )}
-                </div>
-                
-                {selectedSuggestion.media && selectedSuggestion.media.length > 0 && (
-                  <div>
-                    <h4 className="text-sm font-medium mb-2 flex items-center gap-1">
-                      <Image className="h-4 w-4" />
-                      Attachments ({selectedSuggestion.media.length})
-                    </h4>
-                    <div className="grid grid-cols-2 gap-2">
-                      {selectedSuggestion.media.map((media, index) => (
-                        <div key={index} className="flex items-center justify-between p-2 border rounded-md">
-                          <span className="text-sm truncate mr-2">
-                            {media.name || `Attachment ${index + 1}`}
-                          </span>
-                          <Button variant="ghost" size="icon" asChild>
-                            <a href={media.url} target="_blank" rel="noopener noreferrer">
-                              <Download className="h-4 w-4" />
-                            </a>
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-          </DialogContent>
-        </Dialog>
+     
       </div>
     </div>
   );
 }
 
-function SuggestionCard({ 
-  suggestion, 
-  onViewDetails 
-}: { 
-  suggestion: Suggestion;
-  onViewDetails: (suggestion: Suggestion) => void;
-}) {
-  const id = suggestion._id || suggestion.id;
+// function SuggestionCard({ 
+//   suggestion, 
+//   onViewDetails 
+// }: { 
+//   suggestion: Suggestion;
+//   onViewDetails: (suggestion: Suggestion) => void;
+// }) {
+//   const id = suggestion._id || suggestion.id;
   
-  return (
-    <Card className="h-full hover:shadow-md transition-shadow group">
-      <CardHeader className="pb-3">
-        <div className="flex justify-between items-start mb-2">
-          <Badge variant="outline" className="capitalize">
-            {suggestion.category}
-          </Badge>
-          <Badge className={statusColors[suggestion.status]}>
-            {suggestion.status}
-          </Badge>
-        </div>
-        <CardTitle className="text-lg line-clamp-2 group-hover:text-primary transition-colors">
-          {suggestion.description.length > 60 
-            ? `${suggestion.description.substring(0, 60)}...`
-            : suggestion.description
-          }
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-3">
-          <p className="text-sm text-muted-foreground line-clamp-3">
-            {suggestion.description}
-          </p>
+//   return (
+//     <Card className="h-full hover:shadow-md transition-shadow group">
+//       <CardHeader className="pb-3">
+//         <div className="flex justify-between items-start mb-2">
+//           <Badge variant="outline" className="capitalize">
+//             {suggestion.category}
+//           </Badge>
+//           <Badge className={statusColors[suggestion.status]}>
+//             {suggestion.status}
+//           </Badge>
+//         </div>
+//         <CardTitle className="text-lg line-clamp-2 group-hover:text-primary transition-colors">
+//           {suggestion.description?.length > 60 
+//             ? `${suggestion.description.substring(0, 60)}...`
+//             : suggestion.description
+//           }
+//         </CardTitle>
+//       </CardHeader>
+//       <CardContent>
+//         <div className="space-y-3">
+//           <p className="text-sm text-muted-foreground line-clamp-3">
+//             {suggestion.description}
+//           </p>
           
-          <div className="flex items-center justify-between text-sm text-muted-foreground">
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-1">
-                <Calendar className="h-4 w-4" />
-                <span>{format(new Date(suggestion.createdAt), 'MMM dd, yyyy')}</span>
-              </div>
-              {suggestion.status === 'Resolved' && (
-                <div className="flex items-center gap-1">
-                  <Clock className="h-4 w-4" />
-                  <span>{format(new Date(suggestion.updatedAt), 'MMM dd, yyyy')}</span>
-                </div>
-              )}
-            </div>
-          </div>
+//           <div className="flex items-center justify-between text-sm text-muted-foreground">
+//             <div className="flex items-center gap-4">
+//               <div className="flex items-center gap-1">
+//                 <Calendar className="h-4 w-4" />
+//                 <span>{format(new Date(suggestion.createdAt), 'MMM dd, yyyy')}</span>
+//               </div>
+//               {suggestion.status === 'Resolved' && (
+//                 <div className="flex items-center gap-1">
+//                   <Clock className="h-4 w-4" />
+//                   <span>{format(new Date(suggestion.updatedAt), 'MMM dd, yyyy')}</span>
+//                 </div>
+//               )}
+//             </div>
+//           </div>
 
-          {suggestion.media && suggestion.media.length > 0 && (
-            <div className="text-xs text-muted-foreground flex items-center gap-1">
-              <Image className="h-3 w-3" />
-              {suggestion.media.length} attachment{suggestion.media.length !== 1 ? 's' : ''}
-            </div>
-          )}
+//           {suggestion.media && suggestion.media.length > 0 && (
+//             <div className="text-xs text-muted-foreground flex items-center gap-1">
+//               <Image className="h-3 w-3" />
+//               {suggestion.media.length} attachment{suggestion.media.length !== 1 ? 's' : ''}
+//             </div>
+//           )}
 
-          <div className="flex justify-between items-center pt-2">
-            <span className="text-xs font-mono text-muted-foreground">
-              ID: {id?.substring(0, 8)}...
-            </span>
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => onViewDetails(suggestion)}
-            >
-              <Eye className="h-4 w-4 mr-1" />
-              View Details
-            </Button>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
+//           <div className="flex justify-between items-center pt-2">
+//             <span className="text-xs font-mono text-muted-foreground">
+//               ID: {id?.substring(0, 8)}...
+//             </span>
+//             <Button 
+//               variant="outline" 
+//               size="sm"
+//               onClick={() => onViewDetails(suggestion)}
+//             >
+//               <Eye className="h-4 w-4 mr-1" />
+//               View Details
+//             </Button>
+//           </div>
+//         </div>
+//       </CardContent>
+//     </Card>
+//   );
+// }

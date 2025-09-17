@@ -33,6 +33,7 @@ export interface Suggestion {
   }[];
   createdAt: string;
   updatedAt: string;
+  actionTaken?: string;
 }
 
 export interface Department {

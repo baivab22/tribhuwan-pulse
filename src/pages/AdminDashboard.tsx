@@ -110,6 +110,7 @@ export default function AdminDashboard() {
     byDepartment: { _id: string; count: number }[];
     monthly: { _id: { year: number; month: number }; count: number }[];
     departmentStats: { total: number; active: number };
+    actionStats: { withAction: number; withoutAction: number };
   } | null>(null);
 
   const [edits, setEdits] = useState<Record<string, Partial<Suggestion>>>({});
@@ -588,8 +589,9 @@ export default function AdminDashboard() {
                         <th className="p-3 text-left font-medium">Category</th>
                         <th className="p-3 text-left font-medium">Status</th>
                         <th className="p-3 text-left font-medium">Assigned Department</th>
-                        {/* <th className="p-3 text-left font-medium">Assigned To</th> */}
+                        <th className="p-3 text-left font-medium">Assigned To</th>
                         <th className="p-3 text-left font-medium">Description</th>
+                        <th className="p-3 text-left font-medium">Action Taken</th>
                         <th className="p-3 text-left font-medium">Created</th>
                         <th className="p-3 text-left font-medium">Actions</th>
                       </tr>
@@ -597,7 +599,7 @@ export default function AdminDashboard() {
                     <tbody>
                       {loading ? (
                         <tr>
-                          <td colSpan={8} className="p-4 text-center">
+                          <td colSpan={9} className="p-4 text-center">
                             <div className="flex justify-center items-center py-8">
                               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
                             </div>
@@ -605,7 +607,7 @@ export default function AdminDashboard() {
                         </tr>
                       ) : rows.length === 0 ? (
                         <tr>
-                          <td colSpan={8} className="p-4 text-center text-muted-foreground">
+                          <td colSpan={9} className="p-4 text-center text-muted-foreground">
                             No suggestions found
                           </td>
                         </tr>
@@ -619,6 +621,7 @@ export default function AdminDashboard() {
                           const currentStatus = e.status !== undefined ? e.status : r.status;
                           const currentDepartment = e.assignedDepartment !== undefined ? e.assignedDepartment : r.assignedDepartment || "";
                           const currentAssignee = e.assignedTo !== undefined ? e.assignedTo : r.assignedTo || "";
+                          const currentActionTaken = e.actionTaken !== undefined ? e.actionTaken : r.actionTaken || "";
                           
                           return (
                             <tr key={id} className="border-b hover:bg-muted/30 transition-colors">
@@ -690,8 +693,29 @@ export default function AdminDashboard() {
                                   <span>{r.assignedTo || "-"}</span>
                                 )}
                               </td>
-                              <td className="p-3 max-w-[300px]">
+                              <td className="p-3 max-w-[250px]">
                                 <div className="line-clamp-2">{r.description}</div>
+                              </td>
+                              <td className="p-3 max-w-[200px]">
+                                {isEditing ? (
+                                  <Textarea
+                                    value={currentActionTaken}
+                                    onChange={(e) => applyEdit(id, { actionTaken: e.target.value })}
+                                    placeholder="Describe actions taken..."
+                                    rows={2}
+                                    className="min-h-[60px]"
+                                  />
+                                ) : (
+                                  <div className="line-clamp-2 text-sm">
+                                    {r.actionTaken ? (
+                                      <span className="text-green-700 bg-green-50 px-2 py-1 rounded text-xs">
+                                        {r.actionTaken}
+                                      </span>
+                                    ) : (
+                                      <span className="text-muted-foreground">No action recorded</span>
+                                    )}
+                                  </div>
+                                )}
                               </td>
                               <td className="p-3 whitespace-nowrap">
                                 {format(new Date(r.createdAt), 'MMM dd, yyyy')}
@@ -1138,32 +1162,34 @@ export default function AdminDashboard() {
               </CardContent>
             </Card>
 
-            {/* Department Stats Summary */}
+            {/* Action Taken Statistics */}
             <Card>
               <CardHeader>
-                <CardTitle>Department Overview</CardTitle>
+                <CardTitle>Action Taken Statistics</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="text-center p-4 bg-blue-50 rounded-lg">
-                      <div className="text-2xl font-bold text-blue-600">
-                        {summary?.departmentStats.total || 0}
-                      </div>
-                      <div className="text-sm text-blue-600">Total Departments</div>
-                    </div>
                     <div className="text-center p-4 bg-green-50 rounded-lg">
                       <div className="text-2xl font-bold text-green-600">
-                        {summary?.departmentStats.active || 0}
+                        {summary?.actionStats?.withAction || 0}
                       </div>
-                      <div className="text-sm text-green-600">Active Departments</div>
+                      <div className="text-sm text-green-600">With Action Taken</div>
+                    </div>
+                    <div className="text-center p-4 bg-orange-50 rounded-lg">
+                      <div className="text-2xl font-bold text-orange-600">
+                        {summary?.actionStats?.withoutAction || 0}
+                      </div>
+                      <div className="text-sm text-orange-600">Pending Action</div>
                     </div>
                   </div>
-                  <div className="text-center p-4 bg-yellow-50 rounded-lg">
-                    <div className="text-2xl font-bold text-yellow-600">
-                      {(summary?.departmentStats.total || 0) - (summary?.departmentStats.active || 0)}
+                  <div className="text-center p-4 bg-blue-50 rounded-lg">
+                    <div className="text-2xl font-bold text-blue-600">
+                      {summary?.actionStats ? 
+                        Math.round((summary.actionStats.withAction / (summary.actionStats.withAction + summary.actionStats.withoutAction)) * 100) 
+                        : 0}%
                     </div>
-                    <div className="text-sm text-yellow-600">Inactive Departments</div>
+                    <div className="text-sm text-blue-600">Action Completion Rate</div>
                   </div>
                 </div>
               </CardContent>
@@ -1271,7 +1297,7 @@ export default function AdminDashboard() {
 
       {/* Suggestion Detail Dialog */}
       <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Suggestion Details</DialogTitle>
             <DialogDescription>
@@ -1327,6 +1353,24 @@ export default function AdminDashboard() {
                 <p className="text-sm mt-1 p-3 bg-muted rounded-md whitespace-pre-wrap">
                   {selectedSuggestion.description}
                 </p>
+              </div>
+
+              {/* Action Taken Section */}
+              <div>
+                <Label className="text-sm font-medium">Action Taken</Label>
+                {selectedSuggestion.actionTaken ? (
+                  <div className="mt-1 p-3 bg-green-50 border border-green-200 rounded-md">
+                    <p className="text-sm text-green-800 whitespace-pre-wrap">
+                      {selectedSuggestion.actionTaken}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="mt-1 p-3 bg-orange-50 border border-orange-200 rounded-md">
+                    <p className="text-sm text-orange-700">
+                      No action has been recorded for this suggestion yet.
+                    </p>
+                  </div>
+                )}
               </div>
 
               {selectedSuggestion.media && selectedSuggestion.media.length > 0 && (

@@ -43,7 +43,12 @@ function Header() {
     <header className="border-b bg-white/70 backdrop-blur sticky top-0 z-40">
       <div className="max-w-6xl mx-auto px-4 py-3 flex items-center gap-3">
         <Link to="/" className="font-bold text-lg">
-          {t('appTitle')}
+          {/* {t('appTitle')} */}
+
+
+
+
+          <img src="public/TUImage.png" alt="Logo" width={120} height={100} />
         </Link>
         <nav className="ml-auto flex items-center gap-2">
           <Link to="/"><Button variant="ghost">{t('nav.home')}</Button></Link>
