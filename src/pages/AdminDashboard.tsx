@@ -50,6 +50,17 @@ const statusColors: Record<Status, string> = {
   'Resolved': 'bg-green-100 text-green-800'
 };
 
+// Sample departments for assignment
+const departments = [
+  'Academic Affairs',
+  'Student Services',
+  'Facilities Management',
+  'IT Department',
+  'Administration',
+  'Human Resources',
+  'Finance'
+];
+
 export default function AdminDashboard() {
   const { t } = useTranslation();
   const [user, setUser] = useState(getStoredUser());
@@ -395,6 +406,8 @@ export default function AdminDashboard() {
                         <th className="p-3 text-left font-medium">ID</th>
                         <th className="p-3 text-left font-medium">Category</th>
                         <th className="p-3 text-left font-medium">Status</th>
+                        <th className="p-3 text-left font-medium">Assigned Department</th>
+                        <th className="p-3 text-left font-medium">Assigned To</th>
                         <th className="p-3 text-left font-medium">Description</th>
                         <th className="p-3 text-left font-medium">Created</th>
                         <th className="p-3 text-left font-medium">Actions</th>
@@ -403,7 +416,7 @@ export default function AdminDashboard() {
                     <tbody>
                       {loading ? (
                         <tr>
-                          <td colSpan={6} className="p-4 text-center">
+                          <td colSpan={8} className="p-4 text-center">
                             <div className="flex justify-center items-center py-8">
                               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
                             </div>
@@ -411,7 +424,7 @@ export default function AdminDashboard() {
                         </tr>
                       ) : rows.length === 0 ? (
                         <tr>
-                          <td colSpan={6} className="p-4 text-center text-muted-foreground">
+                          <td colSpan={8} className="p-4 text-center text-muted-foreground">
                             No suggestions found
                           </td>
                         </tr>
@@ -421,18 +434,26 @@ export default function AdminDashboard() {
                           const e = edits[id] || {};
                           const isEditing = editingId === id;
                           
+                          // Get current values for editing
+                          const currentCategory = e.category !== undefined ? e.category : r.category;
+                          const currentStatus = e.status !== undefined ? e.status : r.status;
+                          const currentDepartment = e.assignedDepartment !== undefined ? e.assignedDepartment : r.assignedDepartment || "";
+                          const currentAssignee = e.assignedTo !== undefined ? e.assignedTo : r.assignedTo || "";
+                          
                           return (
                             <tr key={id} className="border-b hover:bg-muted/30 transition-colors">
                               <td className="p-3 max-w-[120px] truncate font-mono text-xs">{id}</td>
                               <td className="p-3">
                                 {isEditing ? (
                                   <Select
-                                    defaultValue={r.category}
+                                    value={currentCategory}
                                     onValueChange={(v: Category) => applyEdit(id, { category: v })}
                                   >
                                     <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
                                     <SelectContent>
-                                      {categories.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                                      {categories.map((c) => (
+                                        <SelectItem key={c} value={c}>{c}</SelectItem>
+                                      ))}
                                     </SelectContent>
                                   </Select>
                                 ) : (
@@ -442,18 +463,51 @@ export default function AdminDashboard() {
                               <td className="p-3">
                                 {isEditing ? (
                                   <Select
-                                    defaultValue={r.status}
+                                    value={currentStatus}
                                     onValueChange={(v: Status) => applyEdit(id, { status: v as Status })}
                                   >
                                     <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
                                     <SelectContent>
-                                      {statuses.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                                      {statuses.map((s) => (
+                                        <SelectItem key={s} value={s}>{s}</SelectItem>
+                                      ))}
                                     </SelectContent>
                                   </Select>
                                 ) : (
                                   <Badge className={statusColors[r.status]}>
                                     {r.status}
                                   </Badge>
+                                )}
+                              </td>
+                              <td className="p-3">
+                                {isEditing ? (
+                                  <Select
+                                    value={currentDepartment || "none"}
+                                    onValueChange={(v) => applyEdit(id, { assignedDepartment: v === "none" ? null : v })}
+                                  >
+                                    <SelectTrigger className="w-full">
+                                      <SelectValue placeholder="Select department" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="none">None</SelectItem>
+                                      {departments.map((d) => (
+                                        <SelectItem key={d} value={d}>{d}</SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                ) : (
+                                  <span>{r.assignedDepartment || "-"}</span>
+                                )}
+                              </td>
+                              <td className="p-3">
+                                {isEditing ? (
+                                  <Input
+                                    value={currentAssignee}
+                                    onChange={(e) => applyEdit(id, { assignedTo: e.target.value })}
+                                    placeholder="Enter assignee name"
+                                  />
+                                ) : (
+                                  <span>{r.assignedTo || "-"}</span>
                                 )}
                               </td>
                               <td className="p-3 max-w-[300px]">
@@ -660,6 +714,14 @@ export default function AdminDashboard() {
                   <Label className="text-sm font-medium">Anonymous</Label>
                   <p className="text-sm">{selectedSuggestion.anonymous ? 'Yes' : 'No'}</p>
                 </div>
+                <div>
+                  <Label className="text-sm font-medium">Assigned Department</Label>
+                  <p className="text-sm">{selectedSuggestion.assignedDepartment || "-"}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Assigned To</Label>
+                  <p className="text-sm">{selectedSuggestion.assignedTo || "-"}</p>
+                </div>
               </div>
 
               <div>
@@ -668,20 +730,6 @@ export default function AdminDashboard() {
                   {selectedSuggestion.description}
                 </p>
               </div>
-
-              {selectedSuggestion.assignedDepartment && (
-                <div>
-                  <Label className="text-sm font-medium">Assigned Department</Label>
-                  <p className="text-sm">{selectedSuggestion.assignedDepartment}</p>
-                </div>
-              )}
-
-              {selectedSuggestion.assignedTo && (
-                <div>
-                  <Label className="text-sm font-medium">Assigned To</Label>
-                  <p className="text-sm">{selectedSuggestion.assignedTo}</p>
-                </div>
-              )}
 
               {selectedSuggestion.media && selectedSuggestion.media.length > 0 && (
                 <div>

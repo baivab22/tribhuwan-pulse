@@ -7,18 +7,48 @@ import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { Camera, Upload, X, ImageIcon, Video, FileText, User, Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
+import { Camera, Upload, X, ImageIcon, Video, FileText, User, Mail, Lock, Eye, EyeOff, Building } from 'lucide-react';
 import { createSuggestionWithMedia } from '@/lib/api';
 
 const categories = ['academic', 'administrative', 'infrastructure', 'other'];
 const roles = ['student', 'teacher', 'staff', 'alumni', 'admin'];
+
+// Departments for assignment
+const departments = [
+  'Academic Affairs',
+  'Student Services', 
+  'Facilities Management',
+  'IT Department',
+  'Administration',
+  'Human Resources',
+  'Finance'
+];
+
+// Mock API function
+// const createSuggestionWithMedia = async (formData:any) => {
+//   // Simulate API call
+//   await new Promise(resolve => setTimeout(resolve, 1500));
+  
+//   // Mock response
+//   return {
+//     suggestion: {
+//       _id: 'SUG_' + Math.random().toString(36).substr(2, 9).toUpperCase(),
+//       category: formData.get('category'),
+//       description: formData.get('description'),
+//       assignedToDepartment: formData.get('assignedToDepartment'),
+//       anonymous: formData.get('anonymous') === 'true',
+//       createdAt: new Date().toISOString()
+//     }
+//   };
+// };
 
 type MediaPreview = { file: File; url: string; kind: 'image' | 'video' };
 
 export default function SubmitPage() {
   const [category, setCategory] = useState('academic');
   const [description, setDescription] = useState('');
+  const [assignedToDepartment, setAssignedToDepartment] = useState('none');
   const [anonymous, setAnonymous] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [successId, setSuccessId] = useState(null);
@@ -41,6 +71,11 @@ export default function SubmitPage() {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const fileInputRef = useRef(null);
+
+  // Debug logging
+  useEffect(() => {
+    console.log('assignedToDepartment state changed:', assignedToDepartment);
+  }, [assignedToDepartment]);
 
   useEffect(() => {
     const list = files.map((f) => {
@@ -175,31 +210,64 @@ export default function SubmitPage() {
     }
   }
 
-  async function onSubmit() {
+  // Handle department change with debugging
+  const handleDepartmentChange = useCallback((value) => {
+    console.log('Department changing from', assignedToDepartment, 'to', value);
+    setAssignedToDepartment(value);
+  }, [assignedToDepartment]);
+
+  // Use useCallback to ensure we capture the latest state values
+  const onSubmit = useCallback(async () => {
+    console.log('onSubmit called with assignedToDepartment:', assignedToDepartment);
+    console.log('Current state values:', { category, description, assignedToDepartment, anonymous });
+    
     setSubmitting(true);
     setError(null);
     setSuccessId(null);
+    
     try {
       const form = new FormData();
       form.append('category', category);
       form.append('description', description);
       form.append('anonymous', String(anonymous));
-      files.forEach((f) => form.append('media', f, f.name));
-      const res = await createSuggestionWithMedia(form);
-      const id = (res.suggestion._id || res.suggestion.id)!;
-      setSuccessId(id);
-      setDescription('');
-      setFiles([]);
-      if (!anonymous) {
-        navigate('/'); // optional: take them home
+      
+      // Handle assignedToDepartment - only append if it has a value and is not 'none'
+      if (assignedToDepartment && assignedToDepartment !== 'none' && assignedToDepartment.trim() !== '') {
+        console.log('Appending assignedToDepartment:', assignedToDepartment);
+        form.append('assignedDepartment', assignedToDepartment);
+      } else {
+        console.log('Not appending assignedToDepartment - value is:', assignedToDepartment);
       }
-    } catch (e: unknown) {
+      
+      // Append files
+      files.forEach((f) => form.append('media', f, f.name));
+      
+      // Debug: Log all form data
+      console.log('FormData contents:');
+      for (let [key, value] of form.entries()) {
+        console.log(`${key}:`, value);
+      }
+      
+      const res = await createSuggestionWithMedia(form);
+      const id = (res.suggestion._id || res.suggestion.id);
+      setSuccessId(id);
+      
+      // Reset form
+      setDescription('');
+      setAssignedToDepartment('none');
+      setFiles([]);
+      
+      if (!anonymous) {
+        // navigate('/'); // optional: take them home
+      }
+    } catch (e) {
       const msg = e instanceof Error ? e.message : 'Submit failed';
       setError(msg);
+      console.error('Submit error:', e);
     } finally {
       setSubmitting(false);
     }
-  }
+  }, [category, description, assignedToDepartment, anonymous, files]);
 
   const needLogin = !anonymous && !user;
   const canSubmit = !!category && !!description && (!needLogin) && !submitting;
@@ -221,7 +289,7 @@ export default function SubmitPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
       <div className="max-w-4xl mx-auto px-4 py-8 space-y-8">
-        {/* <div className="text-center space-y-4">
+        <div className="text-center space-y-4">
           <div className="w-16 h-16 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl mx-auto flex items-center justify-center">
             <FileText className="w-8 h-8 text-white" />
           </div>
@@ -229,7 +297,7 @@ export default function SubmitPage() {
             Submit Suggestion
           </h1>
           <p className="text-gray-600 text-lg">Share your ideas to help improve our institution</p>
-        </div> */}
+        </div>
 
         <Card className="border-0 shadow-xl bg-white/80 backdrop-blur-sm">
           <CardHeader className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-t-lg p-2">
@@ -237,7 +305,7 @@ export default function SubmitPage() {
               <FileText className="w-5 h-5" />
               Suggestion Details
             </CardTitle>
-            <CardDescription className="text-indigo-100">
+            <CardDescription className="text-indigo-100 px-2">
               Provide category, description, and optional media attachments.
             </CardDescription>
           </CardHeader>
@@ -273,6 +341,38 @@ export default function SubmitPage() {
                     {anonymous ? '🕶️ Anonymous' : '👤 Identified'}
                   </span>
                 </div>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                <Label className="text-gray-700 font-medium flex items-center gap-2">
+                  <Building className="w-4 h-4" />
+                  Assign to Department
+                </Label>
+                <Badge variant="secondary" className="bg-blue-100 text-blue-700">Optional</Badge>
+              </div>
+              <p className="text-sm text-gray-600">
+                Suggest which department should handle this suggestion. Leave blank if unsure.
+              </p>
+              <div className="space-y-2">
+                <Select value={assignedToDepartment} onValueChange={handleDepartmentChange}>
+                  <SelectTrigger className="border-2 border-gray-200 hover:border-indigo-300 focus:border-indigo-500 transition-colors">
+                    <SelectValue placeholder="Select department (optional)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">No preference</SelectItem>
+                    {departments.map((d) => (
+                      <SelectItem key={d} value={d} className="hover:bg-indigo-50">
+                        {d}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {/* Debug display */}
+                <p className="text-xs text-gray-500">
+                  Current department: {assignedToDepartment === 'none' || !assignedToDepartment ? 'None selected' : assignedToDepartment}
+                </p>
               </div>
             </div>
 
@@ -580,13 +680,6 @@ export default function SubmitPage() {
                 ) : (
                   'Submit Suggestion'
                 )}
-              </Button>
-              <Button 
-                variant="outline" 
-                onClick={() => window.location.href = '/'}
-                className="border-2 border-gray-300 text-gray-700 hover:bg-gray-50"
-              >
-                Back to Home
               </Button>
             </div>
           </CardContent>
