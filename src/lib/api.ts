@@ -35,6 +35,19 @@ export interface Suggestion {
   updatedAt: string;
 }
 
+export interface Department {
+  _id?: string;
+  id?: string;
+  name: string;
+  description?: string;
+  head?: string;
+  email?: string;
+  phone?: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 /* ===========================
    Storage Helpers
 =========================== */
@@ -132,6 +145,16 @@ export async function logout() {
 }
 
 /* ===========================
+   Department Services
+=========================== */
+
+// GET /api/departments (public - only active departments)
+export async function getDepartments() {
+  const { data } = await api.get<{ departments: Department[] }>('/api/departments');
+  return data;
+}
+
+/* ===========================
    Suggestion Services
 =========================== */
 
@@ -148,6 +171,7 @@ export async function createSuggestion(params: {
   category: Category;
   description: string;
   anonymous: boolean;
+  assignedDepartment?: string;
 }) {
   const { data } = await api.post<{ suggestion: Suggestion }>('/api/suggestions', params);
   return data;
@@ -177,7 +201,61 @@ export async function listResolved(page = 1, limit = 10) {
 }
 
 /* ===========================
-   Admin Services
+   Admin Department Services
+=========================== */
+
+// GET /api/admin/departments
+export async function adminListDepartments(params: {
+  q?: string;
+  isActive?: boolean;
+  page?: number;
+  limit?: number;
+} = {}) {
+  const { data } = await api.get<{ 
+    page: number; 
+    limit: number; 
+    total: number; 
+    departments: Department[] 
+  }>('/api/admin/departments', { params });
+  return data;
+}
+
+// POST /api/admin/departments
+export async function adminCreateDepartment(params: {
+  name: string;
+  description?: string;
+  head?: string;
+  email?: string;
+  phone?: string;
+  isActive?: boolean;
+}) {
+  const { data } = await api.post<{ department: Department }>('/api/admin/departments', params);
+  return data;
+}
+
+// GET /api/admin/departments/:id
+export async function adminGetDepartment(id: string) {
+  const { data } = await api.get<{ department: Department }>(`/api/admin/departments/${id}`);
+  return data;
+}
+
+// PUT /api/admin/departments/:id
+export async function adminUpdateDepartment(
+  id: string,
+  updates: Partial<Pick<Department, 'name' | 'description' | 'head' | 'email' | 'phone' | 'isActive'>>
+) {
+  const { data } = await api.put<{ department: Department }>(`/api/admin/departments/${id}`, updates);
+  return data;
+}
+
+// DELETE /api/admin/departments/:id
+export async function adminDeleteDepartment(id: string) {
+  const { data } = await api.delete<{ message: string; department?: Department }>(`/api/admin/departments/${id}`);
+  return data;
+}
+
+/* ===========================
+   Admin Suggestion Services
 =========================== */
 
 // GET /api/admin/suggestions
@@ -218,7 +296,9 @@ export async function adminSummary() {
   const { data } = await api.get<{
     byStatus: { _id: Status; count: number }[];
     byCategory: { _id: Category; count: number }[];
+    byDepartment: { _id: string; count: number }[];
     monthly: { _id: { year: number; month: number }; count: number }[];
+    departmentStats: { total: number; active: number };
   }>('/api/admin/reports/summary');
   return data;
 }

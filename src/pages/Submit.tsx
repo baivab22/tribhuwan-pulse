@@ -8,40 +8,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
-import { Camera, Upload, X, ImageIcon, Video, FileText, User, Mail, Lock, Eye, EyeOff, Building } from 'lucide-react';
-import { createSuggestionWithMedia } from '@/lib/api';
+import { Camera, Upload, X, ImageIcon, Video, FileText, User, Mail, Lock, Eye, EyeOff, Building, AlertCircle } from 'lucide-react';
+import { createSuggestionWithMedia, getDepartments, register, login as apiLogin, Department } from '@/lib/api';
 
 const categories = ['academic', 'administrative', 'infrastructure', 'other'];
 const roles = ['student', 'teacher', 'staff', 'alumni', 'admin'];
-
-// Departments for assignment
-const departments = [
-  'Academic Affairs',
-  'Student Services', 
-  'Facilities Management',
-  'IT Department',
-  'Administration',
-  'Human Resources',
-  'Finance'
-];
-
-// Mock API function
-// const createSuggestionWithMedia = async (formData:any) => {
-//   // Simulate API call
-//   await new Promise(resolve => setTimeout(resolve, 1500));
-  
-//   // Mock response
-//   return {
-//     suggestion: {
-//       _id: 'SUG_' + Math.random().toString(36).substr(2, 9).toUpperCase(),
-//       category: formData.get('category'),
-//       description: formData.get('description'),
-//       assignedToDepartment: formData.get('assignedToDepartment'),
-//       anonymous: formData.get('anonymous') === 'true',
-//       createdAt: new Date().toISOString()
-//     }
-//   };
-// };
 
 type MediaPreview = { file: File; url: string; kind: 'image' | 'video' };
 
@@ -54,6 +25,12 @@ export default function SubmitPage() {
   const [successId, setSuccessId] = useState(null);
   const [error, setError] = useState(null);
 
+  // Department state
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [departmentsLoading, setDepartmentsLoading] = useState(false);
+  const [departmentsError, setDepartmentsError] = useState<string | null>(null);
+
+  // Auth state
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
@@ -61,9 +38,10 @@ export default function SubmitPage() {
   const [adminCode, setAdminCode] = useState('');
   const [authMode, setAuthMode] = useState('login');
   const [showPassword, setShowPassword] = useState(false);
-
   const [loginLoading, setLoginLoading] = useState(false);
   const [user, setUser] = useState(null);
+
+  // Media state
   const [files, setFiles] = useState([]);
   const [previews, setPreviews] = useState([]);
   const [showCamera, setShowCamera] = useState(false);
@@ -71,6 +49,27 @@ export default function SubmitPage() {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const fileInputRef = useRef(null);
+
+  // Load departments on component mount
+  useEffect(() => {
+    loadDepartments();
+  }, []);
+
+  const loadDepartments = async () => {
+    setDepartmentsLoading(true);
+    setDepartmentsError(null);
+    try {
+      const response = await getDepartments();
+      setDepartments(response.departments || []);
+    } catch (error) {
+      console.error('Failed to load departments:', error);
+      setDepartmentsError('Failed to load departments. Using default options.');
+      // Fallback to empty array - user can still submit without department selection
+      setDepartments([]);
+    } finally {
+      setDepartmentsLoading(false);
+    }
+  };
 
   // Debug logging
   useEffect(() => {
@@ -200,11 +199,16 @@ export default function SubmitPage() {
     setLoginLoading(true);
     setError(null);
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setUser({ name: name || 'User', email, role });
+      if (authMode === 'login') {
+        const res = await apiLogin(email, password);
+        setUser(res.user);
+      } else {
+        const res = await register(name, email, password, role);
+        setUser(res.user);
+      }
     } catch (e) {
-      setError('Authentication failed');
+      const message = e instanceof Error ? e.message : 'Authentication failed';
+      setError(message);
     } finally {
       setLoginLoading(false);
     }
@@ -233,10 +237,10 @@ export default function SubmitPage() {
       
       // Handle assignedToDepartment - only append if it has a value and is not 'none'
       if (assignedToDepartment && assignedToDepartment !== 'none' && assignedToDepartment.trim() !== '') {
-        console.log('Appending assignedToDepartment:', assignedToDepartment);
+        console.log('Appending assignedDepartment:', assignedToDepartment);
         form.append('assignedDepartment', assignedToDepartment);
       } else {
-        console.log('Not appending assignedToDepartment - value is:', assignedToDepartment);
+        console.log('Not appending assignedDepartment - value is:', assignedToDepartment);
       }
       
       // Append files
@@ -356,23 +360,78 @@ export default function SubmitPage() {
                 Suggest which department should handle this suggestion. Leave blank if unsure.
               </p>
               <div className="space-y-2">
-                <Select value={assignedToDepartment} onValueChange={handleDepartmentChange}>
+                <Select 
+                  value={assignedToDepartment} 
+                  onValueChange={handleDepartmentChange}
+                  disabled={departmentsLoading}
+                >
                   <SelectTrigger className="border-2 border-gray-200 hover:border-indigo-300 focus:border-indigo-500 transition-colors">
-                    <SelectValue placeholder="Select department (optional)" />
+                    <SelectValue placeholder={
+                      departmentsLoading 
+                        ? "Loading departments..." 
+                        : departments.length === 0 
+                        ? "No departments available"
+                        : "Select department (optional)"
+                    } />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">No preference</SelectItem>
                     {departments.map((d) => (
-                      <SelectItem key={d} value={d} className="hover:bg-indigo-50">
-                        {d}
+                      <SelectItem key={d._id || d.id} value={d.name} className="hover:bg-indigo-50">
+                        <div className="flex flex-col">
+                          <span className="font-medium">{d.name}</span>
+                          {d.description && (
+                            <span className="text-xs text-gray-500 line-clamp-1">{d.description}</span>
+                          )}
+                        </div>
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-                {/* Debug display */}
-                <p className="text-xs text-gray-500">
-                  Current department: {assignedToDepartment === 'none' || !assignedToDepartment ? 'None selected' : assignedToDepartment}
-                </p>
+
+                {/* Loading state */}
+                {departmentsLoading && (
+                  <div className="flex items-center gap-2 text-sm text-gray-500">
+                    <div className="w-4 h-4 border-2 border-gray-300 border-t-indigo-500 rounded-full animate-spin"></div>
+                    Loading departments...
+                  </div>
+                )}
+
+                {/* Error state with retry option */}
+                {departmentsError && (
+                  <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                    <AlertCircle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                    <div className="flex-1 text-sm text-amber-800">
+                      <p className="font-medium">Department loading issue</p>
+                      <p className="text-amber-700">{departmentsError}</p>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={loadDepartments}
+                        className="mt-2 border-amber-300 text-amber-700 hover:bg-amber-100"
+                      >
+                        Retry loading departments
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Success state showing department count */}
+                {!departmentsLoading && !departmentsError && departments.length > 0 && (
+                  <p className="text-xs text-gray-500">
+                    {departments.length} departments available • Current: {assignedToDepartment === 'none' || !assignedToDepartment ? 'None selected' : assignedToDepartment}
+                  </p>
+                )}
+
+                {/* No departments available */}
+                {!departmentsLoading && !departmentsError && departments.length === 0 && (
+                  <div className="flex items-center gap-2 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                    <AlertCircle className="w-4 h-4 text-gray-500" />
+                    <p className="text-sm text-gray-600">
+                      No departments are currently available. You can still submit your suggestion.
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -589,7 +648,7 @@ export default function SubmitPage() {
                   <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
                     <div className="text-center">
                       <p className="text-white/80 text-sm mb-3">
-                        📸 Position your subject and click "Take Photo"
+                        Position your subject and click "Take Photo"
                       </p>
                     </div>
                   </div>
@@ -663,6 +722,22 @@ export default function SubmitPage() {
                 <p className="text-sm text-green-700 font-medium">
                   ✅ Suggestion submitted successfully! ID: <span className="font-mono">{successId}</span>
                 </p>
+                <p className="text-sm text-green-600 mt-1">
+                  You can track your suggestion status using this ID.
+                </p>
+              </div>
+            )}
+
+            {/* User info display when logged in */}
+            {!anonymous && user && (
+              <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                <div className="flex items-center gap-2 text-green-700 font-medium text-sm">
+                  <User className="w-4 h-4" />
+                  Logged in as: {user.name} ({user.role})
+                </div>
+                <p className="text-xs text-green-600 mt-1">
+                  This suggestion will be submitted under your account.
+                </p>
               </div>
             )}
 
@@ -681,6 +756,29 @@ export default function SubmitPage() {
                   'Submit Suggestion'
                 )}
               </Button>
+              
+              {/* Form validation feedback */}
+              {!canSubmit && !submitting && (
+                <div className="flex items-center text-sm text-gray-500">
+                  {!category && "Please select a category. "}
+                  {!description && "Please provide a description. "}
+                  {needLogin && "Please login to submit non-anonymous suggestions."}
+                </div>
+              )}
+            </div>
+
+            {/* Submission guidelines */}
+            <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <h4 className="font-medium text-gray-700 mb-2">Submission Guidelines</h4>
+              <ul className="text-sm text-gray-600 space-y-1">
+                <li>• Be specific and constructive in your description</li>
+                <li>• Focus on actionable improvements</li>
+                <li>• Respect others and maintain professionalism</li>
+                <li>• Avoid submitting duplicate suggestions</li>
+                {departments.length > 0 && (
+                  <li>• Selecting a department helps route your suggestion appropriately</li>
+                )}
+              </ul>
             </div>
           </CardContent>
         </Card>

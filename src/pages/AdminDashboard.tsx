@@ -4,18 +4,27 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
+import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
 import { useEffect, useMemo, useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Category,
   Status,
   Suggestion,
+  Department,
   adminDelete,
   adminList,
   adminSummary,
   adminUpdate,
+  adminListDepartments,
+  adminCreateDepartment,
+  adminUpdateDepartment,
+  adminDeleteDepartment,
+  adminGetDepartment,
+  getDepartments,
   getStoredUser,
   isAdmin,
   login
@@ -36,7 +45,22 @@ import {
   Cell
 } from 'recharts';
 import { format } from 'date-fns';
-import { Search, Eye, Edit, Trash2, ChevronLeft, ChevronRight, Download, FileText, ImageIcon } from 'lucide-react';
+import { 
+  Search, 
+  Eye, 
+  Edit, 
+  Trash2, 
+  ChevronLeft, 
+  ChevronRight, 
+  Download, 
+  FileText, 
+  ImageIcon, 
+  Plus,
+  Building2,
+  User,
+  Mail,
+  Phone
+} from 'lucide-react';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 
@@ -50,17 +74,6 @@ const statusColors: Record<Status, string> = {
   'Resolved': 'bg-green-100 text-green-800'
 };
 
-// Sample departments for assignment
-const departments = [
-  'Academic Affairs',
-  'Student Services',
-  'Facilities Management',
-  'IT Department',
-  'Administration',
-  'Human Resources',
-  'Finance'
-];
-
 export default function AdminDashboard() {
   const { t } = useTranslation();
   const [user, setUser] = useState(getStoredUser());
@@ -69,7 +82,8 @@ export default function AdminDashboard() {
   const [loginLoading, setLoginLoading] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
 
-  const [filters, setFilters] = useState<{ category?: Category; status?: Status; q?: string }>({});
+  // Suggestion management state
+  const [filters, setFilters] = useState<{ category?: Category; status?: Status; assignedDepartment?: string; q?: string }>({});
   const [loading, setLoading] = useState(false);
   const [rows, setRows] = useState<Suggestion[]>([]);
   const [page, setPage] = useState(1);
@@ -78,17 +92,42 @@ export default function AdminDashboard() {
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
+  // Department management state
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [departmentFilters, setDepartmentFilters] = useState<{ q?: string; isActive?: boolean }>({});
+  const [departmentLoading, setDepartmentLoading] = useState(false);
+  const [departmentPage, setDepartmentPage] = useState(1);
+  const [departmentTotal, setDepartmentTotal] = useState(0);
+  const [isCreateDepartmentOpen, setIsCreateDepartmentOpen] = useState(false);
+  const [isEditDepartmentOpen, setIsEditDepartmentOpen] = useState(false);
+  const [selectedDepartment, setSelectedDepartment] = useState<Department | null>(null);
+  const [editingDepartmentId, setEditingDepartmentId] = useState<string | null>(null);
+
+  // Analytics state
   const [summary, setSummary] = useState<{
     byStatus: { _id: Status; count: number }[];
     byCategory: { _id: Category; count: number }[];
+    byDepartment: { _id: string; count: number }[];
     monthly: { _id: { year: number; month: number }; count: number }[];
+    departmentStats: { total: number; active: number };
   } | null>(null);
 
   const [edits, setEdits] = useState<Record<string, Partial<Suggestion>>>({});
 
+  // Form states for department creation/editing
+  const [departmentForm, setDepartmentForm] = useState({
+    name: '',
+    description: '',
+    head: '',
+    email: '',
+    phone: '',
+    isActive: true
+  });
+
   // Refs for export functionality
   const analyticsRef = useRef<HTMLDivElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
+  const departmentsRef = useRef<HTMLDivElement>(null);
 
   async function onLogin() {
     setLoginLoading(true);
@@ -119,13 +158,26 @@ export default function AdminDashboard() {
       setRows(res.suggestions);
       setPage(res.page);
       setTotal(res.total);
-      // Clear edits when loading new data
       setEdits({});
       setEditingId(null);
     } catch {
       // ignore
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function loadDepartments(p = 1) {
+    setDepartmentLoading(true);
+    try {
+      const res = await adminListDepartments({ ...departmentFilters, page: p, limit: 20 });
+      setDepartments(res.departments);
+      setDepartmentPage(res.page);
+      setDepartmentTotal(res.total);
+    } catch {
+      // ignore
+    } finally {
+      setDepartmentLoading(false);
     }
   }
 
@@ -141,6 +193,7 @@ export default function AdminDashboard() {
   useEffect(() => {
     if (isAdmin()) {
       loadList(1);
+      loadDepartments(1);
       loadSummary();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -170,7 +223,6 @@ export default function AdminDashboard() {
     try {
       await adminUpdate(id, patch);
       setEditingId(null);
-      // Reload to get fresh data
       await loadList(page);
     } catch (error) {
       console.error('Failed to update suggestion:', error);
@@ -187,6 +239,74 @@ export default function AdminDashboard() {
       console.error('Failed to delete suggestion:', error);
     }
   };
+
+  // Department CRUD handlers
+  const resetDepartmentForm = () => {
+    setDepartmentForm({
+      name: '',
+      description: '',
+      head: '',
+      email: '',
+      phone: '',
+      isActive: true
+    });
+  };
+
+  const handleCreateDepartment = async () => {
+    if (!departmentForm.name.trim()) return;
+
+    try {
+      await adminCreateDepartment(departmentForm);
+      setIsCreateDepartmentOpen(false);
+      resetDepartmentForm();
+      await loadDepartments(1);
+    } catch (error) {
+      console.error('Failed to create department:', error);
+    }
+  };
+
+  const handleEditDepartment = async (department: Department) => {
+    setSelectedDepartment(department);
+    setDepartmentForm({
+      name: department.name,
+      description: department.description || '',
+      head: department.head || '',
+      email: department.email || '',
+      phone: department.phone || '',
+      isActive: department.isActive
+    });
+    setIsEditDepartmentOpen(true);
+  };
+
+  const handleUpdateDepartment = async () => {
+    if (!selectedDepartment || !departmentForm.name.trim()) return;
+
+    try {
+      const departmentId = selectedDepartment._id || selectedDepartment.id!;
+      await adminUpdateDepartment(departmentId, departmentForm);
+      setIsEditDepartmentOpen(false);
+      setSelectedDepartment(null);
+      resetDepartmentForm();
+      await loadDepartments(departmentPage);
+    } catch (error) {
+      console.error('Failed to update department:', error);
+    }
+  };
+
+  const handleDeleteDepartment = async (department: Department) => {
+    if (!confirm(`Are you sure you want to delete "${department.name}"? This action may deactivate the department if it has associated suggestions.`)) return;
+
+    try {
+      const departmentId = department._id || department.id!;
+      await adminDeleteDepartment(departmentId);
+      await loadDepartments(departmentPage);
+    } catch (error) {
+      console.error('Failed to delete department:', error);
+    }
+  };
+
+  // Get dynamic departments for dropdowns
+  const activeDepartments = departments.filter(d => d.isActive);
 
   // Export functions
   const exportAnalyticsAsPDF = async () => {
@@ -255,6 +375,39 @@ export default function AdminDashboard() {
     }
   };
 
+  const exportDepartmentsAsPDF = async () => {
+    if (!departmentsRef.current) return;
+    
+    try {
+      const canvas = await html2canvas(departmentsRef.current);
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('landscape', 'mm', 'a4');
+      const imgProps = pdf.getImageProperties(imgData);
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+      
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      pdf.save('departments-report.pdf');
+    } catch (error) {
+      console.error('Error exporting PDF:', error);
+    }
+  };
+
+  const exportDepartmentsAsImage = async () => {
+    if (!departmentsRef.current) return;
+    
+    try {
+      const canvas = await html2canvas(departmentsRef.current);
+      const image = canvas.toDataURL('image/png');
+      const link = document.createElement('a');
+      link.href = image;
+      link.download = 'departments-report.png';
+      link.click();
+    } catch (error) {
+      console.error('Error exporting image:', error);
+    }
+  };
+
   if (!user || user.role !== 'admin') {
     return (
       <div className="max-w-md mx-auto px-4 py-10">
@@ -292,8 +445,9 @@ export default function AdminDashboard() {
 
       <Tabs defaultValue="manage">
         <div className="flex justify-between items-center mb-4">
-          <TabsList className="grid w-full max-w-md grid-cols-2">
+          <TabsList className="grid w-full max-w-lg grid-cols-3">
             <TabsTrigger value="manage">{t('admin.suggestionList')}</TabsTrigger>
+            <TabsTrigger value="departments">Departments</TabsTrigger>
             <TabsTrigger value="analytics">{t('admin.analytics')}</TabsTrigger>
           </TabsList>
           
@@ -305,6 +459,19 @@ export default function AdminDashboard() {
                   PDF
                 </Button>
                 <Button variant="outline" size="sm" onClick={exportSuggestionsAsImage}>
+                  <ImageIcon className="h-4 w-4 mr-2" />
+                  Image
+                </Button>
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="departments" className="m-0">
+              <div className="flex space-x-2">
+                <Button variant="outline" size="sm" onClick={exportDepartmentsAsPDF}>
+                  <FileText className="h-4 w-4 mr-2" />
+                  PDF
+                </Button>
+                <Button variant="outline" size="sm" onClick={exportDepartmentsAsImage}>
                   <ImageIcon className="h-4 w-4 mr-2" />
                   Image
                 </Button>
@@ -326,12 +493,13 @@ export default function AdminDashboard() {
           </div>
         </div>
 
+        {/* Suggestions Management Tab */}
         <TabsContent value="manage" className="space-y-4 mt-4">
           <Card>
             <CardHeader className="pb-3">
               <CardTitle>{t('admin.filters')}</CardTitle>
             </CardHeader>
-            <CardContent className="grid md:grid-cols-4 gap-4">
+            <CardContent className="grid md:grid-cols-5 gap-4">
               <div className="space-y-1">
                 <Label>{t('admin.category')}</Label>
                 <Select
@@ -355,6 +523,19 @@ export default function AdminDashboard() {
                   <SelectContent>
                     <SelectItem value="all">All Statuses</SelectItem>
                     {statuses.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1">
+                <Label>Department</Label>
+                <Select
+                  value={filters.assignedDepartment || "all"}
+                  onValueChange={(v) => setFilters((f) => ({ ...f, assignedDepartment: v === "all" ? undefined : v }))}
+                >
+                  <SelectTrigger><SelectValue placeholder="All departments" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Departments</SelectItem>
+                    {activeDepartments.map((d) => <SelectItem key={d._id || d.id} value={d.name}>{d.name}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
@@ -407,7 +588,7 @@ export default function AdminDashboard() {
                         <th className="p-3 text-left font-medium">Category</th>
                         <th className="p-3 text-left font-medium">Status</th>
                         <th className="p-3 text-left font-medium">Assigned Department</th>
-                        <th className="p-3 text-left font-medium">Assigned To</th>
+                        {/* <th className="p-3 text-left font-medium">Assigned To</th> */}
                         <th className="p-3 text-left font-medium">Description</th>
                         <th className="p-3 text-left font-medium">Created</th>
                         <th className="p-3 text-left font-medium">Actions</th>
@@ -434,7 +615,6 @@ export default function AdminDashboard() {
                           const e = edits[id] || {};
                           const isEditing = editingId === id;
                           
-                          // Get current values for editing
                           const currentCategory = e.category !== undefined ? e.category : r.category;
                           const currentStatus = e.status !== undefined ? e.status : r.status;
                           const currentDepartment = e.assignedDepartment !== undefined ? e.assignedDepartment : r.assignedDepartment || "";
@@ -490,8 +670,8 @@ export default function AdminDashboard() {
                                     </SelectTrigger>
                                     <SelectContent>
                                       <SelectItem value="none">None</SelectItem>
-                                      {departments.map((d) => (
-                                        <SelectItem key={d} value={d}>{d}</SelectItem>
+                                      {activeDepartments.map((d) => (
+                                        <SelectItem key={d._id || d.id} value={d.name}>{d.name}</SelectItem>
                                       ))}
                                     </SelectContent>
                                   </Select>
@@ -569,7 +749,6 @@ export default function AdminDashboard() {
                   </table>
                 </div>
                 
-                {/* Pagination */}
                 <div className="flex items-center justify-between p-3 border-t">
                   <div className="text-sm text-muted-foreground">
                     Page {page} of {Math.ceil(total / 20)}
@@ -600,6 +779,296 @@ export default function AdminDashboard() {
           </Card>
         </TabsContent>
 
+        {/* Departments Management Tab */}
+        <TabsContent value="departments" className="space-y-4 mt-4">
+          <Card>
+            <CardHeader className="pb-3 flex flex-row items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <Building2 className="h-5 w-5" />
+                Department Management
+              </CardTitle>
+              <Dialog open={isCreateDepartmentOpen} onOpenChange={setIsCreateDepartmentOpen}>
+                <DialogTrigger asChild>
+                  <Button onClick={resetDepartmentForm}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Department
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Create New Department</DialogTitle>
+                    <DialogDescription>
+                      Add a new department to manage suggestions and assignments.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="name">Department Name *</Label>
+                      <Input
+                        id="name"
+                        value={departmentForm.name}
+                        onChange={(e) => setDepartmentForm({...departmentForm, name: e.target.value})}
+                        placeholder="e.g., Computer Science"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="description">Description</Label>
+                      <Textarea
+                        id="description"
+                        value={departmentForm.description}
+                        onChange={(e) => setDepartmentForm({...departmentForm, description: e.target.value})}
+                        placeholder="Brief description of the department..."
+                        rows={3}
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="head">Department Head</Label>
+                        <Input
+                          id="head"
+                          value={departmentForm.head}
+                          onChange={(e) => setDepartmentForm({...departmentForm, head: e.target.value})}
+                          placeholder="Dr. John Smith"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="email">Email</Label>
+                        <Input
+                          id="email"
+                          type="email"
+                          value={departmentForm.email}
+                          onChange={(e) => setDepartmentForm({...departmentForm, email: e.target.value})}
+                          placeholder="department@university.edu"
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="phone">Phone</Label>
+                      <Input
+                        id="phone"
+                        value={departmentForm.phone}
+                        onChange={(e) => setDepartmentForm({...departmentForm, phone: e.target.value})}
+                        placeholder="+1-555-0123"
+                      />
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Switch
+                        id="isActive"
+                        checked={departmentForm.isActive}
+                        onCheckedChange={(checked) => setDepartmentForm({...departmentForm, isActive: checked})}
+                      />
+                      <Label htmlFor="isActive">Active Department</Label>
+                    </div>
+                    <div className="flex justify-end space-x-2">
+                      <Button variant="outline" onClick={() => setIsCreateDepartmentOpen(false)}>
+                        Cancel
+                      </Button>
+                      <Button onClick={handleCreateDepartment} disabled={!departmentForm.name.trim()}>
+                        Create Department
+                      </Button>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </CardHeader>
+            <CardContent>
+              {/* Department Filters */}
+              <div className="flex flex-col md:flex-row gap-4 mb-4">
+                <div className="flex-1">
+                  <div className="relative">
+                    <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      className="pl-8"
+                      value={departmentFilters.q || ''}
+                      onChange={(e) => setDepartmentFilters({...departmentFilters, q: e.target.value})}
+                      placeholder="Search departments by name, head, or description..."
+                    />
+                  </div>
+                </div>
+                <div className="w-full md:w-48">
+                  <Select
+                    value={departmentFilters.isActive === undefined ? "all" : departmentFilters.isActive.toString()}
+                    onValueChange={(v) => setDepartmentFilters({
+                      ...departmentFilters, 
+                      isActive: v === "all" ? undefined : v === "true"
+                    })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Filter by status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Departments</SelectItem>
+                      <SelectItem value="true">Active Only</SelectItem>
+                      <SelectItem value="false">Inactive Only</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Button onClick={() => loadDepartments(1)} disabled={departmentLoading}>
+                  Apply Filters
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    setDepartmentFilters({});
+                    loadDepartments(1);
+                  }}
+                  disabled={departmentLoading}
+                >
+                  Clear
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card ref={departmentsRef}>
+            <CardHeader className="pb-3">
+              <div className="flex justify-between items-center">
+                <CardTitle>Departments</CardTitle>
+                <div className="text-sm text-muted-foreground">
+                  Showing {departments.length} of {departmentTotal} departments
+                  {summary && (
+                    <span className="ml-2">
+                      ({summary.departmentStats.active} active, {summary.departmentStats.total - summary.departmentStats.active} inactive)
+                    </span>
+                  )}
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="rounded-md border overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="min-w-full text-sm">
+                    <thead>
+                      <tr className="bg-muted/50">
+                        <th className="p-3 text-left font-medium">Name</th>
+                        <th className="p-3 text-left font-medium">Head</th>
+                        <th className="p-3 text-left font-medium">Contact</th>
+                        <th className="p-3 text-left font-medium">Status</th>
+                        <th className="p-3 text-left font-medium">Description</th>
+                        <th className="p-3 text-left font-medium">Created</th>
+                        <th className="p-3 text-left font-medium">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {departmentLoading ? (
+                        <tr>
+                          <td colSpan={7} className="p-4 text-center">
+                            <div className="flex justify-center items-center py-8">
+                              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                            </div>
+                          </td>
+                        </tr>
+                      ) : departments.length === 0 ? (
+                        <tr>
+                          <td colSpan={7} className="p-4 text-center text-muted-foreground">
+                            No departments found
+                          </td>
+                        </tr>
+                      ) : (
+                        departments.map((dept) => (
+                          <tr key={dept._id || dept.id} className="border-b hover:bg-muted/30 transition-colors">
+                            <td className="p-3 font-medium">{dept.name}</td>
+                            <td className="p-3">
+                              {dept.head ? (
+                                <div className="flex items-center gap-2">
+                                  <User className="h-4 w-4 text-muted-foreground" />
+                                  {dept.head}
+                                </div>
+                              ) : (
+                                <span className="text-muted-foreground">-</span>
+                              )}
+                            </td>
+                            <td className="p-3">
+                              <div className="space-y-1">
+                                {dept.email && (
+                                  <div className="flex items-center gap-2 text-xs">
+                                    <Mail className="h-3 w-3" />
+                                    <span className="truncate max-w-[150px]">{dept.email}</span>
+                                  </div>
+                                )}
+                                {dept.phone && (
+                                  <div className="flex items-center gap-2 text-xs">
+                                    <Phone className="h-3 w-3" />
+                                    {dept.phone}
+                                  </div>
+                                )}
+                                {!dept.email && !dept.phone && (
+                                  <span className="text-muted-foreground text-xs">No contact info</span>
+                                )}
+                              </div>
+                            </td>
+                            <td className="p-3">
+                              <Badge variant={dept.isActive ? "default" : "secondary"}>
+                                {dept.isActive ? "Active" : "Inactive"}
+                              </Badge>
+                            </td>
+                            <td className="p-3 max-w-[200px]">
+                              {dept.description ? (
+                                <div className="line-clamp-2 text-xs">{dept.description}</div>
+                              ) : (
+                                <span className="text-muted-foreground text-xs">No description</span>
+                              )}
+                            </td>
+                            <td className="p-3 whitespace-nowrap text-xs">
+                              {format(new Date(dept.createdAt), 'MMM dd, yyyy')}
+                            </td>
+                            <td className="p-3">
+                              <div className="flex items-center space-x-2">
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => handleEditDepartment(dept)}
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => handleDeleteDepartment(dept)}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Department Pagination */}
+                <div className="flex items-center justify-between p-3 border-t">
+                  <div className="text-sm text-muted-foreground">
+                    Page {departmentPage} of {Math.ceil(departmentTotal / 20)}
+                  </div>
+                  <div className="flex space-x-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={departmentPage <= 1 || departmentLoading}
+                      onClick={() => loadDepartments(departmentPage - 1)}
+                    >
+                      <ChevronLeft className="h-4 w-4 mr-1" />
+                      Previous
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={departments.length < 20 || departmentLoading}
+                      onClick={() => loadDepartments(departmentPage + 1)}
+                    >
+                      Next
+                      <ChevronRight className="h-4 w-4 ml-1" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Analytics Tab */}
         <TabsContent value="analytics" className="mt-4">
           <div ref={analyticsRef} className="grid md:grid-cols-2 gap-6">
             <Card>
@@ -650,6 +1119,56 @@ export default function AdminDashboard() {
               </CardContent>
             </Card>
 
+            {/* Department Analytics */}
+            <Card>
+              <CardHeader>
+                <CardTitle>By Department</CardTitle>
+              </CardHeader>
+              <CardContent className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={summary?.byDepartment || []}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="_id" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="count" fill="#16a34a" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+
+            {/* Department Stats Summary */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Department Overview</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="text-center p-4 bg-blue-50 rounded-lg">
+                      <div className="text-2xl font-bold text-blue-600">
+                        {summary?.departmentStats.total || 0}
+                      </div>
+                      <div className="text-sm text-blue-600">Total Departments</div>
+                    </div>
+                    <div className="text-center p-4 bg-green-50 rounded-lg">
+                      <div className="text-2xl font-bold text-green-600">
+                        {summary?.departmentStats.active || 0}
+                      </div>
+                      <div className="text-sm text-green-600">Active Departments</div>
+                    </div>
+                  </div>
+                  <div className="text-center p-4 bg-yellow-50 rounded-lg">
+                    <div className="text-2xl font-bold text-yellow-600">
+                      {(summary?.departmentStats.total || 0) - (summary?.departmentStats.active || 0)}
+                    </div>
+                    <div className="text-sm text-yellow-600">Inactive Departments</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
             <Card className="md:col-span-2">
               <CardHeader>
                 <CardTitle>{t('admin.monthlyTrends')}</CardTitle>
@@ -670,6 +1189,85 @@ export default function AdminDashboard() {
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* Edit Department Dialog */}
+      <Dialog open={isEditDepartmentOpen} onOpenChange={setIsEditDepartmentOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Department</DialogTitle>
+            <DialogDescription>
+              Update the department information.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-name">Department Name *</Label>
+              <Input
+                id="edit-name"
+                value={departmentForm.name}
+                onChange={(e) => setDepartmentForm({...departmentForm, name: e.target.value})}
+                placeholder="e.g., Computer Science"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-description">Description</Label>
+              <Textarea
+                id="edit-description"
+                value={departmentForm.description}
+                onChange={(e) => setDepartmentForm({...departmentForm, description: e.target.value})}
+                placeholder="Brief description of the department..."
+                rows={3}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-head">Department Head</Label>
+                <Input
+                  id="edit-head"
+                  value={departmentForm.head}
+                  onChange={(e) => setDepartmentForm({...departmentForm, head: e.target.value})}
+                  placeholder="Dr. John Smith"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-email">Email</Label>
+                <Input
+                  id="edit-email"
+                  type="email"
+                  value={departmentForm.email}
+                  onChange={(e) => setDepartmentForm({...departmentForm, email: e.target.value})}
+                  placeholder="department@university.edu"
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-phone">Phone</Label>
+              <Input
+                id="edit-phone"
+                value={departmentForm.phone}
+                onChange={(e) => setDepartmentForm({...departmentForm, phone: e.target.value})}
+                placeholder="+1-555-0123"
+              />
+            </div>
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="edit-isActive"
+                checked={departmentForm.isActive}
+                onCheckedChange={(checked) => setDepartmentForm({...departmentForm, isActive: checked})}
+              />
+              <Label htmlFor="edit-isActive">Active Department</Label>
+            </div>
+            <div className="flex justify-end space-x-2">
+              <Button variant="outline" onClick={() => setIsEditDepartmentOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleUpdateDepartment} disabled={!departmentForm.name.trim()}>
+                Update Department
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Suggestion Detail Dialog */}
       <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
