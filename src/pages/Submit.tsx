@@ -7,14 +7,263 @@ import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
-import { Camera, Upload, X, ImageIcon, Video, FileText, User, Mail, Lock, Eye, EyeOff, Building, AlertCircle } from 'lucide-react';
+import { Camera, Upload, X, ImageIcon, Video, FileText, User, Mail, Lock, Eye, EyeOff, Building, AlertCircle, Square, RotateCcw } from 'lucide-react';
 import { createSuggestionWithMedia, getDepartments, register, login as apiLogin, Department } from '@/lib/api';
 
 const categories = ['academic', 'administrative', 'infrastructure', 'other'];
 const roles = ['student', 'teacher', 'staff', 'alumni', 'admin'];
 
 type MediaPreview = { file: File; url: string; kind: 'image' | 'video' };
+
+// CameraCapture component implementation
+const CameraCapture = ({ onCapture, className = '' }: { 
+  onCapture: (data: { blob: Blob; kind: 'image' | 'video' }) => void; 
+  className?: string;
+}) => {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const recordedChunksRef = useRef<Blob[]>([]);
+  const streamRef = useRef<MediaStream | null>(null);
+  const recordingTimerRef = useRef<NodeJS.Timeout | null>(null);
+  
+  const [isRecording, setIsRecording] = useState(false);
+  const [facingMode, setFacingMode] = useState<'user' | 'environment'>('environment');
+  const [captureMode, setCaptureMode] = useState<'image' | 'video'>('image');
+  const [recordingTime, setRecordingTime] = useState(0);
+  const [error, setError] = useState<string | null>(null);
+
+  // Start the camera
+  const startCamera = useCallback(async () => {
+    try {
+      setError(null);
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode },
+        audio: captureMode === 'video' // Only enable audio for video recording
+      });
+      
+      streamRef.current = stream;
+      
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        await videoRef.current.play();
+      }
+    } catch (err) {
+      console.error('Error accessing camera:', err);
+      setError('Unable to access camera. Please check permissions and try again.');
+    }
+  }, [facingMode, captureMode]);
+
+  // Stop the camera
+  const stopCamera = useCallback(() => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+    }
+    
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+    }
+    
+    if (recordingTimerRef.current) {
+      clearInterval(recordingTimerRef.current);
+      recordingTimerRef.current = null;
+    }
+  }, [isRecording]);
+
+  // Toggle camera facing mode
+  const toggleFacingMode = useCallback(() => {
+    setFacingMode(prev => prev === 'user' ? 'environment' : 'user');
+  }, []);
+
+  // Capture photo
+  const capturePhoto = useCallback(() => {
+    if (!videoRef.current) return;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = videoRef.current.videoWidth;
+    canvas.height = videoRef.current.videoHeight;
+    
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
+      
+      canvas.toBlob(blob => {
+        if (blob) {
+          onCapture({ blob, kind: 'image' });
+        }
+      }, 'image/jpeg', 0.8);
+    }
+  }, [onCapture]);
+
+  // Start video recording
+  const startRecording = useCallback(() => {
+    if (!streamRef.current || !videoRef.current) return;
+
+    recordedChunksRef.current = [];
+    setRecordingTime(0);
+    
+    try {
+      const options = { mimeType: 'video/webm;codecs=vp9,opus' };
+      mediaRecorderRef.current = new MediaRecorder(streamRef.current, options);
+      
+      mediaRecorderRef.current.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          recordedChunksRef.current.push(event.data);
+        }
+      };
+      
+      mediaRecorderRef.current.onstop = () => {
+        const blob = new Blob(recordedChunksRef.current, { type: 'video/webm' });
+        onCapture({ blob, kind: 'video' });
+      };
+      
+      mediaRecorderRef.current.start();
+      setIsRecording(true);
+      
+      // Start recording timer
+      recordingTimerRef.current = setInterval(() => {
+        setRecordingTime(prev => prev + 1);
+      }, 1000);
+    } catch (err) {
+      console.error('Error starting recording:', err);
+      setError('Unable to start video recording. Please try again.');
+    }
+  }, [onCapture]);
+
+  // Stop video recording
+  const stopRecording = useCallback(() => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+      
+      if (recordingTimerRef.current) {
+        clearInterval(recordingTimerRef.current);
+        recordingTimerRef.current = null;
+      }
+    }
+  }, [isRecording]);
+
+  // Switch between photo and video mode
+  const toggleCaptureMode = useCallback(() => {
+    const newMode = captureMode === 'image' ? 'video' : 'image';
+    setCaptureMode(newMode);
+    
+    // Restart camera with new settings (audio for video)
+    stopCamera();
+    setTimeout(startCamera, 100);
+  }, [captureMode, startCamera, stopCamera]);
+
+  // Initialize camera on component mount
+  useEffect(() => {
+    startCamera();
+    return () => stopCamera();
+  }, [startCamera, stopCamera]);
+
+  // Format recording time
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  return (
+    <div className={`flex flex-col ${className}`}>
+      <div className="relative flex-1 bg-black rounded-lg overflow-hidden min-h-[300px]">
+        <video
+          ref={videoRef}
+          autoPlay
+          playsInline
+          muted
+          className="w-full h-full object-cover"
+        />
+        
+        {isRecording && (
+          <div className="absolute top-4 left-4 bg-red-600 text-white px-3 py-1 rounded-full flex items-center gap-2">
+            <div className="w-3 h-3 bg-white rounded-full animate-pulse" />
+            <span className="font-mono font-medium">{formatTime(recordingTime)}</span>
+          </div>
+        )}
+        
+        {error && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/70">
+            <div className="text-white text-center p-4">
+              <p className="text-lg font-medium mb-2">Camera Error</p>
+              <p className="text-sm mb-4">{error}</p>
+              <Button onClick={startCamera} variant="outline" className="text-white border-white">
+                Retry
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
+      
+      <div className="flex flex-col gap-4 mt-4">
+        <div className="flex justify-center gap-4">
+          {/* Capture mode toggle */}
+          <Button
+            variant="outline"
+            onClick={toggleCaptureMode}
+            className="flex items-center gap-2"
+          >
+            {captureMode === 'image' ? (
+              <>
+                <Video className="w-4 h-4" />
+                Switch to Video
+              </>
+            ) : (
+              <>
+                <Camera className="w-4 h-4" />
+                Switch to Photo
+              </>
+            )}
+          </Button>
+          
+          {/* Camera flip button */}
+          <Button
+            variant="outline"
+            onClick={toggleFacingMode}
+            className="flex items-center gap-2"
+          >
+            <RotateCcw className="w-4 h-4" />
+            Flip Camera
+          </Button>
+        </div>
+        
+        <div className="flex justify-center">
+          {/* Capture button */}
+          {captureMode === 'image' ? (
+            <Button
+              onClick={capturePhoto}
+              size="lg"
+              className="w-16 h-16 rounded-full bg-white text-black hover:bg-gray-200 border-4 border-gray-300"
+            >
+              <Camera className="w-8 h-8" />
+            </Button>
+          ) : (
+            <Button
+              onClick={isRecording ? stopRecording : startRecording}
+              size="lg"
+              className={`w-16 h-16 rounded-full ${
+                isRecording 
+                  ? 'bg-red-600 text-white hover:bg-red-700 border-4 border-red-300' 
+                  : 'bg-white text-black hover:bg-gray-200 border-4 border-gray-300'
+              }`}
+            >
+              {isRecording ? (
+                <Square className="w-8 h-8" />
+              ) : (
+                <Video className="w-8 h-8" />
+              )}
+            </Button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export default function SubmitPage() {
   const [category, setCategory] = useState('academic');
@@ -42,13 +291,11 @@ export default function SubmitPage() {
   const [user, setUser] = useState(null);
 
   // Media state
-  const [files, setFiles] = useState([]);
-  const [previews, setPreviews] = useState([]);
+  const [files, setFiles] = useState<File[]>([]);
+  const [previews, setPreviews] = useState<MediaPreview[]>([]);
   const [showCamera, setShowCamera] = useState(false);
   
-  const videoRef = useRef(null);
-  const canvasRef = useRef(null);
-  const fileInputRef = useRef(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Load departments on component mount
   useEffect(() => {
@@ -88,112 +335,35 @@ export default function SubmitPage() {
     };
   }, [files]);
 
-  const startCamera = async () => {
-    try {
-      setError(null);
-      
-      // Check if mediaDevices is supported
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        throw new Error('Camera API not supported in this browser');
-      }
-
-      // Request camera access with specific constraints
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { 
-          width: { ideal: 1280 },
-          height: { ideal: 720 },
-          facingMode: 'environment' // Use back camera on mobile if available
-        } 
-      });
-      
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        videoRef.current.onloadedmetadata = () => {
-          videoRef.current.play();
-        };
-        setShowCamera(true);
-      }
-    } catch (err) {
-      console.error('Camera error:', err);
-      let errorMessage = 'Camera access failed. ';
-      
-      if (err.name === 'NotAllowedError') {
-        errorMessage += 'Please allow camera access and try again.';
-      } else if (err.name === 'NotFoundError') {
-        errorMessage += 'No camera found on this device.';
-      } else if (err.name === 'NotSupportedError') {
-        errorMessage += 'Camera not supported in this browser.';
-      } else if (err.name === 'NotReadableError') {
-        errorMessage += 'Camera is being used by another application.';
-      } else {
-        errorMessage += err.message || 'Unknown error occurred.';
-      }
-      
-      setError(errorMessage);
-    }
-  };
-
-  const stopCamera = () => {
-    if (videoRef.current && videoRef.current.srcObject) {
-      const tracks = videoRef.current.srcObject.getTracks();
-      tracks.forEach(track => track.stop());
-    }
-    setShowCamera(false);
-  };
-
-  const capturePhoto = () => {
-    if (!videoRef.current || !canvasRef.current) {
-      setError('Camera not ready for capture');
-      return;
-    }
-
-    const canvas = canvasRef.current;
-    const video = videoRef.current;
-    
-    // Set canvas dimensions to match video
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    
-    if (canvas.width === 0 || canvas.height === 0) {
-      setError('Video not ready. Please wait a moment and try again.');
-      return;
-    }
-    
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    
-    // Convert canvas to blob with good quality
-    canvas.toBlob((blob) => {
-      if (blob) {
-        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-        const file = new File([blob], `camera-photo-${timestamp}.jpg`, { 
-          type: 'image/jpeg' 
-        });
-        
-        // Add the captured photo to files (max 5 total)
-        setFiles(prev => {
-          const newFiles = [...prev, file];
-          return newFiles.slice(-5); // Keep only last 5 files
-        });
-        
-        setError(null);
-        // Don't stop camera immediately, let user take multiple photos if needed
-      } else {
-        setError('Failed to capture photo. Please try again.');
-      }
-    }, 'image/jpeg', 0.9);
-  };
-
-  function onFileChange(e) {
+  function onFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const selected = Array.from(e.target.files || []);
     const filtered = selected.filter((f) => f.type.startsWith('image/') || f.type.startsWith('video/'));
     const limited = filtered.slice(0, 5);
     setFiles(prev => [...prev, ...limited].slice(0, 5));
   }
 
-  function removeFile(idx) {
+  function removeFile(idx: number) {
     setFiles((prev) => prev.filter((_, i) => i !== idx));
   }
+
+  // Handle camera capture
+  const handleCameraCapture = useCallback((data: { blob: Blob; kind: 'image' | 'video' }) => {
+    // Create a file from the blob with appropriate name and type
+    const fileType = data.kind === 'image' ? 'image/jpeg' : 'video/webm';
+    const fileExtension = data.kind === 'image' ? 'jpg' : 'webm';
+    const fileName = `capture-${Date.now()}.${fileExtension}`;
+    
+    const file = new File([data.blob], fileName, { type: fileType });
+    
+    // Add the captured media to files (max 5 total)
+    setFiles(prev => {
+      const newFiles = [...prev, file];
+      return newFiles.slice(-5); // Keep only last 5 files
+    });
+    
+    setShowCamera(false);
+    setError(null);
+  }, []);
 
   async function onAuth() {
     setLoginLoading(true);
@@ -215,7 +385,7 @@ export default function SubmitPage() {
   }
 
   // Handle department change with debugging
-  const handleDepartmentChange = useCallback((value) => {
+  const handleDepartmentChange = useCallback((value: string) => {
     console.log('Department changing from', assignedToDepartment, 'to', value);
     setAssignedToDepartment(value);
   }, [assignedToDepartment]);
@@ -234,7 +404,7 @@ export default function SubmitPage() {
       form.append('category', category);
       form.append('description', description);
       form.append('anonymous', String(anonymous));
-            form.append('actionTaken', 'No action yet');
+      form.append('actionTaken', 'No action yet');
       
       // Handle assignedToDepartment - only append if it has a value and is not 'none'
       if (assignedToDepartment && assignedToDepartment !== 'none' && assignedToDepartment.trim() !== '') {
@@ -282,7 +452,7 @@ export default function SubmitPage() {
     []
   );
 
-  const getCategoryIcon = (cat) => {
+  const getCategoryIcon = (cat: string) => {
     switch(cat) {
       case 'academic': return '📚';
       case 'administrative': return '🏢';
@@ -295,9 +465,6 @@ export default function SubmitPage() {
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
       <div className="max-w-4xl mx-auto px-4 py-8 space-y-8">
         <div className="text-center space-y-4">
-          {/* <div className="w-16 h-16 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl mx-auto flex items-center justify-center">
-            <FileText className="w-8 h-8 text-white" />
-          </div> */}
           <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
             Submit Suggestion
           </h1>
@@ -598,23 +765,13 @@ export default function SubmitPage() {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={showCamera ? stopCamera : startCamera}
+                  onClick={() => setShowCamera(true)}
                   className="border-2 border-purple-200 text-purple-600 hover:bg-purple-50 hover:border-purple-300"
                   disabled={loginLoading}
                 >
                   <Camera className="w-4 h-4 mr-2" />
-                  {showCamera ? 'Stop Camera' : 'Open Camera'}
+                  Open Camera
                 </Button>
-                {showCamera && (
-                  <Button
-                    type="button"
-                    onClick={capturePhoto}
-                    className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white"
-                  >
-                    <Camera className="w-4 h-4 mr-2" />
-                    Take Photo
-                  </Button>
-                )}
               </div>
               
               <Input 
@@ -626,38 +783,35 @@ export default function SubmitPage() {
                 className="hidden"
               />
 
-              {showCamera && (
-                <div className="relative bg-black rounded-lg overflow-hidden border-2 border-purple-200">
-                  <video 
-                    ref={videoRef} 
-                    autoPlay 
-                    playsInline
-                    muted
-                    className="w-full max-h-80 object-cover"
-                    onError={() => setError('Camera video failed to load')}
-                  />
-                  <div className="absolute top-4 right-4">
-                    <Button
-                      onClick={stopCamera}
-                      variant="outline"
-                      size="sm"
-                      className="bg-black/50 border-white/30 text-white hover:bg-black/70"
+              {/* Camera Modal */}
+              <Dialog open={showCamera} onOpenChange={setShowCamera}>
+                <DialogContent className="max-w-3xl h-[80vh] flex flex-col">
+                  <DialogHeader>
+                    <DialogTitle className="flex items-center gap-2">
+                      <Camera className="w-5 h-5" />
+                      Camera Capture
+                    </DialogTitle>
+                    <DialogDescription>
+                      Capture photos or record videos directly from your camera
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="flex-1 min-h-0">
+                    <CameraCapture 
+                      onCapture={handleCameraCapture} 
+                      className="h-full"
+                    />
+                  </div>
+                  <div className="flex justify-end pt-4 border-t">
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setShowCamera(false)}
                     >
-                      <X className="w-4 h-4" />
+                      Cancel
                     </Button>
                   </div>
-                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
-                    <div className="text-center">
-                      <p className="text-white/80 text-sm mb-3">
-                        Position your subject and click "Take Photo"
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
+                </DialogContent>
+              </Dialog>
               
-              <canvas ref={canvasRef} className="hidden" />
-
               {previews.length > 0 && (
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-4">
                   {previews.map((p, idx) => (

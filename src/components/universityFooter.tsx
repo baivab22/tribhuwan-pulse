@@ -1,5 +1,5 @@
 import React from 'react';
-import { Facebook, Twitter, Instagram, Linkedin, Youtube, MessageSquare, Home, Users, FileText, Send, HelpCircle, Phone, Mail, MapPin } from 'lucide-react';
+import { Facebook, Twitter, Instagram, Linkedin, Youtube, MessageSquare } from 'lucide-react';
 
 const UniversityFooter = ({ 
   universityName = "EduFeedback",
@@ -22,24 +22,19 @@ const UniversityFooter = ({
       { name: 'Home', href: '/' },
       { name: 'Submit Feedback', href: '/submit' },
       { name: 'Public Feedback', href: '/public' },
-      { name: 'Suggestions Portal', href: '/suggestions' },
-      { name: 'Reports Dashboard', href: '/reports' },
-      { name: 'Analytics', href: '/analytics' }
+      { name: 'Admin Dashboard', href: '/admin' }
     ],
     company: [
       { name: 'About', href: '/about' },
-      { name: 'What\'s New', href: '/whats-new' },
-      { name: 'Customers', href: '/customers' },
-      { name: 'Careers', href: '/careers' },
-      { name: '404 Guide', href: '/404-guide' },
-      { name: 'Contact us', href: '/contact' }
+      { name: 'Contact us', href: '/contact' },
+      { name: 'Privacy Policy', href: '/privacy' },
+      { name: 'Terms of Service', href: '/terms' }
     ],
     resources: [
-      { name: 'Feedback Blog', href: '/blog' },
       { name: 'Help Center', href: '/help' },
       { name: 'System Guides', href: '/guides' },
-      { name: 'Help Articles', href: '/articles' },
-      { name: 'System Status', href: '/status' }
+      { name: 'FAQ', href: '/faq' },
+      { name: 'Support', href: '/support' }
     ]
   };
 
@@ -81,18 +76,9 @@ const UniversityFooter = ({
               {brandDescription}
             </p>
 
-            {/* Social Links and Reviews - Compact */}
+            {/* Social Links */}
             <div className="space-y-2">
-              <div className="text-slate-400 text-xs">See our reviews on</div>
-              <div className="flex items-center space-x-2">
-                <div className="flex space-x-1">
-                  {[...Array(5)].map((_, i) => (
-                    <div key={i} className="w-3 h-3 bg-green-500 rounded-sm"></div>
-                  ))}
-                </div>
-                <span className="text-xs text-slate-400">Trustpilot</span>
-              </div>
-              
+              <div className="text-slate-400 text-xs">Follow us</div>
               <div className="flex space-x-2">
                 {Object.entries(socialLinks).map(([platform, url]) => {
                   const IconComponent = socialIcons[platform];
@@ -161,7 +147,25 @@ const UniversityFooter = ({
           </div>
         </div>
 
-   
+        {/* Footer Bottom */}
+        <div className="border-t border-slate-800 pt-6">
+          <div className="flex flex-col md:flex-row justify-between items-center">
+            <div className="text-slate-400 text-xs mb-4 md:mb-0">
+              © 2024 {universityName}. All rights reserved.
+            </div>
+            <div className="flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-4 text-xs text-slate-400">
+              <div className="flex items-center">
+                <span>📧 {contactEmail}</span>
+              </div>
+              <div className="flex items-center">
+                <span>📞 {contactPhone}</span>
+              </div>
+              <div className="flex items-center">
+                <span>📍 {address}</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </footer>
   );
