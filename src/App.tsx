@@ -12,9 +12,9 @@ import './i18n';
 import { useTranslation } from 'react-i18next';
 import { getStoredUser, logout } from './lib/api';
 import { useEffect, useState } from 'react';
-import SubmitPage from './pages/submit';
+import SubmitPage from './pages/Submit';
 import { setLanguage } from './i18n';
-import RegisterPage from './pages/register';
+import RegisterPage from './pages/Register';
 import UniversityFooter from './components/universityFooter';
 import { 
   Home, 
