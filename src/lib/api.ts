@@ -52,7 +52,7 @@ export interface Department {
 /* ===========================
    Storage Helpers
 =========================== */
-const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:4000';
+const API_BASE = import.meta.env.VITE_API_BASE || 'https://feedbackbackend-1.onrender.com';
 
 function getToken(): string | null {
   try {
