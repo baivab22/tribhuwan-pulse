@@ -90,7 +90,7 @@ function Header() {
             {/* Logo */}
             <Link to="/" className="flex-shrink-0 transform hover:scale-105 transition-transform duration-200">
               <img 
-                src="/public/TUImage.png" 
+                src="public/TUImage.png" 
                 alt="University Logo" 
                 className="h-10 w-auto sm:h-12 md:h-14" 
               />
