@@ -89,11 +89,8 @@ function Header() {
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <Link to="/" className="flex-shrink-0 transform hover:scale-105 transition-transform duration-200">
-              <img 
-                src="public/TUImage.png" 
-                alt="University Logo" 
-                className="h-10 w-auto sm:h-12 md:h-14" 
-              />
+      <img src="/TUImage.png" alt="University Logo" className="h-10 w-auto sm:h-12 md:h-14" />
+
             </Link>
 
             {/* Desktop Navigation */}
