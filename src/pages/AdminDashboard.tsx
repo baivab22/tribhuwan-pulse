@@ -1380,11 +1380,19 @@ export default function AdminDashboard() {
                     {selectedSuggestion.media.map((media, index) => (
                       <div key={index} className="border rounded-md p-2">
                         {media.type === 'image' ? (
-                          <img 
-                            src={media.url} 
-                            alt={`Attachment ${index + 1}`}
-                            className="w-full h-32 object-cover rounded"
-                          />
+                     <img 
+  // src={media.url ? media.url.replace(/^http:\/\//i, "https://") : ""} 
+    src={media.url}
+  alt={`Attachment ${index + 1}`}
+  className="w-full h-32 object-cover rounded"
+
+    onError={(e) => {
+        console.error("Image failed to load:", e.currentTarget.src);
+        // Optional: replace with fallback image
+        // e.currentTarget.src = "/fallback.png";
+      }}
+/>
+
                         ) : (
                           <video 
                             src={media.url}
