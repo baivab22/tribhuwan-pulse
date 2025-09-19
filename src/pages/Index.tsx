@@ -495,7 +495,8 @@ export default function HomePage() {
       </section>
 
       {/* Custom CSS and Fonts */}
-      <style jsx>{`
+
+            <style jsx>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700;800&display=swap');
         
         .font-inter {
@@ -546,21 +547,22 @@ export default function HomePage() {
           transform: translateX(0.25rem);
         }
 
-        /* Mobile-specific adjustments */
-        @media (max-width: 640px) {
-          .transform {
-            transform: none !important;
-          }
+        // /* Mobile-specific adjustments */
+        // @media (max-width: 640px) {
+        //   .transform {
+        //     transform: none !important;
+        //   }
           
-          .hover\\:scale-105:hover {
-            transform: scale(1.02) !important;
-          }
+        //   .hover\\:scale-105:hover {
+        //     transform: scale(1.02) !important;
+        //   }
           
-          .hover\\:-translate-y-2:hover {
-            transform: translateY(-2px) !important;
-          }
-        }
+        //   .hover\\:-translate-y-2:hover {
+        //     transform: translateY(-2px) !important;
+        //   }
+        // }
       `}</style>
+
     </div>
   );
 }
