@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { listResolved, Suggestion, Category, Status } from '@/lib/api';
+import { adminList, Suggestion, Category, Status } from '@/lib/api';
 import { Search, Filter, ChevronLeft, ChevronRight, Eye, Calendar, Clock, BarChart3, X, Image, Download } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 import { Link } from 'react-router-dom';
@@ -27,33 +27,45 @@ export default function PublicSuggestionsPage() {
   const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
-  const [filteredSuggestions, setFilteredSuggestions] = useState<Suggestion[]>([]);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [selectedSuggestion, setSelectedSuggestion] = useState<Suggestion | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Filters
+  // Filters - REMOVED DEFAULT 'Resolved' FILTER
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<Category | 'all'>('all');
-  const [statusFilter, setStatusFilter] = useState<Status | 'all'>('Resolved');
+  const [statusFilter, setStatusFilter] = useState<Status | 'all'>('all');
+  const [departmentFilter, setDepartmentFilter] = useState<string>('');
+  const [fromDate, setFromDate] = useState<string>('');
+  const [toDate, setToDate] = useState<string>('');
 
   const itemsPerPage = 8;
+  const totalPages = Math.ceil(total / itemsPerPage);
 
   useEffect(() => {
-    loadPublicSuggestions();
-  }, []);
+    loadSuggestions();
+  }, [page, searchTerm, categoryFilter, statusFilter, departmentFilter, fromDate, toDate]);
 
-  useEffect(() => {
-    filterAndPaginateSuggestions();
-  }, [suggestions, searchTerm, categoryFilter, statusFilter, page]);
-
-  async function loadPublicSuggestions() {
+  async function loadSuggestions() {
     setLoading(true);
     setError(null);
     try {
-      const data = await listResolved(page, 100); // Load more items for client-side filtering
+      const params: any = {
+        page,
+        limit: itemsPerPage,
+      };
+
+      // Add filters to params
+      if (searchTerm) params.q = searchTerm;
+      if (categoryFilter !== 'all') params.category = categoryFilter;
+      if (statusFilter !== 'all') params.status = statusFilter;
+      if (departmentFilter) params.assignedDepartment = departmentFilter;
+      if (fromDate) params.from = fromDate;
+      if (toDate) params.to = toDate;
+
+      const data = await adminList(params);
       setSuggestions(data.suggestions);
       setTotal(data.total);
     } catch (e: unknown) {
@@ -64,46 +76,44 @@ export default function PublicSuggestionsPage() {
     }
   }
 
-  function filterAndPaginateSuggestions() {
-    let filtered = suggestions;
-
-    // Apply search filter
-    if (searchTerm) {
-      filtered = filtered.filter(suggestion =>
-        suggestion.description.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
-    // Apply category filter
-    if (categoryFilter !== 'all') {
-      filtered = filtered.filter(suggestion => suggestion.category === categoryFilter);
-    }
-
-    // Apply status filter
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter(suggestion => suggestion.status === statusFilter);
-    }
-
-    setTotal(filtered?.length);
-    
-    // Apply pagination
-    const startIndex = (page - 1) * itemsPerPage;
-    const paginated = filtered.slice(startIndex, startIndex + itemsPerPage);
-    setFilteredSuggestions(paginated);
-  }
-
-  const totalPages = Math.ceil(total / itemsPerPage);
-
   const handleClearFilters = () => {
     setSearchTerm('');
     setCategoryFilter('all');
-    setStatusFilter('Resolved');
+    setStatusFilter('all'); // Changed from 'Resolved' to 'all'
+    setDepartmentFilter('');
+    setFromDate('');
+    setToDate('');
     setPage(1);
   };
 
   const handleViewDetails = (suggestion: Suggestion) => {
     setSelectedSuggestion(suggestion);
     setIsModalOpen(true);
+  };
+
+  const handleFilterChange = (filterType: string, value: any) => {
+    setPage(1); // Reset to first page when filter changes
+    
+    switch (filterType) {
+      case 'search':
+        setSearchTerm(value);
+        break;
+      case 'category':
+        setCategoryFilter(value);
+        break;
+      case 'status':
+        setStatusFilter(value);
+        break;
+      case 'department':
+        setDepartmentFilter(value);
+        break;
+      case 'fromDate':
+        setFromDate(value);
+        break;
+      case 'toDate':
+        setToDate(value);
+        break;
+    }
   };
 
   if (loading) {
@@ -118,9 +128,9 @@ export default function PublicSuggestionsPage() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 py-8">
       <div className="max-w-6xl mx-auto px-4">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold mb-2">Resolved Suggestions</h1>
+          <h1 className="text-3xl font-bold mb-2">Public Suggestions</h1>
           <p className="text-muted-foreground">
-            Explore implemented suggestions and their impact on our community
+            Explore suggestions and their current status in our community
           </p>
         </div>
 
@@ -128,7 +138,7 @@ export default function PublicSuggestionsPage() {
           <Card className="mb-6 border-red-200 bg-red-50">
             <CardContent className="pt-6">
               <div className="text-red-600">{error}</div>
-              <Button variant="outline" className="mt-2" onClick={loadPublicSuggestions}>
+              <Button variant="outline" className="mt-2" onClick={loadSuggestions}>
                 Try Again
               </Button>
             </CardContent>
@@ -144,7 +154,7 @@ export default function PublicSuggestionsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid md:grid-cols-4 gap-4">
+            <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-4">
               {/* Search */}
               <div className="space-y-2">
                 <Label>Search</Label>
@@ -153,10 +163,7 @@ export default function PublicSuggestionsPage() {
                   <Input
                     placeholder="Search suggestions..."
                     value={searchTerm}
-                    onChange={(e) => {
-                      setSearchTerm(e.target.value);
-                      setPage(1);
-                    }}
+                    onChange={(e) => handleFilterChange('search', e.target.value)}
                     className="pl-9"
                   />
                 </div>
@@ -167,10 +174,7 @@ export default function PublicSuggestionsPage() {
                 <Label>Category</Label>
                 <Select
                   value={categoryFilter}
-                  onValueChange={(value: Category | 'all') => {
-                    setCategoryFilter(value);
-                    setPage(1);
-                  }}
+                  onValueChange={(value: Category | 'all') => handleFilterChange('category', value)}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="All Categories" />
@@ -191,10 +195,7 @@ export default function PublicSuggestionsPage() {
                 <Label>Status</Label>
                 <Select
                   value={statusFilter}
-                  onValueChange={(value: Status | 'all') => {
-                    setStatusFilter(value);
-                    setPage(1);
-                  }}
+                  onValueChange={(value: Status | 'all') => handleFilterChange('status', value)}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="All Statuses" />
@@ -210,8 +211,37 @@ export default function PublicSuggestionsPage() {
                 </Select>
               </div>
 
+              {/* Department Filter */}
+              <div className="space-y-2">
+                <Label>Department</Label>
+                <Input
+                  placeholder="Filter by department..."
+                  value={departmentFilter}
+                  onChange={(e) => handleFilterChange('department', e.target.value)}
+                />
+              </div>
+
+              {/* Date Range Filters */}
+              <div className="space-y-2">
+                <Label>From Date</Label>
+                <Input
+                  type="date"
+                  value={fromDate}
+                  onChange={(e) => handleFilterChange('fromDate', e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>To Date</Label>
+                <Input
+                  type="date"
+                  value={toDate}
+                  onChange={(e) => handleFilterChange('toDate', e.target.value)}
+                />
+              </div>
+
               {/* Clear Filters */}
-              <div className="flex items-end">
+              <div className="flex items-end md:col-span-2 lg:col-span-1">
                 <Button
                   variant="outline"
                   onClick={handleClearFilters}
@@ -227,7 +257,7 @@ export default function PublicSuggestionsPage() {
         {/* Results Count */}
         <div className="flex justify-between items-center mb-4">
           <p className="text-sm text-muted-foreground">
-            Showing {filteredSuggestions?.length} of {total} suggestions
+            Showing {suggestions?.length} of {total} suggestions
           </p>
           {total > 0 && (
             <div className="text-sm text-muted-foreground">
@@ -236,54 +266,63 @@ export default function PublicSuggestionsPage() {
           )}
         </div>
 
-{filteredSuggestions?.length === 0 ? (
-  <Card>
-    <CardContent className="pt-6 text-center">
-      <div className="text-muted-foreground mb-4">
-        {suggestions?.length === 0 
-          ? "No resolved suggestions available yet."
-          : "No suggestions match your filters."
-        }
-      </div>
-    </CardContent>
-  </Card>
-) : (
-  <div className="grid md:grid-cols-2 gap-6 mb-6">
-    {filteredSuggestions.map((s: any, index: number) => {
-      const suggestion = {
-        id: `SUG-${100000 + index + 1}`,
-        title: s.description || "No title provided",
-        category: s.category || "General",
-        status: s.status || "Pending",
-        impact: s.impact || "Impact not available",
-        resolvedDate: s.updatedAt 
-          ? new Date(s.updatedAt).toLocaleDateString() 
-          : "Not resolved",
-        department: s.assignedDepartment || "Unassigned",
-        resolutionTime: s.createdAt && s.updatedAt 
-          ? `${Math.ceil(
-              (new Date(s.updatedAt).getTime() - new Date(s.createdAt).getTime()) / 
-              (1000 * 60 * 60 * 24)
-            )} days`
-          : "N/A",
-        actionTaken: s.actionTaken || "No action yet"
-      };
+        {/* Suggestions Grid */}
+        {suggestions?.length === 0 ? (
+          <Card>
+            <CardContent className="pt-6 text-center">
+              <div className="text-muted-foreground mb-4">
+                {total === 0 
+                  ? "No suggestions found matching your criteria."
+                  : "No suggestions available."
+                }
+              </div>
+              {(searchTerm || categoryFilter !== 'all' || statusFilter !== 'all' || departmentFilter || fromDate || toDate) && (
+                <Button variant="outline" onClick={handleClearFilters}>
+                  Clear Filters
+                </Button>
+              )}
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid md:grid-cols-2 gap-6 mb-6">
+            {suggestions.map((suggestion: Suggestion, index: number) => {
+              const transformedSuggestion = {
+                id: suggestion._id || suggestion.id || `SUG-${Date.now()}-${index}`,
+                title: suggestion.description || "No title provided",
+                category: suggestion.category || "General",
+                status: suggestion.status || "Pending",
+                impact: suggestion.impact || "Impact not available",
+                resolvedDate: suggestion.updatedAt 
+                  ? new Date(suggestion.updatedAt).toLocaleDateString() 
+                  : "Not resolved",
+                department: suggestion.assignedDepartment || "Unassigned",
+                resolutionTime: suggestion.createdAt && suggestion.updatedAt 
+                  ? `${Math.ceil(
+                      (new Date(suggestion.updatedAt).getTime() - new Date(suggestion.createdAt).getTime()) / 
+                      (1000 * 60 * 60 * 24)
+                    )} days`
+                  : "N/A",
+                actionTaken: suggestion.actionTaken || "No action yet"
+              };
 
-      return <SuggestionCard key={suggestion.id} suggestion={suggestion} />;
-    })}
-  </div>
-)}
+              return (
+                <SuggestionCard 
+                  key={transformedSuggestion.id} 
+                  suggestion={transformedSuggestion}
+                />
+              );
+            })}
+          </div>
+        )}
 
-   
-
-   
+        {/* Pagination */}
         {totalPages > 1 && (
           <div className="flex justify-center items-center space-x-2">
             <Button
               variant="outline"
               size="sm"
               onClick={() => setPage(Math.max(1, page - 1))}
-              disabled={page === 1}
+              disabled={page === 1 || loading}
             >
               <ChevronLeft className="h-4 w-4 mr-1" />
               Previous
@@ -307,6 +346,7 @@ export default function PublicSuggestionsPage() {
                   variant={page === pageNum ? "default" : "outline"}
                   size="sm"
                   onClick={() => setPage(pageNum)}
+                  disabled={loading}
                 >
                   {pageNum}
                 </Button>
@@ -317,7 +357,7 @@ export default function PublicSuggestionsPage() {
               variant="outline"
               size="sm"
               onClick={() => setPage(Math.min(totalPages, page + 1))}
-              disabled={page === totalPages}
+              disabled={page === totalPages || loading}
             >
               Next
               <ChevronRight className="h-4 w-4 ml-1" />
@@ -339,82 +379,107 @@ export default function PublicSuggestionsPage() {
           </CardContent>
         </Card>
 
-     
+        {/* Suggestion Details Modal */}
+        <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+            {selectedSuggestion && (
+              <>
+                <DialogHeader>
+                  <DialogTitle className="flex items-center justify-between">
+                    <span className="line-clamp-2">
+                      {selectedSuggestion.description}
+                    </span>
+                    <Badge className={statusColors[selectedSuggestion.status]}>
+                      {selectedSuggestion.status}
+                    </Badge>
+                  </DialogTitle>
+                  <DialogDescription>
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      <Badge variant="outline" className="capitalize">
+                        {selectedSuggestion.category}
+                      </Badge>
+                      {selectedSuggestion.assignedDepartment && (
+                        <Badge variant="secondary">
+                          {selectedSuggestion.assignedDepartment}
+                        </Badge>
+                      )}
+                    </div>
+                  </DialogDescription>
+                </DialogHeader>
+
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="font-semibold mb-2">Description</h4>
+                    <p className="text-sm text-muted-foreground">
+                      {selectedSuggestion.description}
+                    </p>
+                  </div>
+
+                  {selectedSuggestion.actionTaken && (
+                    <div>
+                      <h4 className="font-semibold mb-2">Action Taken</h4>
+                      <p className="text-sm text-muted-foreground">
+                        {selectedSuggestion.actionTaken}
+                      </p>
+                    </div>
+                  )}
+
+                  {selectedSuggestion.impact && (
+                    <div>
+                      <h4 className="font-semibold mb-2">Impact</h4>
+                      <p className="text-sm text-muted-foreground">
+                        {selectedSuggestion.impact}
+                      </p>
+                    </div>
+                  )}
+
+                  <div className="grid md:grid-cols-2 gap-4 text-sm">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4" />
+                      <span>
+                        Submitted: {format(new Date(selectedSuggestion.createdAt), 'MMM dd, yyyy')}
+                      </span>
+                    </div>
+                    {selectedSuggestion.updatedAt && (
+                      <div className="flex items-center gap-2">
+                        <Clock className="h-4 w-4" />
+                        <span>
+                          Updated: {format(new Date(selectedSuggestion.updatedAt), 'MMM dd, yyyy')}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {selectedSuggestion.media && selectedSuggestion.media.length > 0 && (
+                    <div>
+                      <h4 className="font-semibold mb-2 flex items-center gap-2">
+                        <Image className="h-4 w-4" />
+                        Attachments ({selectedSuggestion.media.length})
+                      </h4>
+                      <div className="space-y-2">
+                        {selectedSuggestion.media.map((media, idx) => (
+                          <div key={idx} className="flex items-center justify-between p-2 border rounded">
+                            <span className="text-sm truncate">
+                              {media.originalName || `Attachment ${idx + 1}`}
+                            </span>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => window.open(media.url, '_blank')}
+                            >
+                              <Download className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
 }
-
-// function SuggestionCard({ 
-//   suggestion, 
-//   onViewDetails 
-// }: { 
-//   suggestion: Suggestion;
-//   onViewDetails: (suggestion: Suggestion) => void;
-// }) {
-//   const id = suggestion._id || suggestion.id;
-  
-//   return (
-//     <Card className="h-full hover:shadow-md transition-shadow group">
-//       <CardHeader className="pb-3">
-//         <div className="flex justify-between items-start mb-2">
-//           <Badge variant="outline" className="capitalize">
-//             {suggestion.category}
-//           </Badge>
-//           <Badge className={statusColors[suggestion.status]}>
-//             {suggestion.status}
-//           </Badge>
-//         </div>
-//         <CardTitle className="text-lg line-clamp-2 group-hover:text-primary transition-colors">
-//           {suggestion.description?.length > 60 
-//             ? `${suggestion.description.substring(0, 60)}...`
-//             : suggestion.description
-//           }
-//         </CardTitle>
-//       </CardHeader>
-//       <CardContent>
-//         <div className="space-y-3">
-//           <p className="text-sm text-muted-foreground line-clamp-3">
-//             {suggestion.description}
-//           </p>
-          
-//           <div className="flex items-center justify-between text-sm text-muted-foreground">
-//             <div className="flex items-center gap-4">
-//               <div className="flex items-center gap-1">
-//                 <Calendar className="h-4 w-4" />
-//                 <span>{format(new Date(suggestion.createdAt), 'MMM dd, yyyy')}</span>
-//               </div>
-//               {suggestion.status === 'Resolved' && (
-//                 <div className="flex items-center gap-1">
-//                   <Clock className="h-4 w-4" />
-//                   <span>{format(new Date(suggestion.updatedAt), 'MMM dd, yyyy')}</span>
-//                 </div>
-//               )}
-//             </div>
-//           </div>
-
-//           {suggestion.media && suggestion.media.length > 0 && (
-//             <div className="text-xs text-muted-foreground flex items-center gap-1">
-//               <Image className="h-3 w-3" />
-//               {suggestion.media.length} attachment{suggestion.media.length !== 1 ? 's' : ''}
-//             </div>
-//           )}
-
-//           <div className="flex justify-between items-center pt-2">
-//             <span className="text-xs font-mono text-muted-foreground">
-//               ID: {id?.substring(0, 8)}...
-//             </span>
-//             <Button 
-//               variant="outline" 
-//               size="sm"
-//               onClick={() => onViewDetails(suggestion)}
-//             >
-//               <Eye className="h-4 w-4 mr-1" />
-//               View Details
-//             </Button>
-//           </div>
-//         </div>
-//       </CardContent>
-//     </Card>
-//   );
-// }
