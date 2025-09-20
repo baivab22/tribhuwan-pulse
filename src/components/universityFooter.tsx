@@ -54,6 +54,9 @@ const UniversityFooter = ({
     linkedin: Linkedin
   };
 
+
+  console.log("hello data")
+
   return (
     <footer className="bg-slate-900 text-white relative overflow-hidden">
       {/* Background decoration dots */}
