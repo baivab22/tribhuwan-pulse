@@ -115,7 +115,7 @@ export default function EnhancedTrackingCard({ className = '' }: EnhancedTrackin
                 />
               </div>
               <p className="text-sm text-gray-500 mt-2 font-inter">
-                Enter your suggestion ID or keywords from your feedback
+                Enter your keywords from your feedback
               </p>
             </div>
             
