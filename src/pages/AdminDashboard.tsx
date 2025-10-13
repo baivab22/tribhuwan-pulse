@@ -63,6 +63,7 @@ import {
 } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
+import AdminDashboardForProgress from '@/components/adminDashboardforProgress';
 
 const categories: Category[] = ['academic', 'administrative', 'infrastructure', 'other'];
 const statuses: Status[] = ['Received', 'In Process', 'Resolved'];
@@ -445,11 +446,17 @@ export default function AdminDashboard() {
       </div>
 
       <Tabs defaultValue="manage">
-        <div className="flex justify-between items-center mb-4">
-          <TabsList className="grid w-full max-w-lg grid-cols-3">
+        <div className="flex justify-between items-center mb-4"
+        
+     
+        >
+          <TabsList className="grid w-full grid-cols-4"
+          
+          >
             <TabsTrigger value="manage">{t('admin.suggestionList')}</TabsTrigger>
             <TabsTrigger value="departments">Departments</TabsTrigger>
             <TabsTrigger value="analytics">{t('admin.analytics')}</TabsTrigger>
+            <TabsTrigger value="progress">Progress</TabsTrigger>
           </TabsList>
           
           <div className="flex space-x-2">
@@ -1214,6 +1221,11 @@ export default function AdminDashboard() {
             </Card>
           </div>
         </TabsContent>
+
+        <TabsContent value='progress' className="mt-4">
+          <AdminDashboardForProgress/>
+          </TabsContent> 
+         
       </Tabs>
 
       {/* Edit Department Dialog */}

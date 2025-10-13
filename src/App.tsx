@@ -16,6 +16,7 @@ import SubmitPage from './pages/Submit';
 import { setLanguage } from './i18n';
 import RegisterPage from './pages/Register';
 import UniversityFooter from './components/universityFooter';
+import { toast } from 'sonner';
 import { 
   Home, 
   Send, 
@@ -26,8 +27,17 @@ import {
   Menu, 
   X, 
   Globe,
-  ChevronDown 
+  User,
+  MessageSquare,
+  ChevronDown,
+  FileText
 } from 'lucide-react';
+import CollegeDataForm from './pages/collegeForm';
+import { useIsMobile } from './hooks/use-mobile';
+import FeedbackPage from './pages/feedback';
+// import {ProgressReportForm} from './pages/ProgressForm';
+import { ProgressReport } from './types';
+import ProgressForm from './pages/ProgressForm';
 
 const queryClient = new QueryClient();
 
@@ -35,6 +45,8 @@ function Header() {
   const { t, i18n } = useTranslation();
   const [user, setUser] = useState(getStoredUser());
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [feedbackMenuOpen, setFeedbackMenuOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -44,12 +56,10 @@ function Header() {
     return () => window.removeEventListener('storage', onStorage);
   }, []);
 
-  // Close mobile menu when route changes
   useEffect(() => {
     setIsMobileMenuOpen(false);
   }, [location.pathname]);
 
-  // Prevent body scroll when mobile menu is open
   useEffect(() => {
     if (isMobileMenuOpen) {
       document.body.style.overflow = 'hidden';
@@ -57,7 +67,6 @@ function Header() {
       document.body.style.overflow = '';
     }
     
-    // Cleanup on unmount
     return () => {
       document.body.style.overflow = '';
     };
@@ -68,63 +77,70 @@ function Header() {
     setUser(null);
     navigate('/');
     setIsMobileMenuOpen(false);
+    setUserMenuOpen(false);
   }
 
-  const navigationItems = [
+
+
+   const [isSubmitting, setIsSubmitting] = useState(false);
+
+
+
+  const mainNavigationItems = [
     { path: '/', label: t('nav.home'), icon: Home },
-    { path: '/submit', label: 'Submit a Feedback', icon: Send },
     { path: '/public', label: t('nav.public'), icon: Eye },
     { path: '/admin', label: t('nav.admin'), icon: Settings },
-    { path: '/register', label: 'Register', icon: UserPlus },
+    { path: '/college-form', label: 'College Form', icon: FileText },
+        { path: '/progress-form', label: 'Progress Form', icon: FileText }
+  ];
+
+  const feedbackItems = [
+    { path: '/submit', label: 'Submit a Feedback', icon: Send },
+    { path: '/feedback-status', label: 'Track Feedback', icon: MessageSquare },
   ];
 
   const isActivePath = (path) => {
     return location.pathname === path;
   };
 
+  const isMobile = useIsMobile();
+
   return (
     <>
-      <header className="border-b bg-white/80 backdrop-blur-md sticky top-0 z-50 shadow-sm relative">
+      {/* Top Bar with Logo */}
+      <div className="bg-white border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            {/* Logo */}
-            <Link to="/" className="flex-shrink-0 transform hover:scale-105 transition-transform duration-200">
-      <img src="/TUImage.png" alt="University Logo" className="h-10 w-auto sm:h-12 md:h-14" />
-
+          <div className="flex items-center justify-between" style={{ minHeight: isMobile ? '80px' : '96px' }}>
+            {/* Logo Section */}
+            <Link to="/" className="flex items-center gap-3 hover:opacity-90 transition-opacity duration-200">
+              <img
+                src="https://portal.tu.edu.np/medias/Tulogo_2024_02_25_10_03_06.png"
+                alt="Tribhuvan University Logo"
+                className={`${isMobile ? 'h-12' : 'h-16'} w-auto`}
+              />
+              <div className="flex flex-col">
+                <div className={`${isMobile ? 'text-sm' : 'text-lg'} font-semibold text-indigo-900 leading-tight`}>
+                  Planning Directorate Tribhuvan University, Nepal
+                </div>
+                <div className={`${isMobile ? 'text-xs' : 'text-sm'} text-gray-600 mt-0.5`}>
+                  
+                </div>
+                {!isMobile && (
+                  <div className="text-xs text-gray-500">
+                    Kirtipur, Kathmandu
+                  </div>
+                )}
+              </div>
             </Link>
 
-            {/* Desktop Navigation */}
-            <nav className="hidden lg:flex items-center space-x-1">
-              {navigationItems.map((item) => {
-                const IconComponent = item.icon;
-                return (
-                  <Link key={item.path} to={item.path}>
-                    <Button 
-                      variant={isActivePath(item.path) ? "default" : "ghost"}
-                      className={`
-                        relative flex items-center gap-2 px-3 py-2 text-sm font-medium transition-all duration-200
-                        ${isActivePath(item.path) 
-                          ? 'bg-indigo-600 text-white shadow-md hover:bg-indigo-700' 
-                          : 'text-gray-700 hover:text-indigo-600 hover:bg-indigo-50'
-                        }
-                      `}
-                    >
-                      <IconComponent className="w-4 h-4" />
-                      {item.label}
-                    </Button>
-                  </Link>
-                );
-              })}
-            </nav>
-
-            {/* Desktop Controls */}
+            {/* Desktop - Language & User Menu */}
             <div className="hidden lg:flex items-center space-x-3">
               {/* Language Selector */}
               <Select
                 defaultValue={i18n.language}
                 onValueChange={(v) => setLanguage(v)}
               >
-                <SelectTrigger className="w-[130px] border-gray-200 hover:border-indigo-300 focus:border-indigo-500">
+                <SelectTrigger className="w-[130px] border-gray-200 hover:border-indigo-300 focus:border-indigo-500 rounded-lg">
                   <Globe className="w-4 h-4 mr-2 text-gray-500" />
                   <SelectValue placeholder={t('nav.language')} />
                 </SelectTrigger>
@@ -134,27 +150,81 @@ function Header() {
                 </SelectContent>
               </Select>
 
-              {/* Logout Button */}
-              {user && (
-                <Button 
-                  variant="outline" 
-                  onClick={onLogout}
-                  className="flex items-center gap-2 border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300"
+              {/* User Menu Dropdown */}
+              <div className="relative">
+                <Button
+                  variant="outline"
+                  onClick={() => setUserMenuOpen(!userMenuOpen)}
+                  className="flex items-center gap-2 px-4 py-2 border-gray-200 hover:border-indigo-300 hover:bg-indigo-50 rounded-lg transition-all duration-200"
                 >
-                  <LogOut className="w-4 h-4" />
-                  {t('nav.logout')}
+                  {user ? (
+                    <div className="w-7 h-7 rounded-full bg-indigo-600 text-white flex items-center justify-center font-semibold text-sm">
+                      {user.username?.charAt(0).toUpperCase()}
+                    </div>
+                  ) : (
+                    <User className="w-4 h-4" />
+                  )}
+                  <span className="text-sm font-medium">
+                    {user ? user.username : 'Account'}
+                  </span>
+                  <ChevronDown className={`w-3 h-3 ml-1 transition-transform duration-200 ${userMenuOpen ? 'rotate-180' : ''}`} />
                 </Button>
-              )}
+                
+                {userMenuOpen && (
+                  <>
+                    <div 
+                      className="fixed inset-0 z-10" 
+                      onClick={() => setUserMenuOpen(false)}
+                    />
+                    <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-2xl border border-gray-200 py-2 z-20">
+                      {user ? (
+                        <>
+                          <div className="px-4 py-3 border-b border-gray-100">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-full bg-indigo-600 text-white flex items-center justify-center font-semibold">
+                                {user.username?.charAt(0).toUpperCase()}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="font-semibold text-gray-900 truncate">{user.username}</div>
+                                <div className="text-xs text-gray-500 truncate">{user.email}</div>
+                              </div>
+                            </div>
+                          </div>
+                          <button
+                            onClick={onLogout}
+                            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors duration-150 mt-1"
+                          >
+                            <LogOut className="w-4 h-4" />
+                            {t('nav.logout')}
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <div className="px-4 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                            Account
+                          </div>
+                          <div className="border-t border-gray-100 my-1" />
+                          <Link to="/register" onClick={() => setUserMenuOpen(false)}>
+                            <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 transition-colors duration-150">
+                              <UserPlus className="w-4 h-4" />
+                              Register
+                            </button>
+                          </Link>
+                        </>
+                      )}
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
 
-            {/* Mobile Menu Button - Enhanced */}
+            {/* Mobile Controls */}
             <div className="lg:hidden flex items-center space-x-2">
-              {/* Mobile Language Selector */}
               <Select
                 defaultValue={i18n.language}
                 onValueChange={(v) => setLanguage(v)}
               >
-                <SelectTrigger className="w-[60px] border-gray-200 p-2 hover:border-indigo-300 transition-colors duration-200">
+                <SelectTrigger className="w-[50px] border-gray-200 p-2 hover:border-indigo-300 transition-colors duration-200 rounded-lg">
                   <Globe className="w-4 h-4 text-gray-500" />
                 </SelectTrigger>
                 <SelectContent>
@@ -175,18 +245,91 @@ function Header() {
                   }
                 `}
               >
-                {isMobileMenuOpen ? (
-                  <X className="w-6 h-6" />
-                ) : (
-                  <Menu className="w-6 h-6" />
-                )}
+                {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
               </Button>
             </div>
           </div>
         </div>
-      </header>
+      </div>
 
-      {/* Full-Screen Mobile Navigation Menu */}
+      {/* Horizontal Navigation Bar - Desktop Only */}
+      <nav className="hidden lg:block bg-gradient-to-r from-indigo-600 to-indigo-700 shadow-lg sticky top-0 z-40">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-14">
+            <div className="flex items-center space-x-1">
+              {mainNavigationItems.map((item) => {
+                const IconComponent = item.icon;
+                const isActive = isActivePath(item.path);
+                return (
+                  <Link key={item.path} to={item.path}>
+                    <Button
+                      variant="ghost"
+                      className={`
+                        flex items-center gap-2 px-5 py-2.5 text-sm font-medium transition-all duration-200 rounded-lg relative
+                        ${isActive 
+                          ? 'bg-white text-indigo-700 shadow-lg hover:bg-white' 
+                          : 'text-white hover:bg-white/10'
+                        }
+                      `}
+                    >
+                      <IconComponent className="w-4 h-4" />
+                      {item.label}
+                      {isActive && (
+                        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-12 h-1 bg-indigo-700 rounded-t-full" />
+                      )}
+                    </Button>
+                  </Link>
+                );
+              })}
+
+              {/* Feedback Dropdown */}
+              <div className="relative">
+                <Button
+                  variant="ghost"
+                  onClick={() => setFeedbackMenuOpen(!feedbackMenuOpen)}
+                  className="flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-white hover:bg-white/10 rounded-lg transition-all duration-200"
+                >
+                  <MessageSquare className="w-4 h-4" />
+                  Feedback
+                  <ChevronDown className={`w-3 h-3 ml-1 transition-transform duration-200 ${feedbackMenuOpen ? 'rotate-180' : ''}`} />
+                </Button>
+                
+                {feedbackMenuOpen && (
+                  <>
+                    <div 
+                      className="fixed inset-0 z-10" 
+                      onClick={() => setFeedbackMenuOpen(false)}
+                    />
+                    <div className="absolute left-0 mt-2 w-56 bg-white rounded-xl shadow-2xl border border-gray-200 py-2 z-20">
+                      <div className="px-3 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                        Feedback Options
+                      </div>
+                      <div className="border-t border-gray-100 my-1" />
+                      {feedbackItems.map((item) => {
+                        const IconComponent = item.icon;
+                        return (
+                          <Link 
+                            key={item.path} 
+                            to={item.path}
+                            onClick={() => setFeedbackMenuOpen(false)}
+                          >
+                            <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 transition-colors duration-150">
+                              <IconComponent className="w-4 h-4" />
+                              {item.label}
+                            </button>
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      {/* Mobile Navigation Menu */}
       <div className={`
         lg:hidden fixed inset-0 z-40 bg-white transform transition-all duration-300 ease-out
         ${isMobileMenuOpen 
@@ -194,46 +337,31 @@ function Header() {
           : 'opacity-0 translate-x-full invisible'
         }
       `}>
-        {/* Background with subtle gradient */}
-        <div className="absolute inset-0 bg-white"></div>
-        
-        {/* Content */}
         <div className="relative h-full flex flex-col">
-          {/* Header space to account for fixed header */}
-          <div className="h-16 flex-shrink-0"></div>
+          <div style={{ height: isMobile ? '80px' : '96px' }} className="flex-shrink-0"></div>
           
-          {/* Navigation Content */}
           <div className="flex-1 overflow-y-auto px-4 py-6">
             <div className="max-w-sm mx-auto space-y-2">
-              {navigationItems.map((item, index) => {
+              {/* Main Navigation */}
+              {mainNavigationItems.map((item, index) => {
                 const IconComponent = item.icon;
+                const isActive = isActivePath(item.path);
                 return (
                   <Link key={item.path} to={item.path}>
                     <div 
                       className={`
                         transform transition-all duration-300 ease-out
-                        ${isMobileMenuOpen 
-                          ? 'translate-x-0 opacity-100' 
-                          : 'translate-x-8 opacity-0'
-                        }
+                        ${isMobileMenuOpen ? 'translate-x-0 opacity-100' : 'translate-x-8 opacity-0'}
                       `}
-                      style={{ 
-                        transitionDelay: isMobileMenuOpen ? `${index * 80}ms` : '0ms' 
-                      }}
+                      style={{ transitionDelay: isMobileMenuOpen ? `${index * 60}ms` : '0ms' }}
                     >
                       <div className={`
-                        w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-sans
-                        ${isActivePath(item.path)
-                          ? 'bg-indigo-600 text-white shadow-md'
-                          : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
-                        }
+                        w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200
+                        ${isActive ? 'bg-indigo-600 text-white shadow-lg' : 'text-gray-700 hover:bg-gray-100'}
                       `}>
                         <div className={`
                           w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-200
-                          ${isActivePath(item.path)
-                            ? 'bg-white/20'
-                            : 'bg-gray-100 text-gray-600'
-                          }
+                          ${isActive ? 'bg-white/20' : 'bg-gray-100 text-gray-600'}
                         `}>
                           <IconComponent className="w-5 h-5" />
                         </div>
@@ -244,35 +372,98 @@ function Header() {
                 );
               })}
 
-              {/* Mobile Logout Button */}
-              {user && (
+              {/* Feedback Section */}
+              <div className="pt-4 pb-2">
+                <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider px-4 mb-2">
+                  Feedback
+                </div>
+              </div>
+              
+              {feedbackItems.map((item, index) => {
+                const IconComponent = item.icon;
+                const delayIndex = mainNavigationItems.length + index;
+                return (
+                  <Link key={item.path} to={item.path}>
+                    <div
+                      className={`
+                        transform transition-all duration-300 ease-out
+                        ${isMobileMenuOpen ? 'translate-x-0 opacity-100' : 'translate-x-8 opacity-0'}
+                      `}
+                      style={{ transitionDelay: isMobileMenuOpen ? `${delayIndex * 60}ms` : '0ms' }}
+                    >
+                      <div className="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-gray-700 hover:bg-gray-100">
+                        <div className="w-10 h-10 rounded-lg bg-gray-100 text-gray-600 flex items-center justify-center">
+                          <IconComponent className="w-5 h-5" />
+                        </div>
+                        <span className="text-base font-medium">{item.label}</span>
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })}
+
+              {/* Account Section */}
+              <div className="pt-4 border-t border-gray-200 mt-4">
+                <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider px-4 mb-2">
+                  Account
+                </div>
+              </div>
+
+              {user ? (
                 <div 
                   className={`
-                    transform transition-all duration-300 ease-out border-t border-gray-200/60 pt-4 mt-6
-                    ${isMobileMenuOpen 
-                      ? 'translate-x-0 opacity-100' 
-                      : 'translate-x-8 opacity-0'
-                    }
+                    transform transition-all duration-300 ease-out
+                    ${isMobileMenuOpen ? 'translate-x-0 opacity-100' : 'translate-x-8 opacity-0'}
                   `}
                   style={{ 
-                    transitionDelay: isMobileMenuOpen ? `${(navigationItems.length) * 80}ms` : '0ms' 
+                    transitionDelay: isMobileMenuOpen ? `${(mainNavigationItems.length + feedbackItems.length) * 60}ms` : '0ms' 
                   }}
                 >
-                  <div 
+                  <div className="mb-3 px-4 py-3 bg-indigo-50 rounded-xl">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-indigo-600 text-white flex items-center justify-center font-semibold text-lg">
+                        {user.username?.charAt(0).toUpperCase()}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-semibold text-gray-900 truncate">{user.username}</div>
+                        <div className="text-xs text-gray-500 truncate">{user.email}</div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <button
                     onClick={onLogout}
-                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-sans text-red-600 hover:bg-red-50 hover:text-red-700 cursor-pointer"
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-red-600 hover:bg-red-50"
                   >
-                    <div className="w-10 h-10 rounded-lg bg-red-100 text-red-600 flex items-center justify-center transition-all duration-200">
+                    <div className="w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center">
                       <LogOut className="w-5 h-5" />
                     </div>
                     <span className="text-base font-medium">{t('nav.logout')}</span>
-                  </div>
+                  </button>
                 </div>
+              ) : (
+                <Link to="/register">
+                  <div
+                    className={`
+                      transform transition-all duration-300 ease-out
+                      ${isMobileMenuOpen ? 'translate-x-0 opacity-100' : 'translate-x-8 opacity-0'}
+                    `}
+                    style={{ 
+                      transitionDelay: isMobileMenuOpen ? `${(mainNavigationItems.length + feedbackItems.length) * 60}ms` : '0ms' 
+                    }}
+                  >
+                    <div className="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-gray-700 hover:bg-gray-100">
+                      <div className="w-10 h-10 rounded-lg bg-gray-100 text-gray-600 flex items-center justify-center">
+                        <UserPlus className="w-5 h-5" />
+                      </div>
+                      <span className="text-base font-medium">Register</span>
+                    </div>
+                  </div>
+                </Link>
               )}
             </div>
           </div>
 
-          {/* Bottom decoration */}
           <div className="flex-shrink-0 flex justify-center pb-6">
             <div 
               className={`
@@ -280,19 +471,13 @@ function Header() {
                 ${isMobileMenuOpen ? 'scale-100 opacity-100' : 'scale-0 opacity-0'}
               `}
               style={{ 
-                transitionDelay: isMobileMenuOpen ? `${(navigationItems.length + 1) * 80}ms` : '0ms' 
+                transitionDelay: isMobileMenuOpen ? `${(mainNavigationItems.length + feedbackItems.length + 1) * 60}ms` : '0ms' 
               }}
             />
           </div>
         </div>
-
-        {/* Simple decorative elements */}
-        <div className="absolute top-24 left-8 w-1.5 h-1.5 bg-gray-300 rounded-full opacity-40"></div>
-        <div className="absolute top-40 right-12 w-1 h-1 bg-gray-400 rounded-full opacity-30"></div>
-        <div className="absolute bottom-40 left-16 w-1.5 h-1.5 bg-gray-300 rounded-full opacity-40"></div>
       </div>
 
-      {/* Backdrop overlay */}
       {isMobileMenuOpen && (
         <div 
           className="lg:hidden fixed inset-0 bg-black/20 backdrop-blur-sm z-30 transition-opacity duration-300"
@@ -303,20 +488,56 @@ function Header() {
   );
 }
 
-const App = () => (
+const App = () => {
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+
+    const API_BASE_URL = 'http://localhost:4000/api/progress';
+  
+    const handleFormSubmit = async (data: ProgressReport) => {
+    setIsSubmitting(true);
+    try {
+      const response = await fetch(API_BASE_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        toast.success('Progress report submitted successfully!');
+        // setActiveTab('dashboard');
+      } else {
+        const error = await response.json();
+        toast.error(error.message || 'Failed to submit report');
+      }
+    } catch (error) {
+      console.error('Error submitting report:', error);
+      toast.error('Failed to submit report. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+  
+  return(
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
       <BrowserRouter>
-        <div className="min-h-screen flex flex-col bg-gray-50">
+        <div className="min-h-screen flex flex-col bg-gradient-to-br from-gray-50 to-blue-50/30">
           <Header />
           <main className="flex-1">
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/submit" element={<SubmitPage />} />
+              <Route path="/feedback-status" element={<FeedbackPage />} />
               <Route path="/public" element={<PublicResolved />} />
               <Route path="/register" element={<RegisterPage />} />
               <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/college-form" element={<CollegeDataForm />} />
+                       <Route path="/progress-form" element={   <ProgressForm onSubmit={handleFormSubmit} isLoading={isSubmitting} /> } />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </main>
@@ -325,6 +546,6 @@ const App = () => (
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
-);
+)};
 
 export default App;
