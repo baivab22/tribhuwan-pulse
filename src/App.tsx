@@ -38,6 +38,7 @@ import FeedbackPage from './pages/feedback';
 // import {ProgressReportForm} from './pages/ProgressForm';
 import { ProgressReport } from './types';
 import ProgressForm from './pages/ProgressForm';
+import TUVision2030 from './pages/missionVision';
 
 const queryClient = new QueryClient();
 
@@ -88,15 +89,18 @@ function Header() {
 
   const mainNavigationItems = [
     { path: '/', label: t('nav.home'), icon: Home },
-    { path: '/public', label: t('nav.public'), icon: Eye },
-    { path: '/admin', label: t('nav.admin'), icon: Settings },
+
+    // { path: '/admin', label: t('nav.admin'), icon: Settings },
     { path: '/college-form', label: 'College Form', icon: FileText },
-        { path: '/progress-form', label: 'Progress Form', icon: FileText }
+        { path: '/progress-form', label: 'Progress Form', icon: FileText },
+              { path: '/mission-vision', label: 'Mission Vision', icon: FileText },
+
   ];
 
   const feedbackItems = [
     { path: '/submit', label: 'Submit a Feedback', icon: Send },
     { path: '/feedback-status', label: 'Track Feedback', icon: MessageSquare },
+        { path: '/public', label: 'Public Transparency', icon: Eye },
   ];
 
   const isActivePath = (path) => {
@@ -378,6 +382,8 @@ function Header() {
                   Feedback
                 </div>
               </div>
+
+
               
               {feedbackItems.map((item, index) => {
                 const IconComponent = item.icon;
@@ -538,6 +544,7 @@ const App = () => {
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/college-form" element={<CollegeDataForm />} />
                        <Route path="/progress-form" element={   <ProgressForm onSubmit={handleFormSubmit} isLoading={isSubmitting} /> } />
+                            <Route path="/mission-vision" element={<TUVision2030 /> } />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </main>

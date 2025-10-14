@@ -1,1330 +1,1826 @@
+
 import React, { useState } from 'react';
-import { 
-  ChevronRight, 
-  ChevronDown, 
-  MapPin, 
-  Building, 
-  Users, 
-  BookOpen, 
-  Zap, 
-  Wifi, 
-  Shield, 
-  Leaf,
-  Upload,
-  Save,
-  Send,
-  CheckCircle,
-  AlertCircle,
-  Eye,
-  EyeOff,
-  Plus,
-  Minus,
-  Calendar,
-  Phone,
-  Mail,
-  Globe,
-  Home
-} from 'lucide-react';
+import axios from 'axios';
+import {
+  Box,
+  Paper,
+  Typography,
+  TextField,
+  Button,
+  Grid,
+  MenuItem,
+  Stepper,
+  Step,
+  StepLabel,
+  Alert,
+  CircularProgress,
+  FormControl,
+  InputLabel,
+  Select,
+  FormHelperText,
+  Divider,
+  Card,
+  CardContent,
+  Checkbox,
+  FormControlLabel,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  IconButton,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  Switch
+} from '@mui/material';
+import {
+  Add as AddIcon,
+  Delete as DeleteIcon,
+  ExpandMore as ExpandMoreIcon
+} from '@mui/icons-material';
 
-const CollegeDataForm = () => {
-  const [currentSection, setCurrentSection] = useState(0);
-  const [expandedSections, setExpandedSections] = useState([0]);
-  const [loading, setLoading] = useState(false);
-  const [showPreview, setShowPreview] = useState(false);
-  const [savedSections, setSavedSections] = useState(new Set());
-  const [validationErrors, setValidationErrors] = useState({});
+// Types based on the complete model
+interface CollegeFormData {
+  collegeName: string;
+  campusType: string;
+  establishmentDate: string;
+  collegeId: string;
+  principalInfo: {
+    name: string;
+    contactNumber: string;
+    email: string;
+  };
+  contactInfo: {
+    officialPhone: string;
+    officialEmail: string;
+    website: string;
+  };
+  staffContacts: {
+    adminChief: {
+      name: string;
+      mobile: string;
+    };
+    accountChief: {
+      name: string;
+      mobile: string;
+    };
+  };
+  dataCollectionContact: {
+    name: string;
+    designation: string;
+    phone: string;
+    email: string;
+  };
+  location: {
+    province: string;
+    district: string;
+    localLevel: string;
+    wardNo: string;
+    streetTole: string;
+    landmark: string;
+    latitude: string;
+    longitude: string;
+    googleMapsLink: string;
+  };
+  infrastructure: {
+    landArea: {
+      traditionalUnits: {
+        bigaha: string;
+        katha: string;
+        dhur: string;
+        ropani: string;
+        ana: string;
+        daam: string;
+        paisa: string;
+      };
+      squareMeters: string;
+      acquisitionDate: string;
+      taxClearanceStatus: string;
+      haalsabikStatus: string;
+    };
+    landOwnership: {
+      lalpurja: {
+        area: string;
+        address: string;
+      };
+      bhogadhikar: {
+        area: string;
+        address: string;
+      };
+      localGovernment: {
+        area: string;
+        address: string;
+      };
+      other: {
+        area: string;
+        address: string;
+      };
+    };
+    landUse: {
+      buildingArea: string;
+      playgroundArea: string;
+      naturalForestArea: string;
+      plantationArea: string;
+      leasedArea: string;
+      leaseIncome: string;
+      encroachmentExists: boolean;
+      encroachmentDetails: string;
+      protectionSteps: string;
+      commercialUseSuggestions: string;
+      commercialPlans: string;
+      masterPlanExists: boolean;
+      masterPlanAttachment: string;
+      suggestions: string;
+    };
+    buildings: Array<{
+      buildingName: string;
+      totalRooms: string;
+      classrooms: string;
+      labs: string;
+      library: string;
+      administrative: string;
+      other: string;
+      condition: string;
+    }>;
+    healthSanitation: {
+      toilets: {
+        male: string;
+        female: string;
+        disabledFriendly: string;
+      };
+      drinkingWater: {
+        available: boolean;
+        qualityTested: boolean;
+        purificationSystem: string;
+      };
+      wasteManagement: {
+        segregation: boolean;
+        disposalMethod: string;
+        recycling: boolean;
+      };
+      medicalFacilities: {
+        firstAid: boolean;
+        healthPost: boolean;
+        staffAvailable: boolean;
+      };
+    };
+  };
+  academicPrograms: {
+    totalFaculties: string;
+    programs: Array<{
+      programName: string;
+      level: string;
+      duration: string;
+      affiliatedTo: string;
+    }>;
+    enrollment: {
+      total: string;
+      male: string;
+      female: string;
+      other: string;
+      programBreakdown: Array<{
+        programName: string;
+        total: string;
+        male: string;
+        female: string;
+        other: string;
+      }>;
+    };
+  };
+  projectPlanning: {
+    immediateConstruction: string;
+    futureConstruction: string;
+    priorityWork: {
+      p1: string;
+      p2: string;
+      p3: string;
+    };
+    ongoingProjects: Array<{
+      projectName: string;
+      startDate: string;
+      expectedCompletion: string;
+      budget: string;
+      status: string;
+    }>;
+  };
+  staff: {
+    academic: Array<{
+      name: string;
+      designation: string;
+      department: string;
+      qualification: string;
+      experience: string;
+      employmentType: string;
+    }>;
+    administrative: Array<{
+      name: string;
+      designation: string;
+      department: string;
+      employmentType: string;
+    }>;
+  };
+  educationalTechnology: {
+    digitalClassrooms: string;
+    computerLabs: string;
+    computersAvailable: string;
+    internetAvailability: {
+      available: boolean;
+      speed: string;
+      provider: string;
+    };
+    libraryResources: {
+      physicalBooks: string;
+      ebooks: string;
+      journals: string;
+      digitalDatabase: boolean;
+    };
+    learningManagementSystem: {
+      name: string;
+      active: boolean;
+    };
+  };
+  formStatus: string;
+}
 
-  const [formData, setFormData] = useState({
-    // Section 1: General College Information
-    collegeName: '',
-    campusType: '',
-    establishmentDate: '',
-    collegeId: '',
-    principalName: '',
-    principalContact: '',
-    principalEmail: '',
-    mainPhone: '',
+const initialFormData: CollegeFormData = {
+  collegeName: '',
+  campusType: '',
+  establishmentDate: '',
+  collegeId: '',
+  principalInfo: {
+    name: '',
+    contactNumber: '',
+    email: ''
+  },
+  contactInfo: {
+    officialPhone: '',
     officialEmail: '',
-    adminName: '',
-    adminMobile: '',
-    accountName: '',
-    accountMobile: '',
-    website: '',
-    contactPersonName: '',
-    contactPersonDesignation: '',
-    contactPersonPhone: '',
-    contactPersonEmail: '',
-
-    // Section 2: Location Details
+    website: ''
+  },
+  staffContacts: {
+    adminChief: {
+      name: '',
+      mobile: ''
+    },
+    accountChief: {
+      name: '',
+      mobile: ''
+    }
+  },
+  dataCollectionContact: {
+    name: '',
+    designation: '',
+    phone: '',
+    email: ''
+  },
+  location: {
     province: '',
     district: '',
     localLevel: '',
     wardNo: '',
-    streetName: '',
+    streetTole: '',
     landmark: '',
-    coordinates: '',
     latitude: '',
     longitude: '',
-    mapsLink: '',
-
-    // Section 3: Infrastructure & Facilities
-    totalLandBigaha: '',
-    totalLandKatha: '',
-    totalLandDhur: '',
-    totalLandRopani: '',
-    totalLandAna: '',
-    totalLandDaam: '',
-    totalLandPaisa: '',
-    landAreaSquareMeter: '',
-    landAcquisitionDate: '',
-    landTaxStatus: '',
-    areaWithLalpurja: '',
-    lalpurjaAddress: '',
-    areaWithBhogadhikar: '',
-    bhogadhikarAddress: '',
-    areaLocalGov: '',
-    localGovAddress: '',
-    areaOtherSources: '',
-    otherSourcesAddress: '',
-    areaBuildingInfra: '',
-    areaPlayground: '',
-    areaForestShrubs: '',
-    areaPlantationGarden: '',
-    areaLeaseContract: '',
-    incomeFromLand: '',
-    landEncroachment: '',
-    encroachmentDetails: '',
-    commercialUses: '',
-    commercialPlan: '',
-    masterPlan: '',
-    masterPlanSuggestions: '',
-
-    // Section 4: Buildings and Rooms
-    buildings: {
-      classroom: { buildings: '', rooms: '', avgSize: '', capacity: '', condition: '' },
-      library: { buildings: '', rooms: '', avgSize: '', capacity: '', condition: '' },
-      laboratory: { buildings: '', rooms: '', avgSize: '', capacity: '', condition: '' },
-      canteen: { buildings: '', rooms: '', avgSize: '', capacity: '', condition: '' },
-      computerRoom: { buildings: '', rooms: '', avgSize: '', capacity: '', condition: '' },
-      securityQuarters: { buildings: '', rooms: '', avgSize: '', capacity: '', condition: '' },
-      guestHouse: { buildings: '', rooms: '', avgSize: '', capacity: '', condition: '' },
-      lectureHalls: { buildings: '', rooms: '', avgSize: '', capacity: '', condition: '' },
-      rmcOffice: { buildings: '', rooms: '', avgSize: '', capacity: '', condition: '' },
-      facultyRooms: { buildings: '', rooms: '', avgSize: '', capacity: '', condition: '' },
-      examHall: { buildings: '', rooms: '', avgSize: '', capacity: '', condition: '' },
-      auditorium: { buildings: '', rooms: '', avgSize: '', capacity: '', condition: '' },
-      dormitories: { buildings: '', rooms: '', avgSize: '', capacity: '', condition: '' },
-      indoorGames: { buildings: '', rooms: '', avgSize: '', capacity: '', condition: '' },
-      staffHousing: { buildings: '', rooms: '', avgSize: '', capacity: '', condition: '' },
-      gymnasium: { buildings: '', rooms: '', avgSize: '', capacity: '', condition: '' },
-      outdoorSports: { buildings: '', rooms: '', avgSize: '', capacity: '', condition: '' },
-      counsellingCenter: { buildings: '', rooms: '', avgSize: '', capacity: '', condition: '' },
-      parkingLots: { buildings: '', rooms: '', avgSize: '', capacity: '', condition: '' },
-      powerSupply: { buildings: '', rooms: '', avgSize: '', capacity: '', condition: '' },
-      banksATM: { buildings: '', rooms: '', avgSize: '', capacity: '', condition: '' },
-      studentUnion: { buildings: '', rooms: '', avgSize: '', capacity: '', condition: '' },
-      medicalCenter: { buildings: '', rooms: '', avgSize: '', capacity: '', condition: '' },
-      recreational: { buildings: '', rooms: '', avgSize: '', capacity: '', condition: '' }
+    googleMapsLink: ''
+  },
+  infrastructure: {
+    landArea: {
+      traditionalUnits: {
+        bigaha: '',
+        katha: '',
+        dhur: '',
+        ropani: '',
+        ana: '',
+        daam: '',
+        paisa: ''
+      },
+      squareMeters: '',
+      acquisitionDate: '',
+      taxClearanceStatus: '',
+      haalsabikStatus: ''
     },
-
-    // Section 5: Health, Hygiene & Sanitation
-    maleToilets: '',
-    femaleToilets: '',
-    disabledToilets: '',
-    toiletCondition: '',
-    ventilation: '',
-    lighting: '',
-    cleaningFrequency: '',
-    sanitaryDisposal: '',
-    waterSupplyType: '',
-    waterAvailability: '',
-    waterQuality: '',
-    waterTestingFreq: '',
-    drinkingWaterStations: '',
-    waterTankCondition: '',
-    handwashingStations: '',
-    soapSanitizer: '',
-    commonAreasCleanliness: '',
-    drainageCondition: '',
-    cleaningDisinfection: '',
-    firstAidKit: '',
-    healthInspections: '',
-    medicalAssistance: '',
-    healthAwareness: '',
-    emergencyContact: '',
-    fireSafety: '',
-    fireExitAccess: '',
-    wasteDisposalType: '',
-    dustbins: '',
-    wasteSegregation: '',
-    wasteCollection: '',
-    wasteAreaCondition: '',
-    recyclingPractices: '',
-    greenSpaces: '',
-    sustainablePractices: '',
-    renewableEnergy: '',
-
-    // Section 6: Academic Programs & Enrollment
+    landOwnership: {
+      lalpurja: {
+        area: '',
+        address: ''
+      },
+      bhogadhikar: {
+        area: '',
+        address: ''
+      },
+      localGovernment: {
+        area: '',
+        address: ''
+      },
+      other: {
+        area: '',
+        address: ''
+      }
+    },
+    landUse: {
+      buildingArea: '',
+      playgroundArea: '',
+      naturalForestArea: '',
+      plantationArea: '',
+      leasedArea: '',
+      leaseIncome: '',
+      encroachmentExists: false,
+      encroachmentDetails: '',
+      protectionSteps: '',
+      commercialUseSuggestions: '',
+      commercialPlans: '',
+      masterPlanExists: false,
+      masterPlanAttachment: '',
+      suggestions: ''
+    },
+    buildings: [],
+    healthSanitation: {
+      toilets: {
+        male: '',
+        female: '',
+        disabledFriendly: ''
+      },
+      drinkingWater: {
+        available: false,
+        qualityTested: false,
+        purificationSystem: ''
+      },
+      wasteManagement: {
+        segregation: false,
+        disposalMethod: '',
+        recycling: false
+      },
+      medicalFacilities: {
+        firstAid: false,
+        healthPost: false,
+        staffAvailable: false
+      }
+    }
+  },
+  academicPrograms: {
     totalFaculties: '',
-    programsOffered: '',
-    totalStudents: '',
-    maleStudents: '',
-    femaleStudents: '',
-    otherStudents: '',
-    programBreakdown: [],
-
-    // Section 7: Project Planning
-    immediateConstruction: ['', '', ''],
-    futureConstruction: ['', '', ''],
-    priorities: ['', '', ''],
-    ongoingProjects: [],
-
-    // Section 8: Academic & Administrative Staff
-    academicStaff: [],
-    adminStaff: [],
-
-    // Section 9: Educational Tools & Technology
-    classroomTech: {
-      projectors: { available: false, plans: '' },
-      smartBoards: { available: false, plans: '' },
-      wifi: { available: false, plans: '' },
-      powerBackup: { available: false, plans: '' },
-      microphones: { available: false, plans: '' }
+    programs: [],
+    enrollment: {
+      total: '',
+      male: '',
+      female: '',
+      other: '',
+      programBreakdown: []
+    }
+  },
+  projectPlanning: {
+    immediateConstruction: '',
+    futureConstruction: '',
+    priorityWork: {
+      p1: '',
+      p2: '',
+      p3: ''
+    },
+    ongoingProjects: []
+  },
+  staff: {
+    academic: [],
+    administrative: []
+  },
+  educationalTechnology: {
+    digitalClassrooms: '',
+    computerLabs: '',
+    computersAvailable: '',
+    internetAvailability: {
+      available: false,
+      speed: '',
+      provider: ''
     },
     libraryResources: {
-      physicalBooks: { available: false, plans: '' },
-      eLibrary: { available: false, plans: '' },
-      databases: { available: false, plans: '' },
-      computerStations: { available: false, plans: '' },
-      printingServices: { available: false, plans: '' }
+      physicalBooks: '',
+      ebooks: '',
+      journals: '',
+      digitalDatabase: false
     },
-    labEquipment: {
-      scienceLab: { available: false, plans: '' },
-      engineeringLab: { available: false, plans: '' },
-      itSupport: { available: false, plans: '' },
-      simulationSoftware: { available: false, plans: '' },
-      agricultureLab: { available: false, plans: '' }
-    },
-    onlineLearning: {
-      lms: { available: false, plans: '' },
-      onlineCourses: { available: false, plans: '' },
-      remoteLearning: { available: false, plans: '' },
-      recordedLectures: { available: false, plans: '' },
-      workshops: { available: false, plans: '' },
-      specialProvisions: { available: false, plans: '' },
-      brailleBooks: { available: false, plans: '' },
-      signLanguage: { available: false, plans: '' }
-    },
+    learningManagementSystem: {
+      name: '',
+      active: false
+    }
+  },
+  formStatus: 'Draft'
+};
 
-    // Section 10: Student Enrollment and Graduation (5 years)
-    enrollmentData: {
-      2077: { masterEnrollment: '', masterAppeared: '', masterPassed: '', bachelorEnrollment: '', bachelorAppeared: '', bachelorPassed: '' },
-      2078: { masterEnrollment: '', masterAppeared: '', masterPassed: '', bachelorEnrollment: '', bachelorAppeared: '', bachelorPassed: '' },
-      2079: { masterEnrollment: '', masterAppeared: '', masterPassed: '', bachelorEnrollment: '', bachelorAppeared: '', bachelorPassed: '' },
-      2080: { masterEnrollment: '', masterAppeared: '', masterPassed: '', bachelorEnrollment: '', bachelorAppeared: '', bachelorPassed: '' },
-      2081: { masterEnrollment: '', masterAppeared: '', masterPassed: '', bachelorEnrollment: '', bachelorAppeared: '', bachelorPassed: '' }
-    },
+// Constants
+const campusTypes = [
+  'Constituent Campus',
+  'Affiliated College',
+  'Community Campus',
+  'Private College'
+];
 
-    // Section 11-18: Performance & Management
-    expenditureFiveYears: '',
-    auditReportsFiveYears: '',
-    physicalInspectionReports: '',
-    
-    // Operational Management
-    processesStreamlined: '',
-    turnaroundTime: '',
-    operationalCostReduction: '',
-    processingTime: '',
-    budgetVariance: '',
-    efficiencyReviews: '',
-    improvementInitiatives: '',
-    sustainabilityAlignment: '',
+const provinces = [
+  'Province 1',
+  'Province 2',
+  'Bagmati Province',
+  'Gandaki Province',
+  'Lumbini Province',
+  'Karnali Province',
+  'Sudurpashchim Province'
+];
 
-    // Audit & Risk Management
-    commonIrregularities: '',
-    resolutionTime: '',
-    avgResolutionTime: '',
-    irregularitiesQuarter: '',
-    avgResolutionDays: '',
-    complianceRate: '',
-    recurringIssues: '',
-    riskMitigation: '',
+const programLevels = ['Certificate', 'Diploma', 'Bachelor', 'Master', 'PhD'];
+const employmentTypes = ['Permanent', 'Contract', 'Part-time'];
+const projectStatuses = ['Planning', 'In Progress', 'Completed', 'On Hold'];
+const buildingConditions = ['Excellent', 'Good', 'Fair', 'Poor'];
 
-    // Stakeholder Engagement
-    stakeholderRating: '',
-    communityEngagement: '',
-    satisfactionRating: '',
-    feedbackSubmissions: '',
-    engagementEvents: '',
-    newPartnerships: '',
-    safetyIncidents: '',
+const CollegeDataForm: React.FC = () => {
+  const [formData, setFormData] = useState<CollegeFormData>(initialFormData);
+  const [activeStep, setActiveStep] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
-    // Digital Infrastructure
-    systemUptime: '',
-    digitalPlatformEffectiveness: '',
-    currentUptime: '',
-    itIssuesMonthly: '',
-    userSatisfactionScore: '',
-    digitalToolsUpdated: '',
-    operationsDigitized: '',
-
-    // Environmental Sustainability
-    energyConsumption: '',
-    wasteManagement: '',
-    avgEnergyConsumption: '',
-    recyclingPercentage: '',
-    carbonFootprint: '',
-    greenCertifications: '',
-    renewableEnergyPercentage: '',
-
-    // Financial Health
-    revenueStreams: '',
-    budgetManagement: '',
-    budgetVarianceFinance: '',
-    revenueStreamCount: '',
-    fundingGap: '',
-
-    // Human Resources
-    employeeTurnover: '',
-    trainingImpact: '',
-    monthlyTurnover: '',
-    trainingHours: '',
-    employeeSatisfaction: '',
-    openPositions: '',
-
-    // Campus Security & Safety
-    emergencyDrills: '',
-    incidentResponseTime: '',
-    drillsLastMonth: '',
-    avgIncidentResponse: '',
-    securityBreaches: '',
-    securityPersonnelRatio: '',
-
-    // Transportation & Mobility
-    transportationAccess: '',
-    parkingUtilization: '',
-    shuttleWaitTime: '',
-    parkingOccupancy: '',
-    transportationOptions: '',
-    trafficIncidents: '',
-
-    // Student Life & Activities
-    clubsActivity: '',
-    participationLevel: '',
-    participationRate: '',
-    eventsLastSemester: '',
-    studentLifeSatisfaction: '',
-    newClubsYear: '',
-
-    // Research & Innovation
-    researchVolume: '',
-    partnershipEffectiveness: '',
-    activeProjects: '',
-    grantSuccessRate: '',
-    publicationsPerFaculty: '',
-    externalPartnerships: '',
-
-    // Governance & Policy
-    policyCompliance: '',
-    governanceTransparency: '',
-    complianceRateGov: '',
-    policyBreaches: '',
-    violationResolutionTime: '',
-    governanceReviews: '',
-
-    // Communication Systems
-    communicationChannels: '',
-    crisisInformation: '',
-    communicationTime: '',
-    communicationSatisfaction: '',
-    crisisDrills: '',
-    inquiryResponseTime: ''
-  });
-
-  const sections = [
-    { id: 0, title: 'General Information', icon: Building, color: 'bg-gradient-to-r from-blue-500 to-blue-600' },
-    { id: 1, title: 'Location Details', icon: MapPin, color: 'bg-gradient-to-r from-green-500 to-green-600' },
-    { id: 2, title: 'Infrastructure & Land', icon: Home, color: 'bg-gradient-to-r from-purple-500 to-purple-600' },
-    { id: 3, title: 'Buildings & Facilities', icon: Building, color: 'bg-gradient-to-r from-indigo-500 to-indigo-600' },
-    { id: 4, title: 'Health & Sanitation', icon: Shield, color: 'bg-gradient-to-r from-teal-500 to-teal-600' },
-    { id: 5, title: 'Academic Programs', icon: BookOpen, color: 'bg-gradient-to-r from-orange-500 to-orange-600' },
-    { id: 6, title: 'Project Planning', icon: Zap, color: 'bg-gradient-to-r from-red-500 to-red-600' },
-    { id: 7, title: 'Staff Information', icon: Users, color: 'bg-gradient-to-r from-pink-500 to-pink-600' },
-    { id: 8, title: 'Technology & Resources', icon: Wifi, color: 'bg-gradient-to-r from-cyan-500 to-cyan-600' },
-    { id: 9, title: 'Performance & Analytics', icon: CheckCircle, color: 'bg-gradient-to-r from-yellow-500 to-yellow-600' },
-    { id: 10, title: 'Sustainability', icon: Leaf, color: 'bg-gradient-to-r from-emerald-500 to-emerald-600' }
+  const steps = [
+    'Basic Information',
+    'Location Details', 
+    'Infrastructure & Land',
+    'Academic Programs',
+    'Staff Information',
+    'Facilities & Technology',
+    'Project Planning',
+    'Review & Submit'
   ];
 
-  const handleInputChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    if (validationErrors[field]) {
-      setValidationErrors(prev => ({ ...prev, [field]: null }));
-    }
-  };
-
-  const handleNestedChange = (section, subsection, field, value) => {
-    setFormData(prev => ({
-      ...prev,
-      [section]: {
-        ...prev[section],
-        [subsection]: {
-          ...prev[section][subsection],
-          [field]: value
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value, type } = e.target;
+    const checked = (e.target as HTMLInputElement).checked;
+    
+    if (name.includes('.')) {
+      const path = name.split('.');
+      setFormData(prev => {
+        const newData = { ...prev };
+        let current: any = newData;
+        
+        for (let i = 0; i < path.length - 1; i++) {
+          current = current[path[i]];
         }
-      }
-    }));
-  };
-
-  const handleArrayChange = (field, index, value) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: prev[field].map((item, i) => i === index ? value : item)
-    }));
-  };
-
-  const addArrayItem = (field, template = {}) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: [...prev[field], template]
-    }));
-  };
-
-  const removeArrayItem = (field, index) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: prev[field].filter((_, i) => i !== index)
-    }));
-  };
-
-  const toggleSection = (sectionId) => {
-    setExpandedSections(prev => 
-      prev.includes(sectionId) 
-        ? prev.filter(id => id !== sectionId)
-        : [...prev, sectionId]
-    );
-  };
-
-  const saveSection = (sectionId) => {
-    setSavedSections(prev => new Set([...prev, sectionId]));
-    // Here you could also save to localStorage or make an API call
-  };
-
-  const validateForm = () => {
-    const errors = {};
-    
-    if (!formData.collegeName) errors.collegeName = 'College name is required';
-    if (!formData.campusType) errors.campusType = 'Campus type is required';
-    if (!formData.principalName) errors.principalName = 'Principal name is required';
-    if (!formData.principalEmail) errors.principalEmail = 'Principal email is required';
-    
-    setValidationErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
-
-  const submitForm = async () => {
-    if (!validateForm()) {
-      alert('Please fill in all required fields');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const response = await fetch('/api/college-data', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
+        
+        current[path[path.length - 1]] = type === 'checkbox' ? checked : value;
+        return newData;
       });
-      
-      if (response.ok) {
-        alert('Form submitted successfully!');
-        setSavedSections(new Set(sections.map(s => s.id)));
-      } else {
-        alert('Error submitting form');
-      }
-    } catch (error) {
-      console.error('Error:', error);
-      alert('Network error occurred');
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: type === 'checkbox' ? checked : value
+      }));
     }
-    setLoading(false);
   };
 
-  const InputField = ({ label, field, type = 'text', required = false, placeholder = '', error = null, icon = null }) => (
-    <div className="mb-4">
-      <label className="block text-sm font-semibold text-gray-700 mb-2">
-        {label} {required && <span className="text-red-500">*</span>}
-      </label>
-      <div className="relative">
-        {icon && <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">{icon}</div>}
-        <input
-          type={type}
-          value={formData[field] || ''}
-          onChange={(e) => handleInputChange(field, e.target.value)}
-          placeholder={placeholder}
-          className={`w-full ${icon ? 'pl-10' : 'pl-3'} pr-3 py-3 border-2 rounded-lg focus:outline-none transition-all duration-300 ${
-            error 
-              ? 'border-red-300 focus:border-red-500 bg-red-50' 
-              : 'border-gray-200 focus:border-blue-500 focus:bg-white'
-          } hover:border-gray-300`}
-          required={required}
+  // Array handlers
+  const addBuilding = () => {
+    setFormData(prev => ({
+      ...prev,
+      infrastructure: {
+        ...prev.infrastructure,
+        buildings: [
+          ...prev.infrastructure.buildings,
+          {
+            buildingName: '',
+            totalRooms: '',
+            classrooms: '',
+            labs: '',
+            library: '',
+            administrative: '',
+            other: '',
+            condition: 'Good'
+          }
+        ]
+      }
+    }));
+  };
+
+  const updateBuilding = (index: number, field: string, value: string) => {
+    setFormData(prev => {
+      const newBuildings = [...prev.infrastructure.buildings];
+      newBuildings[index] = { ...newBuildings[index], [field]: value };
+      return {
+        ...prev,
+        infrastructure: { ...prev.infrastructure, buildings: newBuildings }
+      };
+    });
+  };
+
+  const removeBuilding = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      infrastructure: {
+        ...prev.infrastructure,
+        buildings: prev.infrastructure.buildings.filter((_, i) => i !== index)
+      }
+    }));
+  };
+
+  const addProgram = () => {
+    setFormData(prev => ({
+      ...prev,
+      academicPrograms: {
+        ...prev.academicPrograms,
+        programs: [
+          ...prev.academicPrograms.programs,
+          {
+            programName: '',
+            level: 'Bachelor',
+            duration: '',
+            affiliatedTo: ''
+          }
+        ]
+      }
+    }));
+  };
+
+  const updateProgram = (index: number, field: string, value: string) => {
+    setFormData(prev => {
+      const newPrograms = [...prev.academicPrograms.programs];
+      newPrograms[index] = { ...newPrograms[index], [field]: value };
+      return {
+        ...prev,
+        academicPrograms: { ...prev.academicPrograms, programs: newPrograms }
+      };
+    });
+  };
+
+  const removeProgram = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      academicPrograms: {
+        ...prev.academicPrograms,
+        programs: prev.academicPrograms.programs.filter((_, i) => i !== index)
+      }
+    }));
+  };
+
+  const addAcademicStaff = () => {
+    setFormData(prev => ({
+      ...prev,
+      staff: {
+        ...prev.staff,
+        academic: [
+          ...prev.staff.academic,
+          {
+            name: '',
+            designation: '',
+            department: '',
+            qualification: '',
+            experience: '',
+            employmentType: 'Permanent'
+          }
+        ]
+      }
+    }));
+  };
+
+  const updateAcademicStaff = (index: number, field: string, value: string) => {
+    setFormData(prev => {
+      const newStaff = [...prev.staff.academic];
+      newStaff[index] = { ...newStaff[index], [field]: value };
+      return {
+        ...prev,
+        staff: { ...prev.staff, academic: newStaff }
+      };
+    });
+  };
+
+  const removeAcademicStaff = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      staff: {
+        ...prev.staff,
+        academic: prev.staff.academic.filter((_, i) => i !== index)
+      }
+    }));
+  };
+
+  const addProject = () => {
+    setFormData(prev => ({
+      ...prev,
+      projectPlanning: {
+        ...prev.projectPlanning,
+        ongoingProjects: [
+          ...prev.projectPlanning.ongoingProjects,
+          {
+            projectName: '',
+            startDate: '',
+            expectedCompletion: '',
+            budget: '',
+            status: 'Planning'
+          }
+        ]
+      }
+    }));
+  };
+
+  const updateProject = (index: number, field: string, value: string) => {
+    setFormData(prev => {
+      const newProjects = [...prev.projectPlanning.ongoingProjects];
+      newProjects[index] = { ...newProjects[index], [field]: value };
+      return {
+        ...prev,
+        projectPlanning: { ...prev.projectPlanning, ongoingProjects: newProjects }
+      };
+    });
+  };
+
+  const removeProject = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      projectPlanning: {
+        ...prev.projectPlanning,
+        ongoingProjects: prev.projectPlanning.ongoingProjects.filter((_, i) => i !== index)
+      }
+    }));
+  };
+
+  const handleNext = () => {
+    setActiveStep((prev) => prev + 1);
+  };
+
+  const handleBack = () => {
+    setActiveStep((prev) => prev - 1);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    setSuccess('');
+
+    try {
+      const response = await axios.post('http://localhost:4000/api/collegeform', formData);
+      
+      if (response.data.success) {
+        setSuccess('College form submitted successfully!');
+        setFormData(initialFormData);
+        setActiveStep(0);
+      } else {
+        setError(response.data.message || 'Failed to submit form');
+      }
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to submit form. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Step 1: Basic Information
+  const renderBasicInfoStep = () => (
+    <Grid container spacing={3}>
+      <Grid item xs={12}>
+        <Typography variant="h6" gutterBottom color="primary">
+          College Basic Information
+        </Typography>
+      </Grid>
+      
+      <Grid item xs={12} md={6}>
+        <TextField
+          required
+          fullWidth
+          label="College Name"
+          name="collegeName"
+          value={formData.collegeName}
+          onChange={handleInputChange}
         />
-      </div>
-      {error && <p className="text-red-500 text-sm mt-1 flex items-center"><AlertCircle size={14} className="mr-1" />{error}</p>}
-    </div>
+      </Grid>
+      
+      <Grid item xs={12} md={6}>
+        <FormControl fullWidth required>
+          <InputLabel>Campus Type</InputLabel>
+          <Select
+            name="campusType"
+            value={formData.campusType}
+            label="Campus Type"
+            onChange={handleInputChange}
+          >
+            {campusTypes.map((type) => (
+              <MenuItem key={type} value={type}>{type}</MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      </Grid>
+      
+      <Grid item xs={12} md={6}>
+        <TextField
+          required
+          fullWidth
+          label="Establishment Date"
+          name="establishmentDate"
+          type="date"
+          value={formData.establishmentDate}
+          onChange={handleInputChange}
+          InputLabelProps={{ shrink: true }}
+        />
+      </Grid>
+      
+      <Grid item xs={12} md={6}>
+        <TextField
+          fullWidth
+          label="College ID"
+          name="collegeId"
+          value={formData.collegeId}
+          onChange={handleInputChange}
+        />
+      </Grid>
+
+      <Grid item xs={12}>
+        <Divider sx={{ my: 2 }} />
+        <Typography variant="h6" gutterBottom>
+          Principal Information
+        </Typography>
+      </Grid>
+      
+      <Grid item xs={12} md={4}>
+        <TextField
+          required
+          fullWidth
+          label="Principal Name"
+          name="principalInfo.name"
+          value={formData.principalInfo.name}
+          onChange={handleInputChange}
+        />
+      </Grid>
+      
+      <Grid item xs={12} md={4}>
+        <TextField
+          fullWidth
+          label="Contact Number"
+          name="principalInfo.contactNumber"
+          value={formData.principalInfo.contactNumber}
+          onChange={handleInputChange}
+        />
+      </Grid>
+      
+      <Grid item xs={12} md={4}>
+        <TextField
+          fullWidth
+          label="Email"
+          name="principalInfo.email"
+          type="email"
+          value={formData.principalInfo.email}
+          onChange={handleInputChange}
+        />
+      </Grid>
+
+      <Grid item xs={12}>
+        <Divider sx={{ my: 2 }} />
+        <Typography variant="h6" gutterBottom>
+          Staff Contacts
+        </Typography>
+      </Grid>
+
+      <Grid item xs={12} md={6}>
+        <TextField
+          fullWidth
+          label="Admin Chief Name"
+          name="staffContacts.adminChief.name"
+          value={formData.staffContacts.adminChief.name}
+          onChange={handleInputChange}
+        />
+      </Grid>
+
+      <Grid item xs={12} md={6}>
+        <TextField
+          fullWidth
+          label="Admin Chief Mobile"
+          name="staffContacts.adminChief.mobile"
+          value={formData.staffContacts.adminChief.mobile}
+          onChange={handleInputChange}
+        />
+      </Grid>
+
+      <Grid item xs={12} md={6}>
+        <TextField
+          fullWidth
+          label="Account Chief Name"
+          name="staffContacts.accountChief.name"
+          value={formData.staffContacts.accountChief.name}
+          onChange={handleInputChange}
+        />
+      </Grid>
+
+      <Grid item xs={12} md={6}>
+        <TextField
+          fullWidth
+          label="Account Chief Mobile"
+          name="staffContacts.accountChief.mobile"
+          value={formData.staffContacts.accountChief.mobile}
+          onChange={handleInputChange}
+        />
+      </Grid>
+
+      <Grid item xs={12}>
+        <Divider sx={{ my: 2 }} />
+        <Typography variant="h6" gutterBottom>
+          Data Collection Contact
+        </Typography>
+      </Grid>
+
+      <Grid item xs={12} md={6}>
+        <TextField
+          fullWidth
+          label="Contact Person Name"
+          name="dataCollectionContact.name"
+          value={formData.dataCollectionContact.name}
+          onChange={handleInputChange}
+        />
+      </Grid>
+
+      <Grid item xs={12} md={6}>
+        <TextField
+          fullWidth
+          label="Designation"
+          name="dataCollectionContact.designation"
+          value={formData.dataCollectionContact.designation}
+          onChange={handleInputChange}
+        />
+      </Grid>
+
+      <Grid item xs={12} md={6}>
+        <TextField
+          fullWidth
+          label="Phone"
+          name="dataCollectionContact.phone"
+          value={formData.dataCollectionContact.phone}
+          onChange={handleInputChange}
+        />
+      </Grid>
+
+      <Grid item xs={12} md={6}>
+        <TextField
+          fullWidth
+          label="Email"
+          name="dataCollectionContact.email"
+          type="email"
+          value={formData.dataCollectionContact.email}
+          onChange={handleInputChange}
+        />
+      </Grid>
+    </Grid>
   );
 
-  const SelectField = ({ label, field, options, required = false, error = null }) => (
-    <div className="mb-4">
-      <label className="block text-sm font-semibold text-gray-700 mb-2">
-        {label} {required && <span className="text-red-500">*</span>}
-      </label>
-      <select
-        value={formData[field] || ''}
-        onChange={(e) => handleInputChange(field, e.target.value)}
-        className={`w-full px-3 py-3 border-2 rounded-lg focus:outline-none transition-all duration-300 ${
-          error 
-            ? 'border-red-300 focus:border-red-500 bg-red-50' 
-            : 'border-gray-200 focus:border-blue-500 focus:bg-white'
-        } hover:border-gray-300`}
-        required={required}
-      >
-        <option value="">Select...</option>
-        {options.map(option => (
-          <option key={option.value} value={option.value}>{option.label}</option>
+  // Step 2: Location Details
+  const renderLocationStep = () => (
+    <Grid container spacing={3}>
+      <Grid item xs={12}>
+        <Typography variant="h6" gutterBottom color="primary">
+          College Location Details
+        </Typography>
+      </Grid>
+      
+      <Grid item xs={12} md={6}>
+        <FormControl fullWidth required>
+          <InputLabel>Province</InputLabel>
+          <Select
+            name="location.province"
+            value={formData.location.province}
+            label="Province"
+            onChange={handleInputChange}
+          >
+            {provinces.map((province) => (
+              <MenuItem key={province} value={province}>{province}</MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      </Grid>
+      
+      <Grid item xs={12} md={6}>
+        <TextField
+          required
+          fullWidth
+          label="District"
+          name="location.district"
+          value={formData.location.district}
+          onChange={handleInputChange}
+        />
+      </Grid>
+      
+      <Grid item xs={12} md={6}>
+        <TextField
+          required
+          fullWidth
+          label="Municipality/Rural Municipality"
+          name="location.localLevel"
+          value={formData.location.localLevel}
+          onChange={handleInputChange}
+        />
+      </Grid>
+      
+      <Grid item xs={12} md={6}>
+        <TextField
+          required
+          fullWidth
+          label="Ward No."
+          name="location.wardNo"
+          value={formData.location.wardNo}
+          onChange={handleInputChange}
+        />
+      </Grid>
+      
+      <Grid item xs={12} md={6}>
+        <TextField
+          fullWidth
+          label="Street/Tole Name"
+          name="location.streetTole"
+          value={formData.location.streetTole}
+          onChange={handleInputChange}
+        />
+      </Grid>
+      
+      <Grid item xs={12} md={6}>
+        <TextField
+          fullWidth
+          label="Landmark"
+          name="location.landmark"
+          value={formData.location.landmark}
+          onChange={handleInputChange}
+        />
+      </Grid>
+      
+      <Grid item xs={12}>
+        <Divider sx={{ my: 2 }} />
+        <Typography variant="h6" gutterBottom>
+          Geographical Coordinates
+        </Typography>
+      </Grid>
+      
+      <Grid item xs={12} md={4}>
+        <TextField
+          fullWidth
+          label="Latitude"
+          name="location.latitude"
+          value={formData.location.latitude}
+          onChange={handleInputChange}
+        />
+      </Grid>
+      
+      <Grid item xs={12} md={4}>
+        <TextField
+          fullWidth
+          label="Longitude"
+          name="location.longitude"
+          value={formData.location.longitude}
+          onChange={handleInputChange}
+        />
+      </Grid>
+      
+      <Grid item xs={12} md={4}>
+        <TextField
+          fullWidth
+          label="Google Maps Link"
+          name="location.googleMapsLink"
+          value={formData.location.googleMapsLink}
+          onChange={handleInputChange}
+        />
+      </Grid>
+
+      <Grid item xs={12}>
+        <Divider sx={{ my: 2 }} />
+        <Typography variant="h6" gutterBottom>
+          Contact Information
+        </Typography>
+      </Grid>
+
+      <Grid item xs={12} md={4}>
+        <TextField
+          fullWidth
+          label="Official Phone"
+          name="contactInfo.officialPhone"
+          value={formData.contactInfo.officialPhone}
+          onChange={handleInputChange}
+        />
+      </Grid>
+
+      <Grid item xs={12} md={4}>
+        <TextField
+          fullWidth
+          label="Official Email"
+          name="contactInfo.officialEmail"
+          type="email"
+          value={formData.contactInfo.officialEmail}
+          onChange={handleInputChange}
+        />
+      </Grid>
+
+      <Grid item xs={12} md={4}>
+        <TextField
+          fullWidth
+          label="College Website"
+          name="contactInfo.website"
+          value={formData.contactInfo.website}
+          onChange={handleInputChange}
+        />
+      </Grid>
+    </Grid>
+  );
+
+  // Step 3: Infrastructure & Land (Due to length, I'll show a condensed version)
+  const renderInfrastructureStep = () => (
+    <Grid container spacing={3}>
+      <Grid item xs={12}>
+        <Typography variant="h6" gutterBottom color="primary">
+          Infrastructure & Land Details
+        </Typography>
+      </Grid>
+
+      {/* Land Area Section */}
+      <Grid item xs={12}>
+        <Accordion>
+          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+            <Typography variant="h6">Land Area Information</Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            <Grid container spacing={3}>
+              <Grid item xs={12} md={3}>
+                <TextField
+                  fullWidth
+                  label="Bigaha"
+                  name="infrastructure.landArea.traditionalUnits.bigaha"
+                  value={formData.infrastructure.landArea.traditionalUnits.bigaha}
+                  onChange={handleInputChange}
+                />
+              </Grid>
+              <Grid item xs={12} md={3}>
+                <TextField
+                  fullWidth
+                  label="Katha"
+                  name="infrastructure.landArea.traditionalUnits.katha"
+                  value={formData.infrastructure.landArea.traditionalUnits.katha}
+                  onChange={handleInputChange}
+                />
+              </Grid>
+              <Grid item xs={12} md={3}>
+                <TextField
+                  fullWidth
+                  label="Dhur"
+                  name="infrastructure.landArea.traditionalUnits.dhur"
+                  value={formData.infrastructure.landArea.traditionalUnits.dhur}
+                  onChange={handleInputChange}
+                />
+              </Grid>
+              <Grid item xs={12} md={3}>
+                <TextField
+                  fullWidth
+                  label="Square Meters"
+                  name="infrastructure.landArea.squareMeters"
+                  value={formData.infrastructure.landArea.squareMeters}
+                  onChange={handleInputChange}
+                />
+              </Grid>
+            </Grid>
+          </AccordionDetails>
+        </Accordion>
+      </Grid>
+
+      {/* Buildings Section */}
+      <Grid item xs={12}>
+        <Accordion>
+          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+            <Typography variant="h6">Buildings & Rooms</Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            <Button startIcon={<AddIcon />} onClick={addBuilding} sx={{ mb: 2 }}>
+              Add Building
+            </Button>
+            {formData.infrastructure.buildings.map((building, index) => (
+              <Card key={index} sx={{ mb: 2, p: 2 }}>
+                <Grid container spacing={2} alignItems="center">
+                  <Grid item xs={11}>
+                    <Grid container spacing={2}>
+                      <Grid item xs={12} md={3}>
+                        <TextField
+                          fullWidth
+                          label="Building Name"
+                          value={building.buildingName}
+                          onChange={(e) => updateBuilding(index, 'buildingName', e.target.value)}
+                        />
+                      </Grid>
+                      <Grid item xs={12} md={2}>
+                        <TextField
+                          fullWidth
+                          label="Total Rooms"
+                          type="number"
+                          value={building.totalRooms}
+                          onChange={(e) => updateBuilding(index, 'totalRooms', e.target.value)}
+                        />
+                      </Grid>
+                      <Grid item xs={12} md={2}>
+                        <TextField
+                          fullWidth
+                          label="Classrooms"
+                          type="number"
+                          value={building.classrooms}
+                          onChange={(e) => updateBuilding(index, 'classrooms', e.target.value)}
+                        />
+                      </Grid>
+                      <Grid item xs={12} md={2}>
+                        <FormControl fullWidth>
+                          <InputLabel>Condition</InputLabel>
+                          <Select
+                            value={building.condition}
+                            label="Condition"
+                            onChange={(e) => updateBuilding(index, 'condition', e.target.value)}
+                          >
+                            {buildingConditions.map(condition => (
+                              <MenuItem key={condition} value={condition}>{condition}</MenuItem>
+                            ))}
+                          </Select>
+                        </FormControl>
+                      </Grid>
+                    </Grid>
+                  </Grid>
+                  <Grid item xs={1}>
+                    <IconButton onClick={() => removeBuilding(index)} color="error">
+                      <DeleteIcon />
+                    </IconButton>
+                  </Grid>
+                </Grid>
+              </Card>
+            ))}
+          </AccordionDetails>
+        </Accordion>
+      </Grid>
+
+      {/* Health & Sanitation */}
+      <Grid item xs={12}>
+        <Accordion>
+          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+            <Typography variant="h6">Health & Sanitation</Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            <Grid container spacing={3}>
+              <Grid item xs={12} md={4}>
+                <TextField
+                  fullWidth
+                  label="Male Toilets"
+                  name="infrastructure.healthSanitation.toilets.male"
+                  value={formData.infrastructure.healthSanitation.toilets.male}
+                  onChange={handleInputChange}
+                />
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <TextField
+                  fullWidth
+                  label="Female Toilets"
+                  name="infrastructure.healthSanitation.toilets.female"
+                  value={formData.infrastructure.healthSanitation.toilets.female}
+                  onChange={handleInputChange}
+                />
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <TextField
+                  fullWidth
+                  label="Disabled Friendly Toilets"
+                  name="infrastructure.healthSanitation.toilets.disabledFriendly"
+                  value={formData.infrastructure.healthSanitation.toilets.disabledFriendly}
+                  onChange={handleInputChange}
+                />
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      name="infrastructure.healthSanitation.drinkingWater.available"
+                      checked={formData.infrastructure.healthSanitation.drinkingWater.available}
+                      onChange={handleInputChange}
+                    />
+                  }
+                  label="Drinking Water Available"
+                />
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      name="infrastructure.healthSanitation.medicalFacilities.firstAid"
+                      checked={formData.infrastructure.healthSanitation.medicalFacilities.firstAid}
+                      onChange={handleInputChange}
+                    />
+                  }
+                  label="First Aid Available"
+                />
+              </Grid>
+            </Grid>
+          </AccordionDetails>
+        </Accordion>
+      </Grid>
+    </Grid>
+  );
+
+  // Step 4: Academic Programs
+  const renderAcademicProgramsStep = () => (
+    <Grid container spacing={3}>
+      <Grid item xs={12}>
+        <Typography variant="h6" gutterBottom color="primary">
+          Academic Programs & Enrollment
+        </Typography>
+      </Grid>
+
+      <Grid item xs={12} md={6}>
+        <TextField
+          fullWidth
+          label="Total Faculties/Departments"
+          name="academicPrograms.totalFaculties"
+          type="number"
+          value={formData.academicPrograms.totalFaculties}
+          onChange={handleInputChange}
+        />
+      </Grid>
+
+      <Grid item xs={12}>
+        <Divider sx={{ my: 2 }} />
+        <Typography variant="h6" gutterBottom>
+          Programs Offered
+        </Typography>
+        <Button startIcon={<AddIcon />} onClick={addProgram} sx={{ mb: 2 }}>
+          Add Program
+        </Button>
+        
+        {formData.academicPrograms.programs.map((program, index) => (
+          <Card key={index} sx={{ mb: 2, p: 2 }}>
+            <Grid container spacing={2} alignItems="center">
+              <Grid item xs={11}>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} md={4}>
+                    <TextField
+                      fullWidth
+                      label="Program Name"
+                      value={program.programName}
+                      onChange={(e) => updateProgram(index, 'programName', e.target.value)}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={3}>
+                    <FormControl fullWidth>
+                      <InputLabel>Level</InputLabel>
+                      <Select
+                        value={program.level}
+                        label="Level"
+                        onChange={(e) => updateProgram(index, 'level', e.target.value)}
+                      >
+                        {programLevels.map(level => (
+                          <MenuItem key={level} value={level}>{level}</MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                  <Grid item xs={12} md={3}>
+                    <TextField
+                      fullWidth
+                      label="Duration"
+                      value={program.duration}
+                      onChange={(e) => updateProgram(index, 'duration', e.target.value)}
+                    />
+                  </Grid>
+                </Grid>
+              </Grid>
+              <Grid item xs={1}>
+                <IconButton onClick={() => removeProgram(index)} color="error">
+                  <DeleteIcon />
+                </IconButton>
+              </Grid>
+            </Grid>
+          </Card>
         ))}
-      </select>
-      {error && <p className="text-red-500 text-sm mt-1 flex items-center"><AlertCircle size={14} className="mr-1" />{error}</p>}
-    </div>
-  );
+      </Grid>
 
-  const TextareaField = ({ label, field, rows = 3, placeholder = '', required = false }) => (
-    <div className="mb-4">
-      <label className="block text-sm font-semibold text-gray-700 mb-2">
-        {label} {required && <span className="text-red-500">*</span>}
-      </label>
-      <textarea
-        rows={rows}
-        value={formData[field] || ''}
-        onChange={(e) => handleInputChange(field, e.target.value)}
-        placeholder={placeholder}
-        className="w-full px-3 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 focus:bg-white hover:border-gray-300 transition-all duration-300"
-        required={required}
-      />
-    </div>
-  );
+      <Grid item xs={12}>
+        <Divider sx={{ my: 2 }} />
+        <Typography variant="h6" gutterBottom>
+          Current Enrollment
+        </Typography>
+      </Grid>
 
-  const SectionHeader = ({ section, isExpanded, onClick, isSaved }) => (
-    <div 
-      className={`${section.color} text-white p-6 cursor-pointer flex items-center justify-between rounded-xl mb-4 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300`}
-      onClick={onClick}
-    >
-      <div className="flex items-center space-x-4">
-        <div className="bg-white bg-opacity-20 p-3 rounded-lg">
-          <section.icon size={24} />
-        </div>
-        <div>
-          <h2 className="text-xl font-bold">{section.title}</h2>
-          <p className="text-sm opacity-90">Section {section.id + 1} of {sections.length}</p>
-        </div>
-      </div>
-      <div className="flex items-center space-x-2">
-        {isSaved && <CheckCircle size={20} className="text-green-300" />}
-        {isExpanded ? <ChevronDown size={24} /> : <ChevronRight size={24} />}
-      </div>
-    </div>
-  );
-
-  const BuildingRow = ({ type, label, data, onChange }) => (
-    <tr className="border-b hover:bg-gray-50">
-      <td className="py-3 px-4 font-medium text-gray-700">{label}</td>
-      <td className="py-3 px-2"><input type="number" value={data.buildings} onChange={(e) => onChange('buildings', e.target.value)} className="w-full px-2 py-1 border rounded text-center" /></td>
-      <td className="py-3 px-2"><input type="number" value={data.rooms} onChange={(e) => onChange('rooms', e.target.value)} className="w-full px-2 py-1 border rounded text-center" /></td>
-      <td className="py-3 px-2"><input type="number" value={data.avgSize} onChange={(e) => onChange('avgSize', e.target.value)} className="w-full px-2 py-1 border rounded text-center" /></td>
-      <td className="py-3 px-2"><input type="number" value={data.capacity} onChange={(e) => onChange('capacity', e.target.value)} className="w-full px-2 py-1 border rounded text-center" /></td>
-      <td className="py-3 px-2">
-        <select value={data.condition} onChange={(e) => onChange('condition', e.target.value)} className="w-full px-2 py-1 border rounded">
-          <option value="">Select</option>
-          <option value="Good">Good</option>
-          <option value="Poor">Poor</option>
-          <option value="Needs Repairing">Needs Repairing</option>
-        </select>
-      </td>
-    </tr>
-  );
-
-  const TechResourceRow = ({ label, data, onChange }) => (
-    <tr className="border-b hover:bg-gray-50">
-      <td className="py-3 px-4 font-medium text-gray-700">{label}</td>
-      <td className="py-3 px-4 text-center">
-        <select value={data.available ? 'yes' : 'no'} onChange={(e) => onChange('available', e.target.value === 'yes')} className="px-3 py-1 border rounded">
-          <option value="no">Not Available</option>
-          <option value="yes">Available</option>
-        </select>
-      </td>
-      <td className="py-3 px-4">
-        <input 
-          type="text" 
-          value={data.plans} 
-          onChange={(e) => onChange('plans', e.target.value)} 
-          placeholder="Future plans and remarks"
-          className="w-full px-2 py-1 border rounded"
+      <Grid item xs={12} md={3}>
+        <TextField
+          fullWidth
+          label="Total Students"
+          name="academicPrograms.enrollment.total"
+          type="number"
+          value={formData.academicPrograms.enrollment.total}
+          onChange={handleInputChange}
         />
-      </td>
-    </tr>
+      </Grid>
+      <Grid item xs={12} md={3}>
+        <TextField
+          fullWidth
+          label="Male Students"
+          name="academicPrograms.enrollment.male"
+          type="number"
+          value={formData.academicPrograms.enrollment.male}
+          onChange={handleInputChange}
+        />
+      </Grid>
+      <Grid item xs={12} md={3}>
+        <TextField
+          fullWidth
+          label="Female Students"
+          name="academicPrograms.enrollment.female"
+          type="number"
+          value={formData.academicPrograms.enrollment.female}
+          onChange={handleInputChange}
+        />
+      </Grid>
+      <Grid item xs={12} md={3}>
+        <TextField
+          fullWidth
+          label="Other Students"
+          name="academicPrograms.enrollment.other"
+          type="number"
+          value={formData.academicPrograms.enrollment.other}
+          onChange={handleInputChange}
+        />
+      </Grid>
+    </Grid>
   );
+
+  // Step 5: Staff Information
+  const renderStaffStep = () => (
+    <Grid container spacing={3}>
+      <Grid item xs={12}>
+        <Typography variant="h6" gutterBottom color="primary">
+          Staff Information
+        </Typography>
+      </Grid>
+
+      <Grid item xs={12}>
+        <Typography variant="h6" gutterBottom>
+          Academic Staff
+        </Typography>
+        <Button startIcon={<AddIcon />} onClick={addAcademicStaff} sx={{ mb: 2 }}>
+          Add Academic Staff
+        </Button>
+        
+        {formData.staff.academic.map((staff, index) => (
+          <Card key={index} sx={{ mb: 2, p: 2 }}>
+            <Grid container spacing={2} alignItems="center">
+              <Grid item xs={11}>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} md={3}>
+                    <TextField
+                      fullWidth
+                      label="Name"
+                      value={staff.name}
+                      onChange={(e) => updateAcademicStaff(index, 'name', e.target.value)}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={3}>
+                    <TextField
+                      fullWidth
+                      label="Designation"
+                      value={staff.designation}
+                      onChange={(e) => updateAcademicStaff(index, 'designation', e.target.value)}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={3}>
+                    <TextField
+                      fullWidth
+                      label="Department"
+                      value={staff.department}
+                      onChange={(e) => updateAcademicStaff(index, 'department', e.target.value)}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={3}>
+                    <FormControl fullWidth>
+                      <InputLabel>Employment Type</InputLabel>
+                      <Select
+                        value={staff.employmentType}
+                        label="Employment Type"
+                        onChange={(e) => updateAcademicStaff(index, 'employmentType', e.target.value)}
+                      >
+                        {employmentTypes.map(type => (
+                          <MenuItem key={type} value={type}>{type}</MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                </Grid>
+              </Grid>
+              <Grid item xs={1}>
+                <IconButton onClick={() => removeAcademicStaff(index)} color="error">
+                  <DeleteIcon />
+                </IconButton>
+              </Grid>
+            </Grid>
+          </Card>
+        ))}
+      </Grid>
+    </Grid>
+  );
+
+  // Step 6: Facilities & Technology
+  const renderFacilitiesStep = () => (
+    <Grid container spacing={3}>
+      <Grid item xs={12}>
+        <Typography variant="h6" gutterBottom color="primary">
+          Educational Tools & Technology
+        </Typography>
+      </Grid>
+
+      <Grid item xs={12} md={4}>
+        <TextField
+          fullWidth
+          label="Digital Classrooms"
+          name="educationalTechnology.digitalClassrooms"
+          type="number"
+          value={formData.educationalTechnology.digitalClassrooms}
+          onChange={handleInputChange}
+        />
+      </Grid>
+      <Grid item xs={12} md={4}>
+        <TextField
+          fullWidth
+          label="Computer Labs"
+          name="educationalTechnology.computerLabs"
+          type="number"
+          value={formData.educationalTechnology.computerLabs}
+          onChange={handleInputChange}
+        />
+      </Grid>
+      <Grid item xs={12} md={4}>
+        <TextField
+          fullWidth
+          label="Computers Available"
+          name="educationalTechnology.computersAvailable"
+          type="number"
+          value={formData.educationalTechnology.computersAvailable}
+          onChange={handleInputChange}
+        />
+      </Grid>
+
+      <Grid item xs={12}>
+        <Divider sx={{ my: 2 }} />
+        <Typography variant="h6" gutterBottom>
+          Internet Availability
+        </Typography>
+      </Grid>
+
+      <Grid item xs={12} md={4}>
+        <FormControlLabel
+          control={
+            <Switch
+              name="educationalTechnology.internetAvailability.available"
+              checked={formData.educationalTechnology.internetAvailability.available}
+              onChange={handleInputChange}
+            />
+          }
+          label="Internet Available"
+        />
+      </Grid>
+      <Grid item xs={12} md={4}>
+        <TextField
+          fullWidth
+          label="Internet Speed"
+          name="educationalTechnology.internetAvailability.speed"
+          value={formData.educationalTechnology.internetAvailability.speed}
+          onChange={handleInputChange}
+        />
+      </Grid>
+      <Grid item xs={12} md={4}>
+        <TextField
+          fullWidth
+          label="Internet Provider"
+          name="educationalTechnology.internetAvailability.provider"
+          value={formData.educationalTechnology.internetAvailability.provider}
+          onChange={handleInputChange}
+        />
+      </Grid>
+
+      <Grid item xs={12}>
+        <Divider sx={{ my: 2 }} />
+        <Typography variant="h6" gutterBottom>
+          Library Resources
+        </Typography>
+      </Grid>
+
+      <Grid item xs={12} md={3}>
+        <TextField
+          fullWidth
+          label="Physical Books"
+          name="educationalTechnology.libraryResources.physicalBooks"
+          type="number"
+          value={formData.educationalTechnology.libraryResources.physicalBooks}
+          onChange={handleInputChange}
+        />
+      </Grid>
+      <Grid item xs={12} md={3}>
+        <TextField
+          fullWidth
+          label="eBooks"
+          name="educationalTechnology.libraryResources.ebooks"
+          type="number"
+          value={formData.educationalTechnology.libraryResources.ebooks}
+          onChange={handleInputChange}
+        />
+      </Grid>
+      <Grid item xs={12} md={3}>
+        <TextField
+          fullWidth
+          label="Journals"
+          name="educationalTechnology.libraryResources.journals"
+          type="number"
+          value={formData.educationalTechnology.libraryResources.journals}
+          onChange={handleInputChange}
+        />
+      </Grid>
+      <Grid item xs={12} md={3}>
+        <FormControlLabel
+          control={
+            <Switch
+              name="educationalTechnology.libraryResources.digitalDatabase"
+              checked={formData.educationalTechnology.libraryResources.digitalDatabase}
+              onChange={handleInputChange}
+            />
+          }
+          label="Digital Database"
+        />
+      </Grid>
+    </Grid>
+  );
+
+  // Step 7: Project Planning
+  const renderProjectPlanningStep = () => (
+    <Grid container spacing={3}>
+      <Grid item xs={12}>
+        <Typography variant="h6" gutterBottom color="primary">
+          Project Planning
+        </Typography>
+      </Grid>
+
+      <Grid item xs={12}>
+        <TextField
+          fullWidth
+          multiline
+          rows={3}
+          label="Immediate Construction Planning"
+          name="projectPlanning.immediateConstruction"
+          value={formData.projectPlanning.immediateConstruction}
+          onChange={handleInputChange}
+        />
+      </Grid>
+
+      <Grid item xs={12}>
+        <TextField
+          fullWidth
+          multiline
+          rows={3}
+          label="Future Construction Planning"
+          name="projectPlanning.futureConstruction"
+          value={formData.projectPlanning.futureConstruction}
+          onChange={handleInputChange}
+        />
+      </Grid>
+
+      <Grid item xs={12}>
+        <Divider sx={{ my: 2 }} />
+        <Typography variant="h6" gutterBottom>
+          Priority Work
+        </Typography>
+      </Grid>
+
+      <Grid item xs={12} md={4}>
+        <TextField
+          fullWidth
+          label="Priority 1 (P1)"
+          name="projectPlanning.priorityWork.p1"
+          value={formData.projectPlanning.priorityWork.p1}
+          onChange={handleInputChange}
+        />
+      </Grid>
+      <Grid item xs={12} md={4}>
+        <TextField
+          fullWidth
+          label="Priority 2 (P2)"
+          name="projectPlanning.priorityWork.p2"
+          value={formData.projectPlanning.priorityWork.p2}
+          onChange={handleInputChange}
+        />
+      </Grid>
+      <Grid item xs={12} md={4}>
+        <TextField
+          fullWidth
+          label="Priority 3 (P3)"
+          name="projectPlanning.priorityWork.p3"
+          value={formData.projectPlanning.priorityWork.p3}
+          onChange={handleInputChange}
+        />
+      </Grid>
+
+      <Grid item xs={12}>
+        <Divider sx={{ my: 2 }} />
+        <Typography variant="h6" gutterBottom>
+          Ongoing Projects
+        </Typography>
+        <Button startIcon={<AddIcon />} onClick={addProject} sx={{ mb: 2 }}>
+          Add Project
+        </Button>
+        
+        {formData.projectPlanning.ongoingProjects.map((project, index) => (
+          <Card key={index} sx={{ mb: 2, p: 2 }}>
+            <Grid container spacing={2} alignItems="center">
+              <Grid item xs={11}>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} md={3}>
+                    <TextField
+                      fullWidth
+                      label="Project Name"
+                      value={project.projectName}
+                      onChange={(e) => updateProject(index, 'projectName', e.target.value)}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={2}>
+                    <TextField
+                      fullWidth
+                      label="Start Date"
+                      type="date"
+                      value={project.startDate}
+                      onChange={(e) => updateProject(index, 'startDate', e.target.value)}
+                      InputLabelProps={{ shrink: true }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={2}>
+                    <TextField
+                      fullWidth
+                      label="Expected Completion"
+                      type="date"
+                      value={project.expectedCompletion}
+                      onChange={(e) => updateProject(index, 'expectedCompletion', e.target.value)}
+                      InputLabelProps={{ shrink: true }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={2}>
+                    <TextField
+                      fullWidth
+                      label="Budget"
+                      type="number"
+                      value={project.budget}
+                      onChange={(e) => updateProject(index, 'budget', e.target.value)}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={3}>
+                    <FormControl fullWidth>
+                      <InputLabel>Status</InputLabel>
+                      <Select
+                        value={project.status}
+                        label="Status"
+                        onChange={(e) => updateProject(index, 'status', e.target.value)}
+                      >
+                        {projectStatuses.map(status => (
+                          <MenuItem key={status} value={status}>{status}</MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                </Grid>
+              </Grid>
+              <Grid item xs={1}>
+                <IconButton onClick={() => removeProject(index)} color="error">
+                  <DeleteIcon />
+                </IconButton>
+              </Grid>
+            </Grid>
+          </Card>
+        ))}
+      </Grid>
+    </Grid>
+  );
+
+  // Step 8: Review & Submit
+  const renderReviewStep = () => (
+    <Grid container spacing={3}>
+      <Grid item xs={12}>
+        <Typography variant="h6" gutterBottom color="primary">
+          Review College Information
+        </Typography>
+        <Typography variant="body2" color="text.secondary" paragraph>
+          Please review all information before submitting the form.
+        </Typography>
+      </Grid>
+
+      {Object.entries(formData).map(([key, value]) => (
+        <Grid item xs={12} key={key}>
+          <Card variant="outlined">
+            <CardContent>
+              <Typography variant="h6" gutterBottom sx={{ textTransform: 'capitalize' }}>
+                {key.replace(/([A-Z])/g, ' $1')}
+              </Typography>
+              <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
+                {JSON.stringify(value, null, 2)}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+      ))}
+    </Grid>
+  );
+
+  const getStepContent = (step: number) => {
+    switch (step) {
+      case 0: return renderBasicInfoStep();
+      case 1: return renderLocationStep();
+      case 2: return renderInfrastructureStep();
+      case 3: return renderAcademicProgramsStep();
+      case 4: return renderStaffStep();
+      case 5: return renderFacilitiesStep();
+      case 6: return renderProjectPlanningStep();
+      case 7: return renderReviewStep();
+      default: return null;
+    }
+  };
+
+  const isStepValid = (step: number): boolean => {
+    switch (step) {
+      case 0:
+        return !!formData.collegeName && !!formData.campusType && !!formData.establishmentDate && !!formData.principalInfo.name;
+      case 1:
+        return !!formData.location.province && !!formData.location.district && !!formData.location.localLevel && !!formData.location.wardNo;
+      case 2:
+        return true;
+      case 3:
+        return true;
+      case 4:
+        return true;
+      case 5:
+        return true;
+      case 6:
+        return true;
+      case 7:
+        return true;
+      default:
+        return false;
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
-      {/* Fixed Header */}
-      <div className="sticky top-0 z-50 bg-white shadow-lg border-b">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between py-4">
-            <div className="flex items-center space-x-4">
-              <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-3 rounded-lg">
-                <Building className="text-white" size={24} />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-800">TU Planning Directorate</h1>
-                <p className="text-gray-600 text-sm">College Information Collection</p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={() => setShowPreview(!showPreview)}
-                className="flex items-center space-x-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
-              >
-                {showPreview ? <EyeOff size={16} /> : <Eye size={16} />}
-                <span>{showPreview ? 'Hide Preview' : 'Show Preview'}</span>
-              </button>
-              <div className="flex items-center space-x-2 text-sm text-gray-600">
-                <Save size={16} />
-                <span>{savedSections.size}/{sections.length} Saved</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+    <Box sx={{ maxWidth: 1200, margin: '0 auto', p: 3 }}>
+      <Paper elevation={3} sx={{ p: 4 }}>
+        <Typography variant="h4" component="h1" gutterBottom align="center" color="primary">
+          Tribhuvan University
+        </Typography>
+        <Typography variant="h5" component="h2" gutterBottom align="center" color="text.secondary">
+          College Information Collection Form
+        </Typography>
+        
+        <Stepper activeStep={activeStep} sx={{ mt: 4, mb: 4 }}>
+          {steps.map((label) => (
+            <Step key={label}>
+              <StepLabel>{label}</StepLabel>
+            </Step>
+          ))}
+        </Stepper>
 
-      <div className="container mx-auto px-4 py-8 max-w-6xl">
-        <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
+        {error && (
+          <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>
+            {error}
+          </Alert>
+        )}
+
+        {success && (
+          <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccess('')}>
+            {success}
+          </Alert>
+        )}
+
+        <form onSubmit={handleSubmit}>
+          {getStepContent(activeStep)}
           
-          {/* Progress Bar */}
-          <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold text-white">Form Progress</h2>
-              <span className="text-blue-100 text-sm">{Math.round((savedSections.size / sections.length) * 100)}% Complete</span>
-            </div>
-            <div className="w-full bg-blue-400 bg-opacity-30 rounded-full h-2">
-              <div 
-                className="bg-white h-2 rounded-full transition-all duration-500" 
-                style={{ width: `${(savedSections.size / sections.length) * 100}%` }}
-              ></div>
-            </div>
-          </div>
-
-          <div className="p-8">
-            {/* Section 1: General Information */}
-            <SectionHeader 
-              section={sections[0]} 
-              isExpanded={expandedSections.includes(0)}
-              onClick={() => toggleSection(0)}
-              isSaved={savedSections.has(0)}
-            />
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4 }}>
+            <Button
+              disabled={activeStep === 0}
+              onClick={handleBack}
+              variant="outlined"
+            >
+              Back
+            </Button>
             
-            {expandedSections.includes(0) && (
-              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-8 rounded-xl mb-6 border border-blue-100">
-                <div className="flex justify-between items-center mb-6">
-                  <h3 className="text-2xl font-bold text-gray-800">College Basic Information</h3>
-                  <button
-                    onClick={() => saveSection(0)}
-                    className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                  >
-                    <Save size={16} />
-                    <span>Save Section</span>
-                  </button>
-                </div>
-                
-                <div className="grid lg:grid-cols-2 gap-6">
-                  <InputField 
-                    label="College Name" 
-                    field="collegeName" 
-                    required 
-                    placeholder="Enter full college name" 
-                    error={validationErrors.collegeName}
-                    icon={<Building size={16} />}
-                  />
-                  <SelectField 
-                    label="Campus Type" 
-                    field="campusType" 
-                    options={[
-                      { value: 'constituent', label: 'Constituent Campus' },
-                      { value: 'affiliated', label: 'Affiliated College' },
-                      { value: 'community', label: 'Community Campus' },
-                      { value: 'private', label: 'Private College' }
-                    ]}
-                    required
-                    error={validationErrors.campusType}
-                  />
-                  <InputField 
-                    label="Establishment Date" 
-                    field="establishmentDate" 
-                    type="date" 
-                    required 
-                    icon={<Calendar size={16} />}
-                  />
-                  <InputField 
-                    label="College ID" 
-                    field="collegeId" 
-                    placeholder="If applicable" 
-                  />
-                </div>
-
-                <h4 className="text-xl font-bold text-gray-800 mt-8 mb-4">Principal/Campus Chief Information</h4>
-                <div className="grid lg:grid-cols-2 gap-6">
-                  <InputField 
-                    label="Principal/Campus Chief Name" 
-                    field="principalName" 
-                    required 
-                    error={validationErrors.principalName}
-                    icon={<Users size={16} />}
-                  />
-                  <InputField 
-                    label="Contact Number" 
-                    field="principalContact" 
-                    type="tel" 
-                    required 
-                    icon={<Phone size={16} />}
-                  />
-                  <InputField 
-                    label="Email Address" 
-                    field="principalEmail" 
-                    type="email" 
-                    required 
-                    error={validationErrors.principalEmail}
-                    icon={<Mail size={16} />}
-                  />
-                  <InputField 
-                    label="Main Official Phone" 
-                    field="mainPhone" 
-                    type="tel" 
-                    required 
-                    icon={<Phone size={16} />}
-                  />
-                  <InputField 
-                    label="Official Email" 
-                    field="officialEmail" 
-                    type="email" 
-                    required 
-                    icon={<Mail size={16} />}
-                  />
-                  <InputField 
-                    label="Admin Chief Name" 
-                    field="adminName" 
-                    icon={<Users size={16} />}
-                  />
-                  <InputField 
-                    label="Admin Chief Mobile" 
-                    field="adminMobile" 
-                    type="tel" 
-                    icon={<Phone size={16} />}
-                  />
-                  <InputField 
-                    label="Account Chief Name" 
-                    field="accountName" 
-                    icon={<Users size={16} />}
-                  />
-                  <InputField 
-                    label="Account Chief Mobile" 
-                    field="accountMobile" 
-                    type="tel" 
-                    icon={<Phone size={16} />}
-                  />
-                  <InputField 
-                    label="College Website" 
-                    field="website" 
-                    type="url" 
-                    placeholder="https://example.com" 
-                    icon={<Globe size={16} />}
-                  />
-                </div>
-                
-                <h4 className="text-xl font-bold text-gray-800 mt-8 mb-4">Contact Person for Data Collection</h4>
-                <div className="grid lg:grid-cols-2 gap-6">
-                  <InputField 
-                    label="Contact Person Name" 
-                    field="contactPersonName" 
-                    icon={<Users size={16} />}
-                  />
-                  <InputField 
-                    label="Designation" 
-                    field="contactPersonDesignation" 
-                  />
-                  <InputField 
-                    label="Phone Number" 
-                    field="contactPersonPhone" 
-                    type="tel" 
-                    icon={<Phone size={16} />}
-                  />
-                  <InputField 
-                    label="Email Address" 
-                    field="contactPersonEmail" 
-                    type="email" 
-                    icon={<Mail size={16} />}
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* Section 2: Location Details */}
-            <SectionHeader 
-              section={sections[1]} 
-              isExpanded={expandedSections.includes(1)}
-              onClick={() => toggleSection(1)}
-              isSaved={savedSections.has(1)}
-            />
-            
-            {expandedSections.includes(1) && (
-              <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-8 rounded-xl mb-6 border border-green-100">
-                <div className="flex justify-between items-center mb-6">
-                  <h3 className="text-2xl font-bold text-gray-800">Location & Address Information</h3>
-                  <button
-                    onClick={() => saveSection(1)}
-                    className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-                  >
-                    <Save size={16} />
-                    <span>Save Section</span>
-                  </button>
-                </div>
-                
-                <div className="grid lg:grid-cols-2 gap-6">
-                  <InputField 
-                    label="Province" 
-                    field="province" 
-                    required 
-                    icon={<MapPin size={16} />}
-                  />
-                  <InputField 
-                    label="District" 
-                    field="district" 
-                    required 
-                    icon={<MapPin size={16} />}
-                  />
-                  <InputField 
-                    label="Local Level (Municipality/Rural Municipality)" 
-                    field="localLevel" 
-                    required 
-                  />
-                  <InputField 
-                    label="Ward No." 
-                    field="wardNo" 
-                    required 
-                    type="number"
-                  />
-                  <InputField 
-                    label="Street/Tole Name" 
-                    field="streetName" 
-                  />
-                  <InputField 
-                    label="Landmark" 
-                    field="landmark" 
-                    placeholder="Near specific temple, market, etc." 
-                  />
-                </div>
-                
-                <div className="bg-white p-6 rounded-lg mt-6 border border-green-200">
-                  <h4 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
-                    <MapPin className="mr-2 text-green-600" size={20} />
-                    Google Maps Integration for GIS
-                  </h4>
-                  <p className="text-gray-600 mb-4">This section is crucial for the GIS project. Please provide exact coordinates.</p>
-                  
-                  <div className="grid lg:grid-cols-2 gap-6">
-                    <InputField 
-                      label="Latitude" 
-                      field="latitude" 
-                      placeholder="e.g., 27.7172" 
-                      type="number"
-                      step="any"
-                    />
-                    <InputField 
-                      label="Longitude" 
-                      field="longitude" 
-                      placeholder="e.g., 85.3240" 
-                      type="number"
-                      step="any"
-                    />
-                  </div>
-                  
-                  <TextareaField 
-                    label="Google Maps Shareable Link (Preferred)" 
-                    field="mapsLink" 
-                    placeholder="Paste the Google Maps URL here for accurate location"
-                    rows={2}
-                  />
-                  
-                  <div className="bg-blue-50 p-4 rounded-lg mt-4">
-                    <p className="text-sm text-blue-800">
-                      <strong>How to get coordinates:</strong> Open Google Maps, find your college location, 
-                      right-click on the specific point, and copy the coordinates that appear.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Section 3: Infrastructure & Land */}
-            <SectionHeader 
-              section={sections[2]} 
-              isExpanded={expandedSections.includes(2)}
-              onClick={() => toggleSection(2)}
-              isSaved={savedSections.has(2)}
-            />
-            
-            {expandedSections.includes(2) && (
-              <div className="bg-gradient-to-r from-purple-50 to-violet-50 p-8 rounded-xl mb-6 border border-purple-100">
-                <div className="flex justify-between items-center mb-6">
-                  <h3 className="text-2xl font-bold text-gray-800">Infrastructure & Facilities</h3>
-                  <button
-                    onClick={() => saveSection(2)}
-                    className="flex items-center space-x-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-                  >
-                    <Save size={16} />
-                    <span>Save Section</span>
-                  </button>
-                </div>
-
-                {/* Land Area Section */}
-                <div className="bg-white p-6 rounded-lg mb-6 border border-purple-200">
-                  <h4 className="text-xl font-bold text-gray-800 mb-4">A. Total Land Area</h4>
-                  
-                  <div className="grid lg:grid-cols-3 gap-4 mb-6">
-                    <div className="bg-gray-50 p-4 rounded-lg">
-                      <h5 className="font-semibold text-gray-700 mb-3">Traditional Measurement</h5>
-                      <div className="space-y-3">
-                        <InputField label="Bigaha" field="totalLandBigaha" type="number" />
-                        <InputField label="Katha" field="totalLandKatha" type="number" />
-                        <InputField label="Dhur" field="totalLandDhur" type="number" />
-                      </div>
-                    </div>
-                    
-                    <div className="bg-gray-50 p-4 rounded-lg">
-                      <h5 className="font-semibold text-gray-700 mb-3">Alternative Measurement</h5>
-                      <div className="space-y-3">
-                        <InputField label="Ropani" field="totalLandRopani" type="number" />
-                        <InputField label="Ana" field="totalLandAna" type="number" />
-                        <InputField label="Daam" field="totalLandDaam" type="number" />
-                        <InputField label="Paisa" field="totalLandPaisa" type="number" />
-                      </div>
-                    </div>
-                    
-                    <div className="bg-blue-50 p-4 rounded-lg">
-                      <h5 className="font-semibold text-gray-700 mb-3">Standard Measurement</h5>
-                      <InputField 
-                        label="Area in Square Meter (as per Lalpurja)" 
-                        field="landAreaSquareMeter" 
-                        type="number" 
-                        required
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="grid lg:grid-cols-2 gap-6">
-                    <InputField 
-                      label="Date of Land Acquisition" 
-                      field="landAcquisitionDate" 
-                      type="date" 
-                    />
-                    <TextareaField 
-                      label="Status of Land Tax Clearance and Updating" 
-                      field="landTaxStatus" 
-                      placeholder="Describe current status and any updating processes"
-                    />
-                  </div>
-                </div>
-
-                {/* Land Ownership Breakdown */}
-                <div className="bg-white p-6 rounded-lg mb-6 border border-purple-200">
-                  <h4 className="text-xl font-bold text-gray-800 mb-4">B. Breakdown of Land Area by Ownership Type</h4>
-                  
-                  <div className="grid lg:grid-cols-2 gap-6">
-                    <div className="space-y-4">
-                      <InputField 
-                        label="Area with Lalpurja in Campus Name" 
-                        field="areaWithLalpurja" 
-                        type="number"
-                        placeholder="Area in square meters"
-                      />
-                      <TextareaField 
-                        label="Address of the Land" 
-                        field="lalpurjaAddress" 
-                        rows={2}
-                      />
-                    </div>
-                    
-                    <div className="space-y-4">
-                      <InputField 
-                        label="Area with Bhogadhikar" 
-                        field="areaWithBhogadhikar" 
-                        type="number"
-                        placeholder="Area in square meters"
-                      />
-                      <TextareaField 
-                        label="Address of the Land" 
-                        field="bhogadhikarAddress" 
-                        rows={2}
-                      />
-                    </div>
-                    
-                    <div className="space-y-4">
-                      <InputField 
-                        label="Area Provided by Local Government" 
-                        field="areaLocalGov" 
-                        type="number"
-                        placeholder="Area in square meters"
-                      />
-                      <TextareaField 
-                        label="Address of the Land" 
-                        field="localGovAddress" 
-                        rows={2}
-                      />
-                    </div>
-                    
-                    <div className="space-y-4">
-                      <InputField 
-                        label="Area with Other Sources" 
-                        field="areaOtherSources" 
-                        type="number"
-                        placeholder="Area in square meters"
-                      />
-                      <TextareaField 
-                        label="Address of the Land" 
-                        field="otherSourcesAddress" 
-                        rows={2}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Land Usage */}
-                <div className="bg-white p-6 rounded-lg mb-6 border border-purple-200">
-                  <h4 className="text-xl font-bold text-gray-800 mb-4">C. Present Status of Land Uses and Area</h4>
-                  
-                  <div className="grid lg:grid-cols-2 gap-6">
-                    <InputField 
-                      label="Area Occupied by Building and Physical Infrastructure" 
-                      field="areaBuildingInfra" 
-                      type="number"
-                      placeholder="Area in square meters"
-                    />
-                    <InputField 
-                      label="Area Occupied by Playground" 
-                      field="areaPlayground" 
-                      type="number"
-                      placeholder="Area in square meters"
-                    />
-                    <InputField 
-                      label="Area Covered by Unplanned Natural Forests and Shrubs" 
-                      field="areaForestShrubs" 
-                      type="number"
-                      placeholder="Area in square meters"
-                    />
-                    <InputField 
-                      label="Area Occupied by Systematic Plantation and Garden" 
-                      field="areaPlantationGarden" 
-                      type="number"
-                      placeholder="Area in square meters"
-                    />
-                    <InputField 
-                      label="Area of Land and Buildings Given in Lease/Contract" 
-                      field="areaLeaseContract" 
-                      type="number"
-                      placeholder="Area in square meters"
-                    />
-                    <InputField 
-                      label="Income from Land and Property Activities" 
-                      field="incomeFromLand" 
-                      type="number"
-                      placeholder="Amount in NPR"
-                    />
-                  </div>
-                  
-                  <div className="mt-6">
-                    <SelectField 
-                      label="Is there any type of encroachment in campus land?" 
-                      field="landEncroachment" 
-                      options={[
-                        { value: 'yes', label: 'Yes' },
-                        { value: 'no', label: 'No' }
-                      ]}
-                    />
-                    
-                    {formData.landEncroachment === 'yes' && (
-                      <TextareaField 
-                        label="Details about encroachment and steps taken" 
-                        field="encroachmentDetails" 
-                        rows={4}
-                        placeholder="Describe the situation and steps taken by campus administration and government authorities"
-                      />
-                    )}
-                  </div>
-                  
-                  <div className="grid lg:grid-cols-1 gap-6 mt-6">
-                    <TextareaField 
-                      label="Best possible alternative commercial uses of the land" 
-                      field="commercialUses" 
-                      rows={3}
-                    />
-                    <TextareaField 
-                      label="Commercial plan for use of land and property" 
-                      field="commercialPlan" 
-                      rows={3}
-                    />
-                    <SelectField 
-                      label="Is there a master plan of campus development?" 
-                      field="masterPlan" 
-                      options={[
-                        { value: 'yes', label: 'Yes' },
-                        { value: 'no', label: 'No' },
-                        { value: 'in_progress', label: 'In Progress' }
-                      ]}
-                    />
-                    <TextareaField 
-                      label="Suggestions/recommendations regarding land and property" 
-                      field="masterPlanSuggestions" 
-                      rows={4}
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Section 4: Buildings and Facilities */}
-            <SectionHeader 
-              section={sections[3]} 
-              isExpanded={expandedSections.includes(3)}
-              onClick={() => toggleSection(3)}
-              isSaved={savedSections.has(3)}
-            />
-            
-            {expandedSections.includes(3) && (
-              <div className="bg-gradient-to-r from-indigo-50 to-blue-50 p-8 rounded-xl mb-6 border border-indigo-100">
-                <div className="flex justify-between items-center mb-6">
-                  <h3 className="text-2xl font-bold text-gray-800">Buildings and Rooms</h3>
-                  <button
-                    onClick={() => saveSection(3)}
-                    className="flex items-center space-x-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
-                  >
-                    <Save size={16} />
-                    <span>Save Section</span>
-                  </button>
-                </div>
-
-                <div className="bg-white rounded-lg overflow-hidden border border-indigo-200">
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead className="bg-indigo-600 text-white">
-                        <tr>
-                          <th className="py-4 px-4 text-left font-semibold">Building Type</th>
-                          <th className="py-4 px-2 text-center font-semibold">No. of Buildings</th>
-                          <th className="py-4 px-2 text-center font-semibold">No. of Rooms</th>
-                          <th className="py-4 px-2 text-center font-semibold">Avg Room Size (sq ft)</th>
-                          <th className="py-4 px-2 text-center font-semibold">Student Capacity</th>
-                          <th className="py-4 px-2 text-center font-semibold">Condition</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <BuildingRow 
-                          type="classroom" 
-                          label="Classroom/Teaching" 
-                          data={formData.buildings.classroom}
-                          onChange={(field, value) => handleNestedChange('buildings', 'classroom', field, value)}
-                        />
-                        <BuildingRow 
-                          type="library" 
-                          label="Library" 
-                          data={formData.buildings.library}
-                          onChange={(field, value) => handleNestedChange('buildings', 'library', field, value)}
-                        />
-                        <BuildingRow 
-                          type="laboratory" 
-                          label="Laboratory" 
-                          data={formData.buildings.laboratory}
-                          onChange={(field, value) => handleNestedChange('buildings', 'laboratory', field, value)}
-                        />
-                        <BuildingRow 
-                          type="canteen" 
-                          label="Canteen" 
-                          data={formData.buildings.canteen}
-                          onChange={(field, value) => handleNestedChange('buildings', 'canteen', field, value)}
-                        />
-                        <BuildingRow 
-                          type="computerRoom" 
-                          label="Computer/IT Room" 
-                          data={formData.buildings.computerRoom}
-                          onChange={(field, value) => handleNestedChange('buildings', 'computerRoom', field, value)}
-                        />
-                        <BuildingRow 
-                          type="securityQuarters" 
-                          label="Security and Staff Quarters" 
-                          data={formData.buildings.securityQuarters}
-                          onChange={(field, value) => handleNestedChange('buildings', 'securityQuarters', field, value)}
-                        />
-                        <BuildingRow 
-                          type="guestHouse" 
-                          label="Guest House" 
-                          data={formData.buildings.guestHouse}
-                          onChange={(field, value) => handleNestedChange('buildings', 'guestHouse', field, value)}
-                        />
-                        <BuildingRow 
-                          type="lectureHalls" 
-                          label="Lecture Halls/Seminar Conference Room" 
-                          data={formData.buildings.lectureHalls}
-                          onChange={(field, value) => handleNestedChange('buildings', 'lectureHalls', field, value)}
-                        />
-                        <BuildingRow 
-                          type="rmcOffice" 
-                          label="RMC Office" 
-                          data={formData.buildings.rmcOffice}
-                          onChange={(field, value) => handleNestedChange('buildings', 'rmcOffice', field, value)}
-                        />
-                        <BuildingRow 
-                          type="facultyRooms" 
-                          label="Faculty Rooms" 
-                          data={formData.buildings.facultyRooms}
-                          onChange={(field, value) => handleNestedChange('buildings', 'facultyRooms', field, value)}
-                        />
-                        <BuildingRow 
-                          type="examHall" 
-                          label="Exam Hall" 
-                          data={formData.buildings.examHall}
-                          onChange={(field, value) => handleNestedChange('buildings', 'examHall', field, value)}
-                        />
-                        <BuildingRow 
-                          type="auditorium" 
-                          label="Auditorium" 
-                          data={formData.buildings.auditorium}
-                          onChange={(field, value) => handleNestedChange('buildings', 'auditorium', field, value)}
-                        />
-                        <BuildingRow 
-                          type="dormitories" 
-                          label="Student Dormitories/Hostel" 
-                          data={formData.buildings.dormitories}
-                          onChange={(field, value) => handleNestedChange('buildings', 'dormitories', field, value)}
-                        />
-                        <BuildingRow 
-                          type="indoorGames" 
-                          label="Indoor Games/Fitness Centre" 
-                          data={formData.buildings.indoorGames}
-                          onChange={(field, value) => handleNestedChange('buildings', 'indoorGames', field, value)}
-                        />
-                        <BuildingRow 
-                          type="staffHousing" 
-                          label="Faculty/Staff Housing" 
-                          data={formData.buildings.staffHousing}
-                          onChange={(field, value) => handleNestedChange('buildings', 'staffHousing', field, value)}
-                        />
-                        <BuildingRow 
-                          type="gymnasium" 
-                          label="Gymnasium/Fitness Center" 
-                          data={formData.buildings.gymnasium}
-                          onChange={(field, value) => handleNestedChange('buildings', 'gymnasium', field, value)}
-                        />
-                        <BuildingRow 
-                          type="outdoorSports" 
-                          label="Outdoor Sports Facilities" 
-                          data={formData.buildings.outdoorSports}
-                          onChange={(field, value) => handleNestedChange('buildings', 'outdoorSports', field, value)}
-                        />
-                        <BuildingRow 
-                          type="counsellingCenter" 
-                          label="Counselling Centre/Incubation Center" 
-                          data={formData.buildings.counsellingCenter}
-                          onChange={(field, value) => handleNestedChange('buildings', 'counsellingCenter', field, value)}
-                        />
-                        <BuildingRow 
-                          type="parkingLots" 
-                          label="Parking Lots & Transport Facilities" 
-                          data={formData.buildings.parkingLots}
-                          onChange={(field, value) => handleNestedChange('buildings', 'parkingLots', field, value)}
-                        />
-                        <BuildingRow 
-                          type="powerSupply" 
-                          label="Power Supply & Energy Plant" 
-                          data={formData.buildings.powerSupply}
-                          onChange={(field, value) => handleNestedChange('buildings', 'powerSupply', field, value)}
-                        />
-                        <BuildingRow 
-                          type="banksATM" 
-                          label="Banks and ATM Room" 
-                          data={formData.buildings.banksATM}
-                          onChange={(field, value) => handleNestedChange('buildings', 'banksATM', field, value)}
-                        />
-                        <BuildingRow 
-                          type="studentUnion" 
-                          label="Student Union/Activity Center" 
-                          data={formData.buildings.studentUnion}
-                          onChange={(field, value) => handleNestedChange('buildings', 'studentUnion', field, value)}
-                        />
-                        <BuildingRow 
-                          type="medicalCenter" 
-                          label="Medical & Health Center" 
-                          data={formData.buildings.medicalCenter}
-                          onChange={(field, value) => handleNestedChange('buildings', 'medicalCenter', field, value)}
-                        />
-                        <BuildingRow 
-                          type="recreational" 
-                          label="Recreational Facilities" 
-                          data={formData.buildings.recreational}
-                          onChange={(field, value) => handleNestedChange('buildings', 'recreational', field, value)}
-                        />
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Continue with remaining sections... */}
-            
-            {/* Submit Button */}
-            <div className="mt-12 text-center">
-              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                <button
-                  onClick={submitForm}
+            <Box>
+              {activeStep === steps.length - 1 ? (
+                <Button
+                  type="submit"
+                  variant="contained"
                   disabled={loading}
-                  className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-12 py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center space-x-3"
+                  startIcon={loading ? <CircularProgress size={20} /> : null}
                 >
-                  {loading ? (
-                    <>
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                      <span>Submitting...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Send size={20} />
-                      <span>Submit Complete Form</span>
-                    </>
-                  )}
-                </button>
-                
-                <button
-                  onClick={() => console.log('Draft saved locally')}
-                  className="bg-gray-100 text-gray-700 px-8 py-4 rounded-xl font-semibold hover:bg-gray-200 transition-colors flex items-center space-x-2"
+                  {loading ? 'Submitting...' : 'Submit Form'}
+                </Button>
+              ) : (
+                <Button
+                  variant="contained"
+                  onClick={handleNext}
+                  disabled={!isStepValid(activeStep)}
                 >
-                  <Save size={16} />
-                  <span>Save as Draft</span>
-                </button>
-              </div>
-              
-              <p className="text-sm text-gray-500 mt-4">
-                Make sure to save each section before final submission. All fields marked with * are required.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+                  Next
+                </Button>
+              )}
+            </Box>
+          </Box>
+        </form>
+      </Paper>
+    </Box>
   );
 };
 

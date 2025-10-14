@@ -18,6 +18,7 @@ import {
   Award
 } from 'lucide-react';
 import DirectorMessage from '@/components/directorMessage';
+import WelcomeDirectorate from '@/components/welcomeDirectorate';
 
 export default function UniversityHomepage() {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -235,7 +236,9 @@ export default function UniversityHomepage() {
       </div>
 
 
-      <DirectorMessage/>
+      {/* <DirectorMessage/> */}
+      <WelcomeDirectorate/>
+      
 
       {/* Features Section */}
       <div className="py-20 bg-white">
@@ -330,7 +333,7 @@ export default function UniversityHomepage() {
       </div>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12">
+      {/* <footer className="bg-gray-900 text-white py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-4 gap-8 mb-8">
             <div>
@@ -370,7 +373,7 @@ export default function UniversityHomepage() {
             <p>&copy; 2025 University Management System. All rights reserved.</p>
           </div>
         </div>
-      </footer>
+      </footer> */}
     </div>
   );
 }

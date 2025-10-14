@@ -8,8 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
-import { ProgressReport } from '@/types';
-// import { ProgressReport } from '@/types';
+import { ProgressReport, Program } from '@/types';
 
 interface ProgressFormProps {
   onSubmit: (data: ProgressReport) => void;
@@ -25,19 +24,10 @@ export default function ProgressForm({ onSubmit, initialData, isLoading = false 
       academicYear: '',
       submissionDate: new Date().toISOString().split('T')[0],
       totalStudents: 0,
-      newAdmissions: 0,
-      graduatedStudents: 0,
-      passPercentage: 0,
-      facultyTraining: 0,
-      facultyResearch: 0,
+      programs: [],
       approvedBudget: 0,
       actualExpenditure: 0,
       revenueGenerated: 0,
-      salariesAllowances: 0,
-      capitalExpenditure: 0,
-      operationalCosts: 0,
-      researchDevelopment: 0,
-      fundingSource: '',
       buildingStatus: '',
       classroomCount: 0,
       labCount: 0,
@@ -55,11 +45,160 @@ export default function ProgressForm({ onSubmit, initialData, isLoading = false 
     }
   );
 
+  const [programs, setPrograms] = useState<Program[]>(initialData?.programs || []);
+  const [uploadingFiles, setUploadingFiles] = useState<{ [key: number]: boolean }>({});
+
   const handleInputChange = (field: keyof ProgressReport, value: string | number) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
     }));
+  };
+
+  const handleProgramChange = (index: number, field: keyof Program, value: string | number | boolean) => {
+    const updatedPrograms = [...programs];
+    updatedPrograms[index] = {
+      ...updatedPrograms[index],
+      [field]: value
+    };
+
+    // Auto-calculate total students if male/female students change
+    if (field === 'maleStudents' || field === 'femaleStudents') {
+      const maleStudents = field === 'maleStudents' ? Number(value) : updatedPrograms[index].maleStudents || 0;
+      const femaleStudents = field === 'femaleStudents' ? Number(value) : updatedPrograms[index].femaleStudents || 0;
+      updatedPrograms[index].totalStudents = maleStudents + femaleStudents;
+    }
+
+    // Validate scholarship students don't exceed total students
+    if (field === 'scholarshipStudents') {
+      const scholarshipStudents = Number(value);
+      const totalStudents = updatedPrograms[index].totalStudents || 0;
+      if (scholarshipStudents > totalStudents) {
+        toast.error(`Scholarship students cannot exceed total students in ${updatedPrograms[index].programName}`);
+        return;
+      }
+    }
+
+    setPrograms(updatedPrograms);
+  };
+
+  const addProgram = () => {
+    setPrograms(prev => [
+      ...prev,
+      {
+        programName: '',
+        totalStudents: 0,
+        maleStudents: 0,
+        femaleStudents: 0,
+        scholarshipStudents: 0,
+        isScholarshipRuleApplied: false,
+        newAdmissions: 0,
+        graduatedStudents: 0,
+        passPercentage: 0,
+        approvalLetterPath: null,
+        approvalLetterFilename: null
+      }
+    ]);
+  };
+
+  const removeProgram = (index: number) => {
+    setPrograms(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleFileUpload = async (index: number, event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'image/jpeg', 'image/jpg', 'image/png'];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error('Please upload a valid file (PDF, DOC, DOCX, JPG, JPEG, PNG)');
+      return;
+    }
+
+    // Validate file size (5MB max)
+    const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+    if (file.size > maxSize) {
+      toast.error('File size must be less than 5MB');
+      return;
+    }
+
+    setUploadingFiles(prev => ({ ...prev, [index]: true }));
+
+    try {
+      // Create FormData for file upload
+      const formData = new FormData();
+      formData.append('approvalLetter', file);
+      formData.append('programName', programs[index].programName || `Program ${index + 1}`);
+
+      // Upload file to server
+      const response = await fetch('/api/upload/approval-letter', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('File upload failed');
+      }
+
+      const result = await response.json();
+
+      if (result.success) {
+        // Update program with file information
+        const updatedPrograms = [...programs];
+        updatedPrograms[index] = {
+          ...updatedPrograms[index],
+          approvalLetterPath: result.data.filePath,
+          approvalLetterFilename: result.data.filename
+        };
+        setPrograms(updatedPrograms);
+        toast.success(`Approval letter "${file.name}" uploaded successfully`);
+      } else {
+        throw new Error(result.message || 'Upload failed');
+      }
+    } catch (error) {
+      console.error('File upload error:', error);
+      toast.error('Failed to upload approval letter. Please try again.');
+    } finally {
+      setUploadingFiles(prev => ({ ...prev, [index]: false }));
+      // Clear the file input
+      event.target.value = '';
+    }
+  };
+
+  const removeApprovalLetter = (index: number) => {
+    const updatedPrograms = [...programs];
+    updatedPrograms[index] = {
+      ...updatedPrograms[index],
+      approvalLetterPath: null,
+      approvalLetterFilename: null
+    };
+    setPrograms(updatedPrograms);
+    toast.success('Approval letter removed');
+  };
+
+  const downloadApprovalLetter = async (index: number) => {
+    const program = programs[index];
+    if (!program.approvalLetterPath) return;
+
+    try {
+      const response = await fetch(`/api/download/approval-letter?filePath=${encodeURIComponent(program.approvalLetterPath)}`);
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = program.approvalLetterFilename || 'approval_letter';
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      } else {
+        throw new Error('Download failed');
+      }
+    } catch (error) {
+      toast.error('Failed to download approval letter');
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -70,8 +209,43 @@ export default function ProgressForm({ onSubmit, initialData, isLoading = false 
       toast.error('Please fill in all required fields');
       return;
     }
+
+    // Validate programs
+    if (programs.length === 0) {
+      toast.error('Please add at least one program');
+      return;
+    }
+
+    for (let i = 0; i < programs.length; i++) {
+      const program = programs[i];
+      if (!program.programName || program.programName.trim() === '') {
+        toast.error(`Program ${i + 1}: Program name is required`);
+        return;
+      }
+
+      if (program.maleStudents + program.femaleStudents !== program.totalStudents) {
+        toast.error(`Program ${i + 1}: Male + Female students must equal Total Students`);
+        return;
+      }
+
+      if (program.scholarshipStudents > program.totalStudents) {
+        toast.error(`Program ${i + 1}: Scholarship students cannot exceed total students`);
+        return;
+      }
+
+      if (program.passPercentage < 0 || program.passPercentage > 100) {
+        toast.error(`Program ${i + 1}: Pass percentage must be between 0 and 100`);
+        return;
+      }
+    }
     
-    onSubmit(formData as ProgressReport);
+    const submitData = {
+      ...formData,
+      programs,
+      totalStudents: programs.reduce((sum, program) => sum + program.totalStudents, 0)
+    } as ProgressReport;
+    
+    onSubmit(submitData);
   };
 
   return (
@@ -91,7 +265,7 @@ export default function ProgressForm({ onSubmit, initialData, isLoading = false 
         <Tabs defaultValue="basic" className="space-y-6">
           <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="basic">Basic Info</TabsTrigger>
-            <TabsTrigger value="academic">Academic</TabsTrigger>
+            <TabsTrigger value="programs">Programs</TabsTrigger>
             <TabsTrigger value="financial">Financial</TabsTrigger>
             <TabsTrigger value="infrastructure">Infrastructure</TabsTrigger>
             <TabsTrigger value="progress">Progress</TabsTrigger>
@@ -158,77 +332,217 @@ export default function ProgressForm({ onSubmit, initialData, isLoading = false 
             </Card>
           </TabsContent>
 
-          <TabsContent value="academic">
+          <TabsContent value="programs">
             <Card>
               <CardHeader>
-                <CardTitle>Academic Progress</CardTitle>
-                <CardDescription>Student enrollment, graduation, and faculty development data</CardDescription>
+                <CardTitle>Program-wise Academic Data</CardTitle>
+                <CardDescription>Student enrollment, gender distribution, and program details</CardDescription>
+                <Button type="button" onClick={addProgram} className="mt-2">
+                  Add Program
+                </Button>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-3 gap-4">
-                  <div>
-                    <Label htmlFor="totalStudents">Total Students</Label>
-                    <Input
-                      id="totalStudents"
-                      type="number"
-                      value={formData.totalStudents}
-                      onChange={(e) => handleInputChange('totalStudents', parseInt(e.target.value) || 0)}
-                    />
+              <CardContent className="space-y-6">
+                {programs.map((program, index) => (
+                  <div key={index} className="border rounded-lg p-4 space-y-4">
+                    <div className="flex justify-between items-center">
+                      <h4 className="font-semibold">Program {index + 1}</h4>
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => removeProgram(index)}
+                      >
+                        Remove
+                      </Button>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor={`programName-${index}`}>Program Name *</Label>
+                        <Input
+                          id={`programName-${index}`}
+                          value={program.programName}
+                          onChange={(e) => handleProgramChange(index, 'programName', e.target.value)}
+                          placeholder="e.g., BSC Computer Science"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor={`totalStudents-${index}`}>Total Students</Label>
+                        <Input
+                          id={`totalStudents-${index}`}
+                          type="number"
+                          value={program.totalStudents}
+                          readOnly
+                          className="bg-gray-100"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-4">
+                      <div>
+                        <Label htmlFor={`maleStudents-${index}`}>Male Students</Label>
+                        <Input
+                          id={`maleStudents-${index}`}
+                          type="number"
+                          min="0"
+                          value={program.maleStudents}
+                          onChange={(e) => handleProgramChange(index, 'maleStudents', parseInt(e.target.value) || 0)}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor={`femaleStudents-${index}`}>Female Students</Label>
+                        <Input
+                          id={`femaleStudents-${index}`}
+                          type="number"
+                          min="0"
+                          value={program.femaleStudents}
+                          onChange={(e) => handleProgramChange(index, 'femaleStudents', parseInt(e.target.value) || 0)}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor={`scholarshipStudents-${index}`}>Scholarship Students</Label>
+                        <Input
+                          id={`scholarshipStudents-${index}`}
+                          type="number"
+                          min="0"
+                          max={program.totalStudents}
+                          value={program.scholarshipStudents}
+                          onChange={(e) => handleProgramChange(index, 'scholarshipStudents', parseInt(e.target.value) || 0)}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-4">
+                      <div>
+                        <Label htmlFor={`newAdmissions-${index}`}>New Admissions</Label>
+                        <Input
+                          id={`newAdmissions-${index}`}
+                          type="number"
+                          min="0"
+                          value={program.newAdmissions}
+                          onChange={(e) => handleProgramChange(index, 'newAdmissions', parseInt(e.target.value) || 0)}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor={`graduatedStudents-${index}`}>Graduated Students</Label>
+                        <Input
+                          id={`graduatedStudents-${index}`}
+                          type="number"
+                          min="0"
+                          value={program.graduatedStudents}
+                          onChange={(e) => handleProgramChange(index, 'graduatedStudents', parseInt(e.target.value) || 0)}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor={`passPercentage-${index}`}>Pass Percentage (%)</Label>
+                        <Input
+                          id={`passPercentage-${index}`}
+                          type="number"
+                          min="0"
+                          max="100"
+                          step="0.1"
+                          value={program.passPercentage}
+                          onChange={(e) => handleProgramChange(index, 'passPercentage', parseFloat(e.target.value) || 0)}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          id={`isScholarshipRuleApplied-${index}`}
+                          checked={program.isScholarshipRuleApplied}
+                          onChange={(e) => handleProgramChange(index, 'isScholarshipRuleApplied', e.target.checked)}
+                          className="rounded border-gray-300"
+                        />
+                        <Label htmlFor={`isScholarshipRuleApplied-${index}`}>
+                          Scholarship Rule Applied
+                        </Label>
+                      </div>
+                    </div>
+
+                    <div className="border-t pt-4">
+                      <Label htmlFor={`approvalLetter-${index}`}>Approval Letter</Label>
+                      <div className="space-y-2">
+                        {program.approvalLetterFilename ? (
+                          <div className="flex items-center justify-between p-2 bg-green-50 rounded border">
+                            <span className="text-sm text-green-700">{program.approvalLetterFilename}</span>
+                            <div className="flex space-x-2">
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => downloadApprovalLetter(index)}
+                              >
+                                Download
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => removeApprovalLetter(index)}
+                              >
+                                Remove
+                              </Button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="space-y-2">
+                            <Input
+                              id={`approvalLetter-${index}`}
+                              type="file"
+                              accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                              onChange={(e) => handleFileUpload(index, e)}
+                              disabled={uploadingFiles[index]}
+                            />
+                            <p className="text-xs text-gray-500">
+                              Accepted formats: PDF, DOC, DOCX, JPG, JPEG, PNG (Max 5MB)
+                            </p>
+                          </div>
+                        )}
+                        {uploadingFiles[index] && (
+                          <div className="text-sm text-blue-600">Uploading...</div>
+                        )}
+                      </div>
+                    </div>
+
+                    <Separator />
                   </div>
-                  <div>
-                    <Label htmlFor="newAdmissions">New Admissions</Label>
-                    <Input
-                      id="newAdmissions"
-                      type="number"
-                      value={formData.newAdmissions}
-                      onChange={(e) => handleInputChange('newAdmissions', parseInt(e.target.value) || 0)}
-                    />
+                ))}
+
+                {programs.length === 0 && (
+                  <div className="text-center py-8 text-gray-500">
+                    No programs added. Click "Add Program" to get started.
                   </div>
-                  <div>
-                    <Label htmlFor="graduatedStudents">Graduated Students</Label>
-                    <Input
-                      id="graduatedStudents"
-                      type="number"
-                      value={formData.graduatedStudents}
-                      onChange={(e) => handleInputChange('graduatedStudents', parseInt(e.target.value) || 0)}
-                    />
-                  </div>
-                </div>
-                <div className="grid grid-cols-3 gap-4">
-                  <div>
-                    <Label htmlFor="passPercentage">Pass Percentage (%)</Label>
-                    <Input
-                      id="passPercentage"
-                      type="number"
-                      min="0"
-                      max="100"
-                      value={formData.passPercentage}
-                      onChange={(e) => handleInputChange('passPercentage', parseFloat(e.target.value) || 0)}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="facultyTraining">Faculty Attended Training</Label>
-                    <Input
-                      id="facultyTraining"
-                      type="number"
-                      value={formData.facultyTraining}
-                      onChange={(e) => handleInputChange('facultyTraining', parseInt(e.target.value) || 0)}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="facultyResearch">Faculty in Research</Label>
-                    <Input
-                      id="facultyResearch"
-                      type="number"
-                      value={formData.facultyResearch}
-                      onChange={(e) => handleInputChange('facultyResearch', parseInt(e.target.value) || 0)}
-                    />
+                )}
+
+                <div className="bg-blue-50 p-4 rounded-lg">
+                  <h4 className="font-semibold text-blue-800 mb-2">Program Summary</h4>
+                  <div className="grid grid-cols-4 gap-4 text-sm">
+                    <div>
+                      <span className="font-medium">Total Programs:</span> {programs.length}
+                    </div>
+                    <div>
+                      <span className="font-medium">Total Students:</span>{' '}
+                      {programs.reduce((sum, program) => sum + program.totalStudents, 0)}
+                    </div>
+                    <div>
+                      <span className="font-medium">Male Students:</span>{' '}
+                      {programs.reduce((sum, program) => sum + program.maleStudents, 0)}
+                    </div>
+                    <div>
+                      <span className="font-medium">Female Students:</span>{' '}
+                      {programs.reduce((sum, program) => sum + program.femaleStudents, 0)}
+                    </div>
                   </div>
                 </div>
               </CardContent>
             </Card>
           </TabsContent>
 
+          {/* Other tabs remain the same */}
           <TabsContent value="financial">
             <Card>
               <CardHeader>
@@ -242,6 +556,7 @@ export default function ProgressForm({ onSubmit, initialData, isLoading = false 
                     <Input
                       id="approvedBudget"
                       type="number"
+                      min="0"
                       value={formData.approvedBudget}
                       onChange={(e) => handleInputChange('approvedBudget', parseFloat(e.target.value) || 0)}
                     />
@@ -251,6 +566,7 @@ export default function ProgressForm({ onSubmit, initialData, isLoading = false 
                     <Input
                       id="actualExpenditure"
                       type="number"
+                      min="0"
                       value={formData.actualExpenditure}
                       onChange={(e) => handleInputChange('actualExpenditure', parseFloat(e.target.value) || 0)}
                     />
@@ -262,68 +578,18 @@ export default function ProgressForm({ onSubmit, initialData, isLoading = false 
                     <Input
                       id="revenueGenerated"
                       type="number"
+                      min="0"
                       value={formData.revenueGenerated}
                       onChange={(e) => handleInputChange('revenueGenerated', parseFloat(e.target.value) || 0)}
                     />
                   </div>
                   <div>
-                    <Label htmlFor="fundingSource">Funding Source</Label>
-                    <Select
-                      value={formData.fundingSource}
-                      onValueChange={(value) => handleInputChange('fundingSource', value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select funding source" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="TU Grant">TU Grant</SelectItem>
-                        <SelectItem value="Student Fees">Student Fees</SelectItem>
-                        <SelectItem value="Government Grant">Government Grant</SelectItem>
-                        <SelectItem value="Mixed Sources">Mixed Sources</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <Separator />
-                <h4 className="font-semibold">Budget Breakdown</h4>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="salariesAllowances">Salaries & Allowances (NPR)</Label>
-                    <Input
-                      id="salariesAllowances"
-                      type="number"
-                      value={formData.salariesAllowances}
-                      onChange={(e) => handleInputChange('salariesAllowances', parseFloat(e.target.value) || 0)}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="capitalExpenditure">Capital Expenditure (NPR)</Label>
-                    <Input
-                      id="capitalExpenditure"
-                      type="number"
-                      value={formData.capitalExpenditure}
-                      onChange={(e) => handleInputChange('capitalExpenditure', parseFloat(e.target.value) || 0)}
-                    />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="operationalCosts">Operational & Contingency (NPR)</Label>
-                    <Input
-                      id="operationalCosts"
-                      type="number"
-                      value={formData.operationalCosts}
-                      onChange={(e) => handleInputChange('operationalCosts', parseFloat(e.target.value) || 0)}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="researchDevelopment">Research & Development (NPR)</Label>
-                    <Input
-                      id="researchDevelopment"
-                      type="number"
-                      value={formData.researchDevelopment}
-                      onChange={(e) => handleInputChange('researchDevelopment', parseFloat(e.target.value) || 0)}
-                    />
+                    <Label>Budget Utilization</Label>
+                    <div className="p-2 bg-gray-100 rounded text-sm">
+                      {formData.approvedBudget > 0
+                        ? `${((formData.actualExpenditure / formData.approvedBudget) * 100).toFixed(2)}%`
+                        : '0%'}
+                    </div>
                   </div>
                 </div>
               </CardContent>
@@ -379,6 +645,7 @@ export default function ProgressForm({ onSubmit, initialData, isLoading = false 
                     <Input
                       id="classroomCount"
                       type="number"
+                      min="0"
                       value={formData.classroomCount}
                       onChange={(e) => handleInputChange('classroomCount', parseInt(e.target.value) || 0)}
                     />
@@ -388,6 +655,7 @@ export default function ProgressForm({ onSubmit, initialData, isLoading = false 
                     <Input
                       id="labCount"
                       type="number"
+                      min="0"
                       value={formData.labCount}
                       onChange={(e) => handleInputChange('labCount', parseInt(e.target.value) || 0)}
                     />
@@ -397,6 +665,7 @@ export default function ProgressForm({ onSubmit, initialData, isLoading = false 
                     <Input
                       id="libraryBooks"
                       type="number"
+                      min="0"
                       value={formData.libraryBooks}
                       onChange={(e) => handleInputChange('libraryBooks', parseInt(e.target.value) || 0)}
                     />
