@@ -451,14 +451,14 @@ export default function AdminDashboard() {
         
      
         >
-          <TabsList className="grid w-full grid-cols-4"
+          <TabsList className="grid w-full grid-cols-5"
           
           >
             <TabsTrigger value="manage">{t('admin.suggestionList')}</TabsTrigger>
             <TabsTrigger value="departments">Departments</TabsTrigger>
             <TabsTrigger value="analytics">{t('admin.analytics')}</TabsTrigger>
             <TabsTrigger value="progress">Progress</TabsTrigger>
-                    <TabsTrigger value="college">College Form</TabsTrigger>
+            <TabsTrigger value="college">College Form</TabsTrigger>
           </TabsList>
           
           <div className="flex space-x-2">
