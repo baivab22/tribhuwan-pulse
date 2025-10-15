@@ -15,10 +15,12 @@ import {
   GraduationCap,
   DollarSign,
   Target,
-  Award
+  Award,
+  Sparkles
 } from 'lucide-react';
 import DirectorMessage from '@/components/directorMessage';
 import WelcomeDirectorate from '@/components/welcomeDirectorate';
+import { goals, visionPoints } from './missionVision';
 
 export default function UniversityHomepage() {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -38,6 +40,11 @@ export default function UniversityHomepage() {
     {
       image: "https://portal.tu.edu.np/medias/registraroffice_2023_05_04_08_14_47.png",
       title: "Office Of The Registrar Building",
+      subtitle: ""
+    },
+    {
+      image: "https://portal.tu.edu.np/medias/2025_07_11_10_47_17.jpg",
+      title: "Tu Senate",
       subtitle: ""
     }
   ];
@@ -159,11 +166,9 @@ export default function UniversityHomepage() {
               className="w-full h-full object-cover"
             />
             {slide.title && (
-              <div className="absolute bottom-0 left-0 right-0 z-20 pb-20">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                  <div className="bg-white/95 backdrop-blur-sm p-3 rounded-lg  max-w-2xl"
-           
-                  >
+              <div className="absolute bottom-0 left-0 right-0 z-20 pb-20 flex justify-center">
+                <div className="w-[90vw]">
+                  <div className="bg-white/95 backdrop-blur-sm p-3 rounded-lg max-w-2xl">
                     <h2 className="text-3xl font-bold text-gray-900 mb-2">
                       {slide.title}
                     </h2>
@@ -214,8 +219,8 @@ export default function UniversityHomepage() {
       </div>
 
       {/* Stats Section */}
-      <div className="bg-gray-50 py-12 border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="bg-gray-50 py-12 border-b border-gray-200 flex justify-center">
+        <div className="w-[90vw]">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {stats.map((stat, index) => {
               const IconComponent = stat.icon;
@@ -235,14 +240,52 @@ export default function UniversityHomepage() {
         </div>
       </div>
 
+      {/* Welcome Directorate Section */}
+      <div className="flex justify-center">
+        <div className="w-[90vw]">
+          <WelcomeDirectorate/>
+        </div>
+      </div>
 
-      {/* <DirectorMessage/> */}
-      <WelcomeDirectorate/>
-      
+            <div className="py-20 flex justify-center">
+        <div className="w-[90vw]">
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 bg-blue-100 text-blue-700 px-4 py-2 rounded-full mb-4">
+              <Sparkles className="w-4 h-4" />
+              <span className="font-semibold">Our Vision</span>
+            </div>
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">Shaping Tomorrow's Leaders</h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Transforming into a world-class institution that leads Nepal's educational excellence and contributes to global knowledge advancement
+            </p>
+          </div>
+          
+          <div className="grid lg:grid-cols-3 gap-8">
+            {visionPoints.map((point, idx) => (
+              <div
+                key={idx}
+                className="group bg-white rounded-3xl p-8 shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-3 border-2 border-transparent hover:border-blue-200"
+              >
+                <div className="relative mb-6">
+                  <div className="absolute inset-0 bg-blue-500 rounded-2xl blur-lg opacity-20 group-hover:opacity-40 transition-opacity"></div>
+                  <div className="relative w-20 h-20 bg-blue-600 rounded-2xl flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-transform duration-300">
+                    <point.icon className="h-10 w-10 text-white" />
+                  </div>
+                </div>
+                <h3 className="text-2xl font-bold text-gray-900 mb-4">{point.title}</h3>
+                <p className="text-gray-600 leading-relaxed mb-4">{point.description}</p>
+                <div className="pt-4 border-t border-gray-100">
+                  <p className="text-sm text-gray-500 leading-relaxed">{point.detail}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
 
       {/* Features Section */}
-      <div className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="py-20 bg-white flex justify-center">
+        <div className="w-[90vw]">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
               Comprehensive Management Features
@@ -276,104 +319,8 @@ export default function UniversityHomepage() {
         </div>
       </div>
 
-      {/* Benefits Section */}
-      <div className="py-20 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Why Choose Our Platform
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Built specifically for higher education institutions with modern technology
-            </p>
-          </div>
+      {/* Vision Section */}
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {benefits.map((benefit, index) => {
-              const IconComponent = benefit.icon;
-              return (
-                <div
-                  key={index}
-                  className="bg-white p-6 rounded-xl shadow-md hover:shadow-xl transition-all duration-300"
-                >
-                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
-                    <IconComponent className="w-6 h-6 text-blue-600" />
-                  </div>
-                  <h3 className="text-lg font-bold text-gray-900 mb-2">
-                    {benefit.title}
-                  </h3>
-                  <p className="text-gray-600 text-sm leading-relaxed">
-                    {benefit.description}
-                  </p>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-
-      {/* CTA Section */}
-      <div className="py-20 bg-blue-600">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-4xl font-bold text-white mb-4">
-            Ready to Transform Your University?
-          </h2>
-          <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-            Join hundreds of institutions already using our platform to streamline operations and improve outcomes
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors duration-200">
-              Schedule a Demo
-            </button>
-            <button className="bg-blue-700 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-800 transition-colors duration-200 border-2 border-white/20">
-              Learn More
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Footer */}
-      {/* <footer className="bg-gray-900 text-white py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-4 gap-8 mb-8">
-            <div>
-              <h3 className="text-lg font-bold mb-4">About</h3>
-              <p className="text-gray-400 text-sm">
-                Comprehensive university management system for modern educational institutions.
-              </p>
-            </div>
-            <div>
-              <h3 className="text-lg font-bold mb-4">Features</h3>
-              <ul className="space-y-2 text-sm text-gray-400">
-                <li>College Management</li>
-                <li>Student Information</li>
-                <li>Feedback System</li>
-                <li>Analytics & Reports</li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="text-lg font-bold mb-4">Resources</h3>
-              <ul className="space-y-2 text-sm text-gray-400">
-                <li>Documentation</li>
-                <li>Support</li>
-                <li>Training</li>
-                <li>API Reference</li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="text-lg font-bold mb-4">Contact</h3>
-              <ul className="space-y-2 text-sm text-gray-400">
-                <li>Email: info@university.edu</li>
-                <li>Phone: (123) 456-7890</li>
-                <li>Address: Kathmandu, Nepal</li>
-              </ul>
-            </div>
-          </div>
-          <div className="border-t border-gray-800 pt-8 text-center text-sm text-gray-400">
-            <p>&copy; 2025 University Management System. All rights reserved.</p>
-          </div>
-        </div>
-      </footer> */}
     </div>
   );
 }

@@ -1,10 +1,28 @@
 import React, { useState } from 'react';
 import { Target, Eye, Lightbulb, TrendingUp, Globe, BookOpen, Users, Award, GraduationCap, Building2, Sparkles } from 'lucide-react';
 
-export default function TUVision2030() {
-  const [activeTab, setActiveTab] = useState('vision');
+  export const goals = [
+    { 
+      period: "Short-term", 
+      focus: "Infrastructure & Systems",
+      timeline: "2025-2027",
+      items: ["Digital infrastructure", "Quality frameworks", "Faculty training"]
+    },
+    { 
+      period: "Medium-term", 
+      focus: "Quality Enhancement",
+      timeline: "2027-2029",
+      items: ["Curriculum reform", "Research output", "International partnerships"]
+    },
+    { 
+      period: "Long-term", 
+      focus: "Global Excellence",
+      timeline: "2029-2030",
+      items: ["Top 500 ranking", "Innovation hub", "Sustainable growth"]
+    }
+  ];
 
-  const visionPoints = [
+    export const visionPoints = [
     {
       icon: Globe,
       title: "Global Recognition",
@@ -24,6 +42,11 @@ export default function TUVision2030() {
       detail: "We aim to establish world-class research centers, encourage interdisciplinary collaboration, and create an ecosystem that supports innovation, entrepreneurship, and knowledge creation that addresses real-world challenges."
     }
   ];
+
+export default function TUVision2030() {
+  const [activeTab, setActiveTab] = useState('vision');
+
+
 
   const missionPoints = [
     {
@@ -53,26 +76,7 @@ export default function TUVision2030() {
     { text: "Outdated pedagogy and limited resources", impact: "Learning outcomes" }
   ];
 
-  const goals = [
-    { 
-      period: "Short-term", 
-      focus: "Infrastructure & Systems",
-      timeline: "2025-2027",
-      items: ["Digital infrastructure", "Quality frameworks", "Faculty training"]
-    },
-    { 
-      period: "Medium-term", 
-      focus: "Quality Enhancement",
-      timeline: "2027-2029",
-      items: ["Curriculum reform", "Research output", "International partnerships"]
-    },
-    { 
-      period: "Long-term", 
-      focus: "Global Excellence",
-      timeline: "2029-2030",
-      items: ["Top 500 ranking", "Innovation hub", "Sustainable growth"]
-    }
-  ];
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">

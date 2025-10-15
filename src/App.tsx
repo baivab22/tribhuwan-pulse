@@ -112,149 +112,106 @@ function Header() {
   return (
     <>
       {/* Top Bar with Logo */}
-      <div className="bg-white border-b border-gray-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between" style={{ minHeight: isMobile ? '80px' : '96px' }}>
-            {/* Logo Section */}
-            <Link to="/" className="flex items-center gap-3 hover:opacity-90 transition-opacity duration-200">
-              <img
-                src="https://portal.tu.edu.np/medias/Tulogo_2024_02_25_10_03_06.png"
-                alt="Tribhuvan University Logo"
-                className={`${isMobile ? 'h-12' : 'h-16'} w-auto`}
-              />
-              <div className="flex flex-col">
-                <div className={`${isMobile ? 'text-sm' : 'text-lg'} font-semibold text-indigo-900 leading-tight`}>
-                  Planning Directorate Tribhuvan University, Nepal
-                </div>
-                <div className={`${isMobile ? 'text-xs' : 'text-sm'} text-gray-600 mt-0.5`}>
-                  
-                </div>
-                {!isMobile && (
-                  <div className="text-xs text-gray-500">
-                    Kirtipur, Kathmandu
-                  </div>
-                )}
-              </div>
-            </Link>
-
-            {/* Desktop - Language & User Menu */}
-            <div className="hidden lg:flex items-center space-x-3">
-              {/* Language Selector */}
-              <Select
-                defaultValue={i18n.language}
-                onValueChange={(v) => setLanguage(v)}
-              >
-                <SelectTrigger className="w-[130px] border-gray-200 hover:border-indigo-300 focus:border-indigo-500 rounded-lg">
-                  <Globe className="w-4 h-4 mr-2 text-gray-500" />
-                  <SelectValue placeholder={t('nav.language')} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="en">🇺🇸 English</SelectItem>
-                  <SelectItem value="ne">🇳🇵 नेपाली</SelectItem>
-                </SelectContent>
-              </Select>
-
-              {/* User Menu Dropdown */}
-              <div className="relative">
-                <Button
-                  variant="outline"
-                  onClick={() => setUserMenuOpen(!userMenuOpen)}
-                  className="flex items-center gap-2 px-4 py-2 border-gray-200 hover:border-indigo-300 hover:bg-indigo-50 rounded-lg transition-all duration-200"
-                >
-                  {user ? (
-                    <div className="w-7 h-7 rounded-full bg-indigo-600 text-white flex items-center justify-center font-semibold text-sm">
-                      {user.username?.charAt(0).toUpperCase()}
-                    </div>
-                  ) : (
-                    <User className="w-4 h-4" />
-                  )}
-                  <span className="text-sm font-medium">
-                    {user ? user.username : 'Account'}
-                  </span>
-                  <ChevronDown className={`w-3 h-3 ml-1 transition-transform duration-200 ${userMenuOpen ? 'rotate-180' : ''}`} />
-                </Button>
-                
-                {userMenuOpen && (
-                  <>
-                    <div 
-                      className="fixed inset-0 z-10" 
-                      onClick={() => setUserMenuOpen(false)}
-                    />
-                    <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-2xl border border-gray-200 py-2 z-20">
-                      {user ? (
-                        <>
-                          <div className="px-4 py-3 border-b border-gray-100">
-                            <div className="flex items-center gap-3">
-                              <div className="w-10 h-10 rounded-full bg-indigo-600 text-white flex items-center justify-center font-semibold">
-                                {user.username?.charAt(0).toUpperCase()}
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <div className="font-semibold text-gray-900 truncate">{user.username}</div>
-                                <div className="text-xs text-gray-500 truncate">{user.email}</div>
-                              </div>
-                            </div>
-                          </div>
-                          <button
-                            onClick={onLogout}
-                            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors duration-150 mt-1"
-                          >
-                            <LogOut className="w-4 h-4" />
-                            {t('nav.logout')}
-                          </button>
-                        </>
-                      ) : (
-                        <>
-                          <div className="px-4 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                            Account
-                          </div>
-                          <div className="border-t border-gray-100 my-1" />
-                          <Link to="/register" onClick={() => setUserMenuOpen(false)}>
-                            <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 transition-colors duration-150">
-                              <UserPlus className="w-4 h-4" />
-                              Register
-                            </button>
-                          </Link>
-                        </>
-                      )}
-                    </div>
-                  </>
-                )}
-              </div>
-            </div>
-
-            {/* Mobile Controls */}
-            <div className="lg:hidden flex items-center space-x-2">
-              <Select
-                defaultValue={i18n.language}
-                onValueChange={(v) => setLanguage(v)}
-              >
-                <SelectTrigger className="w-[50px] border-gray-200 p-2 hover:border-indigo-300 transition-colors duration-200 rounded-lg">
-                  <Globe className="w-4 h-4 text-gray-500" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="en">🇺🇸 EN</SelectItem>
-                  <SelectItem value="ne">🇳🇵 NE</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className={`
-                  p-2 rounded-lg transition-all duration-300 transform z-60 relative
-                  ${isMobileMenuOpen 
-                    ? 'bg-indigo-100 text-indigo-600 rotate-180 scale-110' 
-                    : 'hover:bg-gray-100 hover:scale-105'
-                  }
-                `}
-              >
-                {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-              </Button>
-            </div>
+ <div className="bg-white border-b border-gray-100">
+<div className="w-[90vw] mx-auto px-8 sm:px-10 lg:px-10">
+    <div
+      className="flex items-center justify-between"
+      style={{ minHeight: isMobile ? '80px' : '96px' }}
+    >
+      {/* Logo Section */}
+      <Link
+        to="/"
+        className="flex items-center gap-3 hover:opacity-90 transition-opacity duration-200"
+      >
+        <img
+          src="https://portal.tu.edu.np/medias/Tulogo_2024_02_25_10_03_06.png"
+          alt="Tribhuvan University Logo"
+          className={`${isMobile ? 'h-12' : 'h-16'} w-auto`}
+        />
+        <div className="flex flex-col leading-tight text-indigo-900 justify-start">
+          {/* Line 1 */}
+          <div
+            className={`${
+              isMobile ? 'text-base' : 'text-xl'
+            } font-bold text-center`}
+          >
+            Tribhuvan University
+          </div>
+          {/* Line 2 */}
+          <div
+            className={`${
+              isMobile ? 'text-sm' : 'text-lg'
+            } font-semibold  text-indigo-800`}
+          >
+            Planning Directorate
+          </div>
+          {/* Line 3 */}
+          <div
+            className={`${
+              isMobile ? 'text-xs' : 'text-sm'
+            }  text-gray-600`}
+          >
+            Kirtipur, Kathmandu, Nepal
           </div>
         </div>
+      </Link>
+
+      {/* Desktop - Language & User Menu */}
+      <div className="hidden lg:flex items-center space-x-3">
+        <Select
+          defaultValue={i18n.language}
+          onValueChange={(v) => setLanguage(v)}
+        >
+          <SelectTrigger className="w-[130px] border-gray-200 hover:border-indigo-300 focus:border-indigo-500 rounded-lg">
+            <Globe className="w-4 h-4 mr-2 text-gray-500" />
+            <SelectValue placeholder={t('nav.language')} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="en">🇺🇸 English</SelectItem>
+            <SelectItem value="ne">🇳🇵 नेपाली</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
+
+      {/* Mobile Controls */}
+      <div className="lg:hidden flex items-center space-x-2">
+        <Select
+          defaultValue={i18n.language}
+          onValueChange={(v) => setLanguage(v)}
+        >
+          <SelectTrigger className="w-[50px] border-gray-200 p-2 hover:border-indigo-300 transition-colors duration-200 rounded-lg">
+            <Globe className="w-4 h-4 text-gray-500" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="en">🇺🇸 EN</SelectItem>
+            <SelectItem value="ne">🇳🇵 NE</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          className={`
+            p-2 rounded-lg transition-all duration-300 transform z-60 relative
+            ${
+              isMobileMenuOpen
+                ? 'bg-indigo-100 text-indigo-600 rotate-180 scale-110'
+                : 'hover:bg-gray-100 hover:scale-105'
+            }
+          `}
+        >
+          {isMobileMenuOpen ? (
+            <X className="w-6 h-6" />
+          ) : (
+            <Menu className="w-6 h-6" />
+          )}
+        </Button>
+      </div>
+    </div>
+  </div>
+</div>
+
 
       {/* Horizontal Navigation Bar - Desktop Only */}
       <nav className="hidden lg:block bg-gradient-to-r from-indigo-600 to-indigo-700 shadow-lg sticky top-0 z-40">
@@ -271,16 +228,17 @@ function Header() {
                       className={`
                         flex items-center gap-2 px-5 py-2.5 text-sm font-medium transition-all duration-200 rounded-lg relative
                         ${isActive 
-                          ? 'bg-white text-indigo-700 shadow-lg hover:bg-white' 
-                          : 'text-white hover:bg-white/10'
+                          ? 'bg-white text-black hover:bg-white' 
+                          : 
+                          'text-white'
                         }
                       `}
                     >
                       <IconComponent className="w-4 h-4" />
                       {item.label}
-                      {isActive && (
+                      {/* {isActive && (
                         <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-12 h-1 bg-indigo-700 rounded-t-full" />
-                      )}
+                      )} */}
                     </Button>
                   </Link>
                 );

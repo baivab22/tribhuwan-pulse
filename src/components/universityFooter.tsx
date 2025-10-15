@@ -1,11 +1,12 @@
 import React from 'react';
 import { Facebook, Twitter, Instagram, Linkedin, Youtube, MessageSquare } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const UniversityFooter = ({ 
   universityName = "Tribhuwan University",
   brandDescription = "Nepal's premier institution of higher education. Our feedback system ensures continuous improvement across all campuses and departments.",
   contactEmail = "feedback@tribhuwan.edu.np",
-  contactPhone = "+977 1 4330258",
+  contactPhone = "01-4330437",
   address = "Kirtipur, Kathmandu, Nepal",
   socialLinks = {
     facebook: "https://facebook.com/tribhuwanuniversity",
@@ -53,12 +54,9 @@ const UniversityFooter = ({
     facebook: Facebook,
     linkedin: Linkedin
   };
-
-
-  console.log("hello data")
-
+  const isMobile = useIsMobile();
   return (
-    <footer className="bg-slate-900 text-white relative overflow-hidden">
+    <footer className="bg-slate-900 text-white relative overflow-hidden flex justify-center">
       {/* Background decoration dots */}
       <div className="absolute inset-0 opacity-20">
         <div className="absolute top-20 left-1/4 w-1 h-1 bg-white rounded-full"></div>
@@ -67,18 +65,20 @@ const UniversityFooter = ({
         <div className="absolute bottom-20 left-1/3 w-1 h-1 bg-white rounded-full opacity-80"></div>
       </div>
 
-      <div className="relative z-10 max-w-6xl mx-auto px-6 py-8">
+      <div className="relative z-10 w-[90vw] py-8">
         
         {/* Main Content - All in one row */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 mb-8">
           
           {/* Brand Section */}
           <div className="lg:col-span-2">
-            <div className="flex items-center mb-4">
+            <div className="flex items-center mb-4 gap-3">
               {/* University Logo Placeholder */}
-              <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center mr-3">
-                <span className="text-white font-bold text-sm">TU</span>
-              </div>
+           <img
+          src="https://portal.tu.edu.np/medias/Tulogo_2024_02_25_10_03_06.png"
+          alt="Tribhuvan University Logo"
+          className={`${isMobile ? 'h-12' : 'h-16'} w-auto`}
+        />
               <div>
                 <h3 className="text-xl font-bold text-white tracking-tight">{universityName}</h3>
                 <p className="text-slate-400 text-xs">Kathmandu, Nepal</p>
@@ -91,7 +91,7 @@ const UniversityFooter = ({
 
             {/* Social Links */}
             <div className="space-y-2">
-              <div className="text-slate-400 text-xs">Follow Tribhuwan University</div>
+              <div className="text-slate-400 text-xs">Follow Tribhuvan University</div>
               <div className="flex space-x-2">
                 {Object.entries(socialLinks).map(([platform, url]) => {
                   const IconComponent = socialIcons[platform];
@@ -217,7 +217,7 @@ const UniversityFooter = ({
                 {/* Company Logo Placeholder - Replace with actual logo */}
                 <div className="w-15 h-10 bg-gradient-to-r from-green-500 to-blue-500 rounded mr-2 flex items-center justify-center">
                   {/* <span className="text-white text-xs font-bold">N</span> */}
-                  <img src="/nsoft.jpeg" alt="Nsoft Innovations"style={{height:'50px',width:'auto'}} />
+                  <img src="/nsoft.jpeg" alt="Nsoft Innovations" style={{height:'50px',width:'auto'}} />
                 </div>
                 {/* <span className="text-slate-300 text-sm font-medium">Nsoft Innovations</span> */}
               </div>

@@ -1,4 +1,8 @@
 
+
+
+
+
 import React, { useState } from 'react';
 import axios from 'axios';
 import {
@@ -17,31 +21,71 @@ import {
   FormControl,
   InputLabel,
   Select,
-  FormHelperText,
   Divider,
   Card,
   CardContent,
-  Checkbox,
   FormControlLabel,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   IconButton,
   Accordion,
   AccordionSummary,
   AccordionDetails,
-  Switch
+  Switch,
+  CardMedia,
+  ImageList,
+  ImageListItem,
+  ImageListItemBar,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Chip,
+  Stack
 } from '@mui/material';
 import {
   Add as AddIcon,
   Delete as DeleteIcon,
-  ExpandMore as ExpandMoreIcon
+  ExpandMore as ExpandMoreIcon,
+  CloudUpload as CloudUploadIcon,
+  Image as ImageIcon,
+  VideoLibrary as VideoIcon,
+  Edit as EditIcon,
+  Close as CloseIcon
 } from '@mui/icons-material';
 
-// Types based on the complete model
+// Building Media Interface
+interface BuildingMedia {
+  images: Array<{
+    url: string;
+    caption: string;
+    uploadDate?: Date;
+    fileSize?: number;
+    mimeType?: string;
+  }>;
+  videos: Array<{
+    url: string;
+    caption: string;
+    uploadDate?: Date;
+    fileSize?: number;
+    duration?: number;
+    mimeType?: string;
+    thumbnail?: string;
+  }>;
+}
+
+// Building Interface with Media
+interface Building {
+  buildingName: string;
+  totalRooms: string;
+  classrooms: string;
+  labs: string;
+  library: string;
+  administrative: string;
+  other: string;
+  condition: string;
+  media?: BuildingMedia;
+}
+
+// Main Form Interface
 interface CollegeFormData {
   collegeName: string;
   campusType: string;
@@ -134,16 +178,7 @@ interface CollegeFormData {
       masterPlanAttachment: string;
       suggestions: string;
     };
-    buildings: Array<{
-      buildingName: string;
-      totalRooms: string;
-      classrooms: string;
-      labs: string;
-      library: string;
-      administrative: string;
-      other: string;
-      condition: string;
-    }>;
+    buildings: Building[];
     healthSanitation: {
       toilets: {
         male: string;
@@ -437,10 +472,23 @@ const CollegeDataForm: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  
+  // Media dialog state
+  const [mediaDialogOpen, setMediaDialogOpen] = useState(false);
+  const [selectedBuildingIndex, setSelectedBuildingIndex] = useState<number | null>(null);
+  const [mediaType, setMediaType] = useState<'image' | 'video'>('image');
+  const [mediaUrl, setMediaUrl] = useState('');
+  const [mediaCaption, setMediaCaption] = useState('');
+  const [mediaDuration, setMediaDuration] = useState('');
+  const [mediaThumbnail, setMediaThumbnail] = useState('');
+  
+  // Image preview dialog
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewMedia, setPreviewMedia] = useState<{ url: string; caption: string; type: 'image' | 'video' } | null>(null);
 
   const steps = [
     'Basic Information',
-    'Location Details', 
+    'Location Details',
     'Infrastructure & Land',
     'Academic Programs',
     'Staff Information',
@@ -474,7 +522,7 @@ const CollegeDataForm: React.FC = () => {
     }
   };
 
-  // Array handlers
+  // Building handlers
   const addBuilding = () => {
     setFormData(prev => ({
       ...prev,
@@ -490,7 +538,11 @@ const CollegeDataForm: React.FC = () => {
             library: '',
             administrative: '',
             other: '',
-            condition: 'Good'
+            condition: 'Good',
+            media: {
+              images: [],
+              videos: []
+            }
           }
         ]
       }
@@ -518,6 +570,75 @@ const CollegeDataForm: React.FC = () => {
     }));
   };
 
+  // Media handlers
+  const openMediaDialog = (buildingIndex: number, type: 'image' | 'video') => {
+    setSelectedBuildingIndex(buildingIndex);
+    setMediaType(type);
+    setMediaUrl('');
+    setMediaCaption('');
+    setMediaDuration('');
+    setMediaThumbnail('');
+    setMediaDialogOpen(true);
+  };
+
+  const handleAddMedia = () => {
+    if (selectedBuildingIndex === null || !mediaUrl) return;
+
+    setFormData(prev => {
+      const newBuildings = [...prev.infrastructure.buildings];
+      const building = newBuildings[selectedBuildingIndex];
+      
+      if (!building.media) {
+        building.media = { images: [], videos: [] };
+      }
+
+      if (mediaType === 'image') {
+        building.media.images.push({
+          url: mediaUrl,
+          caption: mediaCaption,
+          uploadDate: new Date()
+        });
+      } else {
+        building.media.videos.push({
+          url: mediaUrl,
+          caption: mediaCaption,
+          duration: mediaDuration ? parseInt(mediaDuration) : undefined,
+          thumbnail: mediaThumbnail,
+          uploadDate: new Date()
+        });
+      }
+
+      return {
+        ...prev,
+        infrastructure: { ...prev.infrastructure, buildings: newBuildings }
+      };
+    });
+
+    setMediaDialogOpen(false);
+  };
+
+  const deleteMedia = (buildingIndex: number, mediaType: 'images' | 'videos', mediaIndex: number) => {
+    setFormData(prev => {
+      const newBuildings = [...prev.infrastructure.buildings];
+      const building = newBuildings[buildingIndex];
+      
+      if (building.media) {
+        building.media[mediaType].splice(mediaIndex, 1);
+      }
+
+      return {
+        ...prev,
+        infrastructure: { ...prev.infrastructure, buildings: newBuildings }
+      };
+    });
+  };
+
+  const handlePreviewMedia = (url: string, caption: string, type: 'image' | 'video') => {
+    setPreviewMedia({ url, caption, type });
+    setPreviewOpen(true);
+  };
+
+  // Program handlers
   const addProgram = () => {
     setFormData(prev => ({
       ...prev,
@@ -557,6 +678,7 @@ const CollegeDataForm: React.FC = () => {
     }));
   };
 
+  // Staff handlers
   const addAcademicStaff = () => {
     setFormData(prev => ({
       ...prev,
@@ -598,6 +720,7 @@ const CollegeDataForm: React.FC = () => {
     }));
   };
 
+  // Project handlers
   const addProject = () => {
     setFormData(prev => ({
       ...prev,
@@ -696,7 +819,7 @@ const CollegeDataForm: React.FC = () => {
             name="campusType"
             value={formData.campusType}
             label="Campus Type"
-            onChange={handleInputChange}
+            onChange={handleInputChange as any}
           >
             {campusTypes.map((type) => (
               <MenuItem key={type} value={type}>{type}</MenuItem>
@@ -813,54 +936,6 @@ const CollegeDataForm: React.FC = () => {
           onChange={handleInputChange}
         />
       </Grid>
-
-      <Grid item xs={12}>
-        <Divider sx={{ my: 2 }} />
-        <Typography variant="h6" gutterBottom>
-          Data Collection Contact
-        </Typography>
-      </Grid>
-
-      <Grid item xs={12} md={6}>
-        <TextField
-          fullWidth
-          label="Contact Person Name"
-          name="dataCollectionContact.name"
-          value={formData.dataCollectionContact.name}
-          onChange={handleInputChange}
-        />
-      </Grid>
-
-      <Grid item xs={12} md={6}>
-        <TextField
-          fullWidth
-          label="Designation"
-          name="dataCollectionContact.designation"
-          value={formData.dataCollectionContact.designation}
-          onChange={handleInputChange}
-        />
-      </Grid>
-
-      <Grid item xs={12} md={6}>
-        <TextField
-          fullWidth
-          label="Phone"
-          name="dataCollectionContact.phone"
-          value={formData.dataCollectionContact.phone}
-          onChange={handleInputChange}
-        />
-      </Grid>
-
-      <Grid item xs={12} md={6}>
-        <TextField
-          fullWidth
-          label="Email"
-          name="dataCollectionContact.email"
-          type="email"
-          value={formData.dataCollectionContact.email}
-          onChange={handleInputChange}
-        />
-      </Grid>
     </Grid>
   );
 
@@ -880,7 +955,7 @@ const CollegeDataForm: React.FC = () => {
             name="location.province"
             value={formData.location.province}
             label="Province"
-            onChange={handleInputChange}
+            onChange={handleInputChange as any}
           >
             {provinces.map((province) => (
               <MenuItem key={province} value={province}>{province}</MenuItem>
@@ -941,43 +1016,6 @@ const CollegeDataForm: React.FC = () => {
           onChange={handleInputChange}
         />
       </Grid>
-      
-      <Grid item xs={12}>
-        <Divider sx={{ my: 2 }} />
-        <Typography variant="h6" gutterBottom>
-          Geographical Coordinates
-        </Typography>
-      </Grid>
-      
-      <Grid item xs={12} md={4}>
-        <TextField
-          fullWidth
-          label="Latitude"
-          name="location.latitude"
-          value={formData.location.latitude}
-          onChange={handleInputChange}
-        />
-      </Grid>
-      
-      <Grid item xs={12} md={4}>
-        <TextField
-          fullWidth
-          label="Longitude"
-          name="location.longitude"
-          value={formData.location.longitude}
-          onChange={handleInputChange}
-        />
-      </Grid>
-      
-      <Grid item xs={12} md={4}>
-        <TextField
-          fullWidth
-          label="Google Maps Link"
-          name="location.googleMapsLink"
-          value={formData.location.googleMapsLink}
-          onChange={handleInputChange}
-        />
-      </Grid>
 
       <Grid item xs={12}>
         <Divider sx={{ my: 2 }} />
@@ -1019,7 +1057,7 @@ const CollegeDataForm: React.FC = () => {
     </Grid>
   );
 
-  // Step 3: Infrastructure & Land (Due to length, I'll show a condensed version)
+  // Step 3: Infrastructure & Land with Media Support
   const renderInfrastructureStep = () => (
     <Grid container spacing={3}>
       <Grid item xs={12}>
@@ -1028,116 +1066,210 @@ const CollegeDataForm: React.FC = () => {
         </Typography>
       </Grid>
 
-      {/* Land Area Section */}
+      {/* Buildings Section with Media */}
       <Grid item xs={12}>
-        <Accordion>
+        <Accordion defaultExpanded>
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-            <Typography variant="h6">Land Area Information</Typography>
+            <Typography variant="h6">Buildings & Rooms (with Media)</Typography>
           </AccordionSummary>
           <AccordionDetails>
-            <Grid container spacing={3}>
-              <Grid item xs={12} md={3}>
-                <TextField
-                  fullWidth
-                  label="Bigaha"
-                  name="infrastructure.landArea.traditionalUnits.bigaha"
-                  value={formData.infrastructure.landArea.traditionalUnits.bigaha}
-                  onChange={handleInputChange}
-                />
-              </Grid>
-              <Grid item xs={12} md={3}>
-                <TextField
-                  fullWidth
-                  label="Katha"
-                  name="infrastructure.landArea.traditionalUnits.katha"
-                  value={formData.infrastructure.landArea.traditionalUnits.katha}
-                  onChange={handleInputChange}
-                />
-              </Grid>
-              <Grid item xs={12} md={3}>
-                <TextField
-                  fullWidth
-                  label="Dhur"
-                  name="infrastructure.landArea.traditionalUnits.dhur"
-                  value={formData.infrastructure.landArea.traditionalUnits.dhur}
-                  onChange={handleInputChange}
-                />
-              </Grid>
-              <Grid item xs={12} md={3}>
-                <TextField
-                  fullWidth
-                  label="Square Meters"
-                  name="infrastructure.landArea.squareMeters"
-                  value={formData.infrastructure.landArea.squareMeters}
-                  onChange={handleInputChange}
-                />
-              </Grid>
-            </Grid>
-          </AccordionDetails>
-        </Accordion>
-      </Grid>
-
-      {/* Buildings Section */}
-      <Grid item xs={12}>
-        <Accordion>
-          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-            <Typography variant="h6">Buildings & Rooms</Typography>
-          </AccordionSummary>
-          <AccordionDetails>
-            <Button startIcon={<AddIcon />} onClick={addBuilding} sx={{ mb: 2 }}>
+            <Button startIcon={<AddIcon />} onClick={addBuilding} sx={{ mb: 2 }} variant="contained">
               Add Building
             </Button>
             {formData.infrastructure.buildings.map((building, index) => (
-              <Card key={index} sx={{ mb: 2, p: 2 }}>
-                <Grid container spacing={2} alignItems="center">
-                  <Grid item xs={11}>
-                    <Grid container spacing={2}>
-                      <Grid item xs={12} md={3}>
-                        <TextField
-                          fullWidth
-                          label="Building Name"
-                          value={building.buildingName}
-                          onChange={(e) => updateBuilding(index, 'buildingName', e.target.value)}
-                        />
-                      </Grid>
-                      <Grid item xs={12} md={2}>
-                        <TextField
-                          fullWidth
-                          label="Total Rooms"
-                          type="number"
-                          value={building.totalRooms}
-                          onChange={(e) => updateBuilding(index, 'totalRooms', e.target.value)}
-                        />
-                      </Grid>
-                      <Grid item xs={12} md={2}>
-                        <TextField
-                          fullWidth
-                          label="Classrooms"
-                          type="number"
-                          value={building.classrooms}
-                          onChange={(e) => updateBuilding(index, 'classrooms', e.target.value)}
-                        />
-                      </Grid>
-                      <Grid item xs={12} md={2}>
-                        <FormControl fullWidth>
-                          <InputLabel>Condition</InputLabel>
-                          <Select
-                            value={building.condition}
-                            label="Condition"
-                            onChange={(e) => updateBuilding(index, 'condition', e.target.value)}
-                          >
-                            {buildingConditions.map(condition => (
-                              <MenuItem key={condition} value={condition}>{condition}</MenuItem>
-                            ))}
-                          </Select>
-                        </FormControl>
-                      </Grid>
-                    </Grid>
+              <Card key={index} sx={{ mb: 3, p: 2, border: '2px solid #e0e0e0' }}>
+                <Grid container spacing={2}>
+                  {/* Building Basic Info */}
+                  <Grid item xs={12}>
+                    <Typography variant="subtitle1" fontWeight="bold" color="primary">
+                      Building #{index + 1}
+                    </Typography>
                   </Grid>
-                  <Grid item xs={1}>
-                    <IconButton onClick={() => removeBuilding(index)} color="error">
-                      <DeleteIcon />
-                    </IconButton>
+                  
+                  <Grid item xs={12} md={3}>
+                    <TextField
+                      fullWidth
+                      label="Building Name"
+                      value={building.buildingName}
+                      onChange={(e) => updateBuilding(index, 'buildingName', e.target.value)}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={2}>
+                    <TextField
+                      fullWidth
+                      label="Total Rooms"
+                      type="number"
+                      value={building.totalRooms}
+                      onChange={(e) => updateBuilding(index, 'totalRooms', e.target.value)}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={2}>
+                    <TextField
+                      fullWidth
+                      label="Classrooms"
+                      type="number"
+                      value={building.classrooms}
+                      onChange={(e) => updateBuilding(index, 'classrooms', e.target.value)}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={2}>
+                    <TextField
+                      fullWidth
+                      label="Labs"
+                      type="number"
+                      value={building.labs}
+                      onChange={(e) => updateBuilding(index, 'labs', e.target.value)}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={2}>
+                    <FormControl fullWidth>
+                      <InputLabel>Condition</InputLabel>
+                      <Select
+                        value={building.condition}
+                        label="Condition"
+                        onChange={(e) => updateBuilding(index, 'condition', e.target.value)}
+                      >
+                        {buildingConditions.map(condition => (
+                          <MenuItem key={condition} value={condition}>{condition}</MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </Grid>
+
+                  {/* Media Management Section */}
+                  <Grid item xs={12}>
+                    <Divider sx={{ my: 2 }} />
+                    <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
+                      <Typography variant="subtitle2" fontWeight="bold">
+                        Building Media
+                      </Typography>
+                      <Chip 
+                        icon={<ImageIcon />} 
+                        label={`${building.media?.images?.length || 0} Images`} 
+                        size="small" 
+                        color="primary"
+                        variant="outlined"
+                      />
+                      <Chip 
+                        icon={<VideoIcon />} 
+                        label={`${building.media?.videos?.length || 0} Videos`} 
+                        size="small" 
+                        color="secondary"
+                        variant="outlined"
+                      />
+                    </Stack>
+
+                    <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
+                      <Button
+                        size="small"
+                        startIcon={<ImageIcon />}
+                        onClick={() => openMediaDialog(index, 'image')}
+                        variant="outlined"
+                        color="primary"
+                      >
+                        Add Image
+                      </Button>
+                      <Button
+                        size="small"
+                        startIcon={<VideoIcon />}
+                        onClick={() => openMediaDialog(index, 'video')}
+                        variant="outlined"
+                        color="secondary"
+                      >
+                        Add Video
+                      </Button>
+                    </Stack>
+
+                    {/* Display Images */}
+                    {building.media?.images && building.media.images.length > 0 && (
+                      <Box sx={{ mb: 2 }}>
+                        <Typography variant="body2" fontWeight="bold" gutterBottom>
+                          Images:
+                        </Typography>
+                        <ImageList sx={{ width: '100%', height: 200 }} cols={4} rowHeight={164}>
+                          {building.media.images.map((img, imgIndex) => (
+                            <ImageListItem key={imgIndex}>
+                              <img
+                                src={img.url}
+                                alt={img.caption || 'Building image'}
+                                loading="lazy"
+                                style={{ cursor: 'pointer', objectFit: 'cover' }}
+                                onClick={() => handlePreviewMedia(img.url, img.caption, 'image')}
+                              />
+                              <ImageListItemBar
+                                title={img.caption || 'No caption'}
+                                actionIcon={
+                                  <IconButton
+                                    sx={{ color: 'rgba(255, 255, 255, 0.9)' }}
+                                    onClick={() => deleteMedia(index, 'images', imgIndex)}
+                                  >
+                                    <DeleteIcon />
+                                  </IconButton>
+                                }
+                              />
+                            </ImageListItem>
+                          ))}
+                        </ImageList>
+                      </Box>
+                    )}
+
+                    {/* Display Videos */}
+                    {building.media?.videos && building.media.videos.length > 0 && (
+                      <Box>
+                        <Typography variant="body2" fontWeight="bold" gutterBottom>
+                          Videos:
+                        </Typography>
+                        <Grid container spacing={2}>
+                          {building.media.videos.map((vid, vidIndex) => (
+                            <Grid item xs={12} sm={6} md={4} key={vidIndex}>
+                              <Card variant="outlined">
+                                {vid.thumbnail && (
+                                  <CardMedia
+                                    component="img"
+                                    height="140"
+                                    image={vid.thumbnail}
+                                    alt={vid.caption || 'Video thumbnail'}
+                                    sx={{ cursor: 'pointer' }}
+                                    onClick={() => handlePreviewMedia(vid.url, vid.caption, 'video')}
+                                  />
+                                )}
+                                <CardContent>
+                                  <Typography variant="body2" noWrap>
+                                    {vid.caption || 'No caption'}
+                                  </Typography>
+                                  {vid.duration && (
+                                    <Typography variant="caption" color="text.secondary">
+                                      Duration: {vid.duration}s
+                                    </Typography>
+                                  )}
+                                  <IconButton
+                                    size="small"
+                                    color="error"
+                                    onClick={() => deleteMedia(index, 'videos', vidIndex)}
+                                    sx={{ float: 'right' }}
+                                  >
+                                    <DeleteIcon fontSize="small" />
+                                  </IconButton>
+                                </CardContent>
+                              </Card>
+                            </Grid>
+                          ))}
+                        </Grid>
+                      </Box>
+                    )}
+                  </Grid>
+
+                  {/* Remove Building Button */}
+                  <Grid item xs={12}>
+                    <Button
+                      startIcon={<DeleteIcon />}
+                      onClick={() => removeBuilding(index)}
+                      color="error"
+                      variant="outlined"
+                      size="small"
+                    >
+                      Remove Building
+                    </Button>
                   </Grid>
                 </Grid>
               </Card>
@@ -1237,7 +1369,7 @@ const CollegeDataForm: React.FC = () => {
         <Typography variant="h6" gutterBottom>
           Programs Offered
         </Typography>
-        <Button startIcon={<AddIcon />} onClick={addProgram} sx={{ mb: 2 }}>
+        <Button startIcon={<AddIcon />} onClick={addProgram} sx={{ mb: 2 }} variant="contained">
           Add Program
         </Button>
         
@@ -1351,7 +1483,7 @@ const CollegeDataForm: React.FC = () => {
         <Typography variant="h6" gutterBottom>
           Academic Staff
         </Typography>
-        <Button startIcon={<AddIcon />} onClick={addAcademicStaff} sx={{ mb: 2 }}>
+        <Button startIcon={<AddIcon />} onClick={addAcademicStaff} sx={{ mb: 2 }} variant="contained">
           Add Academic Staff
         </Button>
         
@@ -1615,7 +1747,7 @@ const CollegeDataForm: React.FC = () => {
         <Typography variant="h6" gutterBottom>
           Ongoing Projects
         </Typography>
-        <Button startIcon={<AddIcon />} onClick={addProject} sx={{ mb: 2 }}>
+        <Button startIcon={<AddIcon />} onClick={addProject} sx={{ mb: 2 }} variant="contained">
           Add Project
         </Button>
         
@@ -1701,20 +1833,18 @@ const CollegeDataForm: React.FC = () => {
         </Typography>
       </Grid>
 
-      {Object.entries(formData).map(([key, value]) => (
-        <Grid item xs={12} key={key}>
-          <Card variant="outlined">
-            <CardContent>
-              <Typography variant="h6" gutterBottom sx={{ textTransform: 'capitalize' }}>
-                {key.replace(/([A-Z])/g, ' $1')}
-              </Typography>
-              <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
-                {JSON.stringify(value, null, 2)}
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-      ))}
+      <Grid item xs={12}>
+        <Card variant="outlined" sx={{ p: 2 }}>
+          <Typography variant="h6" gutterBottom>College Summary</Typography>
+          <Typography><strong>College Name:</strong> {formData.collegeName}</Typography>
+          <Typography><strong>Campus Type:</strong> {formData.campusType}</Typography>
+          <Typography><strong>Location:</strong> {formData.location.district}, {formData.location.province}</Typography>
+          <Typography><strong>Total Buildings:</strong> {formData.infrastructure.buildings.length}</Typography>
+          <Typography><strong>Total Programs:</strong> {formData.academicPrograms.programs.length}</Typography>
+          <Typography><strong>Total Images:</strong> {formData.infrastructure.buildings.reduce((sum, b) => sum + (b.media?.images?.length || 0), 0)}</Typography>
+          <Typography><strong>Total Videos:</strong> {formData.infrastructure.buildings.reduce((sum, b) => sum + (b.media?.videos?.length || 0), 0)}</Typography>
+        </Card>
+      </Grid>
     </Grid>
   );
 
@@ -1738,20 +1868,8 @@ const CollegeDataForm: React.FC = () => {
         return !!formData.collegeName && !!formData.campusType && !!formData.establishmentDate && !!formData.principalInfo.name;
       case 1:
         return !!formData.location.province && !!formData.location.district && !!formData.location.localLevel && !!formData.location.wardNo;
-      case 2:
-        return true;
-      case 3:
-        return true;
-      case 4:
-        return true;
-      case 5:
-        return true;
-      case 6:
-        return true;
-      case 7:
-        return true;
       default:
-        return false;
+        return true;
     }
   };
 
@@ -1820,6 +1938,103 @@ const CollegeDataForm: React.FC = () => {
           </Box>
         </form>
       </Paper>
+
+      {/* Add Media Dialog */}
+      <Dialog open={mediaDialogOpen} onClose={() => setMediaDialogOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>
+          Add {mediaType === 'image' ? 'Image' : 'Video'}
+          <IconButton
+            onClick={() => setMediaDialogOpen(false)}
+            sx={{ position: 'absolute', right: 8, top: 8 }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent>
+          <Grid container spacing={2} sx={{ mt: 1 }}>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Media URL"
+                value={mediaUrl}
+                onChange={(e) => setMediaUrl(e.target.value)}
+                required
+                helperText="Enter the URL of the image or video"
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Caption"
+                value={mediaCaption}
+                onChange={(e) => setMediaCaption(e.target.value)}
+                multiline
+                rows={2}
+              />
+            </Grid>
+            {mediaType === 'video' && (
+              <>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Duration (seconds)"
+                    type="number"
+                    value={mediaDuration}
+                    onChange={(e) => setMediaDuration(e.target.value)}
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Thumbnail URL"
+                    value={mediaThumbnail}
+                    onChange={(e) => setMediaThumbnail(e.target.value)}
+                  />
+                </Grid>
+              </>
+            )}
+          </Grid>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setMediaDialogOpen(false)}>Cancel</Button>
+          <Button 
+            onClick={handleAddMedia} 
+            variant="contained" 
+            disabled={!mediaUrl}
+            startIcon={<CloudUploadIcon />}
+          >
+            Add {mediaType === 'image' ? 'Image' : 'Video'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Preview Media Dialog */}
+      <Dialog open={previewOpen} onClose={() => setPreviewOpen(false)} maxWidth="md" fullWidth>
+        <DialogTitle>
+          {previewMedia?.caption || 'Media Preview'}
+          <IconButton
+            onClick={() => setPreviewOpen(false)}
+            sx={{ position: 'absolute', right: 8, top: 8 }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent>
+          {previewMedia?.type === 'image' ? (
+            <img 
+              src={previewMedia.url} 
+              alt={previewMedia.caption} 
+              style={{ width: '100%', height: 'auto' }} 
+            />
+          ) : (
+            <video 
+              src={previewMedia?.url} 
+              controls 
+              style={{ width: '100%', height: 'auto' }} 
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </Box>
   );
 };

@@ -12,6 +12,12 @@ import { ProgressReport, AnalyticsData } from '@/types';
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 
+
+
+// Import the required icons
+import { X } from 'lucide-react';
+import FinancialDocumentsSection from './pdfViewer.component';
+
 const API_BASE_URL = 'http://localhost:4000/api/progress';
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'];
@@ -31,6 +37,11 @@ export default function AdminDashboardForProgress() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCollege, setSelectedCollege] = useState<ProgressReport | null>(null);
   const chartRef = useRef<HTMLDivElement>(null);
+
+  // Add these state variables to your component
+  const [isFullScreenOpen, setIsFullScreenOpen] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedDocument, setSelectedDocument] = useState<{url: string, filename: string, type: string} | null>(null);
 
   useEffect(() => {
     fetchData();
@@ -108,27 +119,11 @@ export default function AdminDashboardForProgress() {
         head: [['Metric', 'Value']],
         body: [
           ['Total Students', report.totalStudents.toLocaleString()],
-          ['New Admissions', report.newAdmissions.toLocaleString()],
-          ['Graduated Students', report.graduatedStudents.toLocaleString()],
-          ['Pass Percentage', `${report.passPercentage}%`]
-        ]
-      });
-
-      const finalY = (pdf as any).lastAutoTable.finalY + 15;
-      pdf.setFontSize(14);
-      pdf.text('Financial Details', 20, finalY);
-      
-      pdf.autoTable({
-        startY: finalY + 5,
-        head: [['Financial Item', 'Amount (NPR)']],
-        body: [
-          ['Approved Budget', formatCurrency(report.approvedBudget)],
-          ['Actual Expenditure', formatCurrency(report.actualExpenditure)],
-          ['Revenue Generated', formatCurrency(report.revenueGenerated)],
-          ['Salaries & Allowances', formatCurrency(report.salariesAllowances)],
-          ['Capital Expenditure', formatCurrency(report.capitalExpenditure)],
-          ['Operational Costs', formatCurrency(report.operationalCosts)],
-          ['Research & Development', formatCurrency(report.researchDevelopment)]
+          ['Total Programs', report.programs?.length || 0],
+          ['Building Status', report.buildingStatus || 'N/A'],
+          ['Classroom Count', report.classroomCount?.toString() || '0'],
+          ['Lab Count', report.labCount?.toString() || '0'],
+          ['Library Books', report.libraryBooks?.toString() || '0']
         ]
       });
 
@@ -151,10 +146,30 @@ export default function AdminDashboardForProgress() {
           program?.approvalLetterPath ? 'Yes' : 'No'
         ]);
 
-        pdf?.autoTable({
+        pdf.autoTable({
           startY: programY + 5,
           head: [['Program', 'Total', 'Male', 'Female', 'Scholarship', 'Scholarship Rule', 'New Admissions', 'Graduated', 'Pass %', 'Approval Letter']],
           body: programData
+        });
+      }
+
+      // Add financial data if available
+      if (report.financialStatus) {
+        const financialY = (pdf as any).lastAutoTable.finalY + 15;
+        pdf.setFontSize(14);
+        pdf.text('Financial Summary', 20, financialY);
+        
+        const financialData = [
+          ['Total Annual Budget', formatCurrency(report.financialStatus.totalAnnualBudget)],
+          ['Total Actual Expenditure', formatCurrency(report.financialStatus.totalActualExpenditure)],
+          ['Total Revenue Generated', formatCurrency(report.financialStatus.totalRevenueGenerated)],
+          ['Budget Utilization', `${((report.financialStatus.totalActualExpenditure / report.financialStatus.totalAnnualBudget) * 100).toFixed(2)}%`]
+        ];
+
+        pdf.autoTable({
+          startY: financialY + 5,
+          head: [['Financial Item', 'Amount']],
+          body: financialData
         });
       }
 
@@ -168,18 +183,14 @@ export default function AdminDashboardForProgress() {
 
   const convertCollegeToCSV = (report: ProgressReport): string => {
     const headers = [
-      'College Name', 'Academic Year', 'Total Students', 'New Admissions', 'Graduated Students',
-      'Pass Percentage', 'Approved Budget', 'Actual Expenditure', 'Revenue Generated',
-      'Salaries Allowances', 'Capital Expenditure', 'Operational Costs', 'Research Development',
-      'Building Status', 'Classroom Count', 'Lab Count', 'Library Books', 'IT Connectivity'
+      'College Name', 'Academic Year', 'Total Students', 'Building Status', 'Classroom Count', 
+      'Lab Count', 'Library Books', 'IT Connectivity', 'Head Name', 'Principal Name', 'Submitted By'
     ];
 
     const data = [
-      report.collegeName, report.academicYear, report.totalStudents, report.newAdmissions,
-      report.graduatedStudents, report.passPercentage, report.approvedBudget, report.actualExpenditure,
-      report.revenueGenerated, report.salariesAllowances, report.capitalExpenditure,
-      report.operationalCosts, report.researchDevelopment, report.buildingStatus,
-      report.classroomCount, report.labCount, report.libraryBooks, report.itConnectivity
+      report.collegeName, report.academicYear, report.totalStudents, report.buildingStatus,
+      report.classroomCount, report.labCount, report.libraryBooks, report.itConnectivity,
+      report.headName, report.principalName, report.submittedBy
     ];
 
     // Add program-wise data
@@ -210,7 +221,32 @@ export default function AdminDashboardForProgress() {
       });
     }
 
-    return [headers.join(','), data.join(',')].join('\n') + programCSV;
+    // Add financial data
+    let financialCSV = '';
+    if (report.financialStatus) {
+      const financialHeaders = [
+        'Financial Category', 'Annual Budget', 'Actual Expenditure', 'Revenue Generated', 'Sources'
+      ];
+      
+      financialCSV = '\n\nFinancial Data:\n' + financialHeaders.join(',') + '\n';
+      
+      const categories = ['salaries', 'capital', 'operational', 'research'];
+      categories.forEach(category => {
+        const financial = report.financialStatus[category];
+        if (financial) {
+          const financialRow = [
+            category.charAt(0).toUpperCase() + category.slice(1),
+            financial.annualBudget,
+            financial.actualExpenditure,
+            financial.revenueGenerated,
+            financial.sources?.join('; ') || ''
+          ];
+          financialCSV += financialRow.join(',') + '\n';
+        }
+      });
+    }
+
+    return [headers.join(','), data.join(',')].join('\n') + programCSV + financialCSV;
   };
 
   const downloadCSV = (csvData: string, filename: string) => {
@@ -226,7 +262,14 @@ export default function AdminDashboardForProgress() {
   };
 
   const formatCurrency = (amount: number): string => {
-    return `NPR ${(amount / 1000000).toFixed(2)}M`;
+    if (amount >= 1000000000) {
+      return `NPR ${(amount / 1000000000).toFixed(2)}B`;
+    } else if (amount >= 1000000) {
+      return `NPR ${(amount / 1000000).toFixed(2)}M`;
+    } else if (amount >= 1000) {
+      return `NPR ${(amount / 1000).toFixed(2)}K`;
+    }
+    return `NPR ${amount}`;
   };
 
   const filteredReports = reports.filter(report =>
@@ -235,11 +278,22 @@ export default function AdminDashboardForProgress() {
   );
 
   const getCollegeAnalysis = (report: ProgressReport) => {
-    const budgetUtilization = report.approvedBudget > 0 ? (report.actualExpenditure / report.approvedBudget) * 100 : 0;
-    const studentClassroomRatio = Math.round(report.totalStudents / Math.max(report.classroomCount, 1));
-    const studentLabRatio = Math.round(report.totalStudents / Math.max(report.labCount, 1));
-    const graduationRate = report.totalStudents > 0 ? (report.graduatedStudents / report.totalStudents) * 100 : 0;
-    const admissionGrowth = report.totalStudents > 0 ? (report.newAdmissions / report.totalStudents) * 100 : 0;
+    const totalStudents = report.totalStudents || 0;
+    const financial = report.financialStatus;
+    
+    const budgetUtilization = financial?.totalAnnualBudget > 0 
+      ? (financial.totalActualExpenditure / financial.totalAnnualBudget) * 100 
+      : 0;
+    
+    const studentClassroomRatio = Math.round(totalStudents / Math.max(report.classroomCount || 1, 1));
+    const studentLabRatio = Math.round(totalStudents / Math.max(report.labCount || 1, 1));
+    
+    // Calculate total graduated students from programs
+    const totalGraduated = report.programs?.reduce((sum, program) => sum + (program.graduatedStudents || 0), 0) || 0;
+    const totalNewAdmissions = report.programs?.reduce((sum, program) => sum + (program.newAdmissions || 0), 0) || 0;
+    
+    const graduationRate = totalStudents > 0 ? (totalGraduated / totalStudents) * 100 : 0;
+    const admissionGrowth = totalStudents > 0 ? (totalNewAdmissions / totalStudents) * 100 : 0;
     
     return {
       budgetUtilization: Math.round(budgetUtilization),
@@ -247,32 +301,108 @@ export default function AdminDashboardForProgress() {
       studentLabRatio,
       graduationRate: Math.round(graduationRate),
       admissionGrowth: Math.round(admissionGrowth),
-      revenueToExpenseRatio: report.actualExpenditure > 0 ? Math.round((report.revenueGenerated / report.actualExpenditure) * 100) : 0
+      totalGraduated,
+      totalNewAdmissions
     };
   };
 
-  const getExpenditureData = (report: ProgressReport) => [
-    { name: 'Salaries', value: report.salariesAllowances, percentage: (report.salariesAllowances / report.actualExpenditure * 100).toFixed(1) },
-    { name: 'Capital', value: report.capitalExpenditure, percentage: (report.capitalExpenditure / report.actualExpenditure * 100).toFixed(1) },
-    { name: 'Operations', value: report.operationalCosts, percentage: (report.operationalCosts / report.actualExpenditure * 100).toFixed(1) },
-    { name: 'R&D', value: report.researchDevelopment, percentage: (report.researchDevelopment / report.actualExpenditure * 100).toFixed(1) }
-  ];
+  const getFinancialData = (report: ProgressReport) => {
+    if (!report.financialStatus) return [];
+    
+    const financial = report.financialStatus;
+    return [
+      { 
+        category: 'Salaries', 
+        budget: financial.salaries?.annualBudget || 0, 
+        expenditure: financial.salaries?.actualExpenditure || 0,
+        revenue: financial.salaries?.revenueGenerated || 0
+      },
+      { 
+        category: 'Capital', 
+        budget: financial.capital?.annualBudget || 0, 
+        expenditure: financial.capital?.actualExpenditure || 0,
+        revenue: financial.capital?.revenueGenerated || 0
+      },
+      { 
+        category: 'Operational', 
+        budget: financial.operational?.annualBudget || 0, 
+        expenditure: financial.operational?.actualExpenditure || 0,
+        revenue: financial.operational?.revenueGenerated || 0
+      },
+      { 
+        category: 'Research', 
+        budget: financial.research?.annualBudget || 0, 
+        expenditure: financial.research?.actualExpenditure || 0,
+        revenue: financial.research?.revenueGenerated || 0
+      }
+    ];
+  };
 
-  const getStudentFlowData = (report: ProgressReport) => [
-    { category: 'Total', count: report.totalStudents, label: 'Enrolled' },
-    { category: 'New', count: report.newAdmissions, label: 'Admissions' },
-    { category: 'Graduated', count: report.graduatedStudents, label: 'Graduated' }
-  ];
+  const getExpenditureDistribution = (report: ProgressReport) => {
+    if (!report.financialStatus) return [];
+    
+    const financial = report.financialStatus;
+    const totalExpenditure = financial.totalActualExpenditure;
+    if (totalExpenditure === 0) return [];
 
-  const getFinancialComparisonData = (report: ProgressReport) => [
-    { category: 'Budget', approved: report.approvedBudget / 1000000, actual: report.actualExpenditure / 1000000, revenue: report.revenueGenerated / 1000000 }
-  ];
+    return [
+      { 
+        name: 'Salaries', 
+        value: financial.salaries?.actualExpenditure || 0, 
+        percentage: ((financial.salaries?.actualExpenditure || 0) / totalExpenditure * 100).toFixed(1) 
+      },
+      { 
+        name: 'Capital', 
+        value: financial.capital?.actualExpenditure || 0, 
+        percentage: ((financial.capital?.actualExpenditure || 0) / totalExpenditure * 100).toFixed(1) 
+      },
+      { 
+        name: 'Operational', 
+        value: financial.operational?.actualExpenditure || 0, 
+        percentage: ((financial.operational?.actualExpenditure || 0) / totalExpenditure * 100).toFixed(1) 
+      },
+      { 
+        name: 'Research', 
+        value: financial.research?.actualExpenditure || 0, 
+        percentage: ((financial.research?.actualExpenditure || 0) / totalExpenditure * 100).toFixed(1) 
+      }
+    ];
+  };
 
-  const getResourceEfficiencyData = (report: ProgressReport) => [
-    { metric: 'Students per Classroom', value: Math.round(report.totalStudents / report.classroomCount), benchmark: 40 },
-    { metric: 'Students per Lab', value: Math.round(report.totalStudents / report.labCount), benchmark: 150 },
-    { metric: 'Books per Student', value: Math.round(report.libraryBooks / report.totalStudents), benchmark: 50 }
-  ];
+  const getBudgetVsActualData = (report: ProgressReport) => {
+    if (!report.financialStatus) return [];
+    
+    const financial = report.financialStatus;
+    return [
+      { 
+        category: 'Total', 
+        budget: financial.totalAnnualBudget / 1000000, 
+        actual: financial.totalActualExpenditure / 1000000,
+        revenue: financial.totalRevenueGenerated / 1000000
+      }
+    ];
+  };
+
+  const getStudentFlowData = (report: ProgressReport) => {
+    const totalStudents = report.totalStudents || 0;
+    const totalNewAdmissions = report.programs?.reduce((sum, program) => sum + (program.newAdmissions || 0), 0) || 0;
+    const totalGraduated = report.programs?.reduce((sum, program) => sum + (program.graduatedStudents || 0), 0) || 0;
+    
+    return [
+      { category: 'Total', count: totalStudents, label: 'Enrolled' },
+      { category: 'New', count: totalNewAdmissions, label: 'Admissions' },
+      { category: 'Graduated', count: totalGraduated, label: 'Graduated' }
+    ];
+  };
+
+  const getResourceEfficiencyData = (report: ProgressReport) => {
+    const totalStudents = report.totalStudents || 0;
+    return [
+      { metric: 'Students per Classroom', value: Math.round(totalStudents / (report.classroomCount || 1)), benchmark: 40 },
+      { metric: 'Students per Lab', value: Math.round(totalStudents / (report.labCount || 1)), benchmark: 150 },
+      { metric: 'Books per Student', value: Math.round((report.libraryBooks || 0) / totalStudents), benchmark: 50 }
+    ];
+  };
 
   const getGenderDistributionData = (report: ProgressReport) => {
     if (!report.programs) return [];
@@ -297,6 +427,33 @@ export default function AdminDashboardForProgress() {
     }));
   };
 
+  const getPassRateData = (report: ProgressReport) => {
+    if (!report.programs) return [];
+    
+    return report.programs.map(program => ({
+      program: program.programName,
+      passRate: program.passPercentage || 0
+    }));
+  };
+
+  const handleFileView = (url: string, filename: string) => {
+    const extension = filename.split('.').pop()?.toLowerCase();
+    
+    if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'].includes(extension || '')) {
+      setSelectedImage(url);
+      setIsFullScreenOpen(true);
+    } else if (['pdf'].includes(extension || '')) {
+      setSelectedDocument({ url, filename, type: 'pdf' });
+      setIsFullScreenOpen(true);
+    } else {
+      // For other file types, trigger download
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      link.click();
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -310,12 +467,14 @@ export default function AdminDashboardForProgress() {
 
   if (selectedCollege) {
     const analysis = getCollegeAnalysis(selectedCollege);
-    const expenditureData = getExpenditureData(selectedCollege);
+    const financialData = getFinancialData(selectedCollege);
+    const expenditureData = getExpenditureDistribution(selectedCollege);
+    const budgetVsActualData = getBudgetVsActualData(selectedCollege);
     const studentFlowData = getStudentFlowData(selectedCollege);
-    const financialComparisonData = getFinancialComparisonData(selectedCollege);
     const resourceEfficiencyData = getResourceEfficiencyData(selectedCollege);
     const genderDistributionData = getGenderDistributionData(selectedCollege);
     const scholarshipData = getScholarshipData(selectedCollege);
+    const passRateData = getPassRateData(selectedCollege);
 
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50" ref={chartRef}>
@@ -372,7 +531,7 @@ export default function AdminDashboardForProgress() {
                 <div className="text-3xl font-bold text-gray-900">{selectedCollege.totalStudents.toLocaleString()}</div>
                 <div className="text-sm text-gray-600 mt-1">Total Students</div>
                 <div className="text-xs text-gray-500 mt-2">
-                  New: {selectedCollege.newAdmissions} | Graduated: {selectedCollege.graduatedStudents}
+                  New: {analysis.totalNewAdmissions} | Graduated: {analysis.totalGraduated}
                 </div>
               </CardContent>
             </Card>
@@ -383,12 +542,12 @@ export default function AdminDashboardForProgress() {
                   <div className="p-3 bg-green-100 rounded-lg">
                     <GraduationCap className="h-6 w-6 text-green-600" />
                   </div>
-                  <Badge variant="secondary">Success Rate</Badge>
+                  <Badge variant="secondary">Programs</Badge>
                 </div>
-                <div className="text-3xl font-bold text-gray-900">{selectedCollege.passPercentage}%</div>
-                <div className="text-sm text-gray-600 mt-1">Pass Rate</div>
+                <div className="text-3xl font-bold text-gray-900">{selectedCollege.programs?.length || 0}</div>
+                <div className="text-sm text-gray-600 mt-1">Total Programs</div>
                 <div className="text-xs text-gray-500 mt-2">
-                  Training: {selectedCollege.facultyTraining} | Research: {selectedCollege.facultyResearch}
+                  Active academic programs
                 </div>
               </CardContent>
             </Card>
@@ -397,14 +556,16 @@ export default function AdminDashboardForProgress() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between mb-4">
                   <div className="p-3 bg-purple-100 rounded-lg">
-                    <DollarSign className="h-6 w-6 text-purple-600" />
+                    <p className="h-6 w-6 text-purple-600 text-xl">
+                      
+                       रु</p>
                   </div>
                   <Badge variant="secondary">Budget Usage</Badge>
                 </div>
                 <div className="text-3xl font-bold text-gray-900">{analysis.budgetUtilization}%</div>
                 <div className="text-sm text-gray-600 mt-1">Budget Utilization</div>
                 <div className="text-xs text-gray-500 mt-2">
-                  Revenue Ratio: {analysis.revenueToExpenseRatio}%
+                  {selectedCollege.financialStatus && formatCurrency(selectedCollege.financialStatus.totalAnnualBudget)}
                 </div>
               </CardContent>
             </Card>
@@ -427,7 +588,7 @@ export default function AdminDashboardForProgress() {
           </div>
 
           <Tabs defaultValue="programs" className="space-y-8">
-            <TabsList className="grid w-full grid-cols-5 h-auto p-1 bg-white shadow-lg">
+            <TabsList className="grid w-full grid-cols-6 h-auto p-1 bg-white shadow-lg">
               <TabsTrigger value="programs" className="py-3 text-sm font-semibold">
                 <Users className="h-4 w-4 mr-2" />
                 Programs
@@ -443,6 +604,10 @@ export default function AdminDashboardForProgress() {
               <TabsTrigger value="infrastructure" className="py-3 text-sm font-semibold">
                 <Building className="h-4 w-4 mr-2" />
                 Infrastructure
+              </TabsTrigger>
+              <TabsTrigger value="progress" className="py-3 text-sm font-semibold">
+                <Activity className="h-4 w-4 mr-2" />
+                Progress
               </TabsTrigger>
               <TabsTrigger value="insights" className="py-3 text-sm font-semibold">
                 <Target className="h-4 w-4 mr-2" />
@@ -505,59 +670,42 @@ export default function AdminDashboardForProgress() {
                               </Badge>
                             </TableCell>
                             <TableCell>
-                        {program.approvalLetterPath ? (
-  <Button
-    size="sm"
-    variant="outline"
-    style={{
-      display: 'flex',
-      alignItems: 'center',
-      padding: '4px 8px',
-      border: '1px solid #ccc',
-      borderRadius: '6px',
-      cursor: 'pointer',
-      backgroundColor: '#fff',
-      color: '#333',
-    }}
-    onClick={async () => {
-      try {
-        // If it's a blob or a protected file, fetch and open it
-        if (program.approvalLetterPath.startsWith('blob:')) {
-          // Direct blob URL — open directly
-          window.open(program.approvalLetterPath, '_blank');
-        } else if (program.approvalLetterPath.startsWith('http')) {
-          // Already a full URL (like S3) — open directly
-          window.open(program.approvalLetterPath, '_blank');
-        } else {
-          // Otherwise, fetch it as blob (from backend path)
-          const response = await fetch(program.approvalLetterPath);
-          const blob = await response.blob();
-          const blobUrl = URL.createObjectURL(blob);
-          window.open(blobUrl, '_blank');
-        }
-      } catch (err) {
-        console.error('Failed to open file:', err);
-      }
-    }}
-  >
-    <FileText className="h-4 w-4" style={{ marginRight: '4px' }} />
-    View
-  </Button>
-) : (
-  <Badge
-    variant="outline"
-    style={{
-      padding: '4px 8px',
-      border: '1px solid #ccc',
-      borderRadius: '6px',
-      backgroundColor: '#f8f9fa',
-      color: '#555',
-    }}
-  >
-    Not Available
-  </Badge>
-)}
-
+                              {program.approvalLetterPath ? (
+                                <div className="flex items-center space-x-2">
+                                  <div 
+                                    className="relative group cursor-pointer"
+                                    onClick={() => handleFileView(program.approvalLetterPath!, program.approvalLetterFilename || 'approval_letter')}
+                                  >
+                                    {program.approvalLetterPath.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
+                                      <img 
+                                        src={program.approvalLetterPath} 
+                                        alt="Approval letter preview"
+                                        className="w-12 h-12 object-cover rounded border border-gray-300 hover:border-blue-500 transition-colors"
+                                      />
+                                    ) : (
+                                      <div className="w-12 h-12 bg-gray-100 rounded border border-gray-300 flex items-center justify-center hover:border-blue-500 transition-colors">
+                                        <FileText className="h-6 w-6 text-gray-500" />
+                                      </div>
+                                    )}
+                                    <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 rounded transition-all flex items-center justify-center">
+                                      <Eye className="h-4 w-4 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                                    </div>
+                                  </div>
+                                  
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => handleFileView(program.approvalLetterPath!, program.approvalLetterFilename || 'approval_letter')}
+                                  >
+                                    <Eye className="h-4 w-4 mr-1" />
+                                    View
+                                  </Button>
+                                </div>
+                              ) : (
+                                <Badge variant="outline" className="px-3 py-1">
+                                  Not Available
+                                </Badge>
+                              )}
                             </TableCell>
                           </TableRow>
                         ))}
@@ -672,7 +820,7 @@ export default function AdminDashboardForProgress() {
                   </CardHeader>
                   <CardContent>
                     <ResponsiveContainer width="100%" height={350}>
-                      <BarChart data={financialComparisonData}>
+                      <BarChart data={budgetVsActualData}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                         <XAxis dataKey="category" tick={{ fill: '#64748b', fontSize: 12, fontWeight: 600 }} />
                         <YAxis tick={{ fill: '#64748b', fontSize: 11 }} label={{ value: 'NPR (Millions)', angle: -90, position: 'insideLeft', style: { fill: '#64748b', fontSize: 12 } }} />
@@ -681,7 +829,7 @@ export default function AdminDashboardForProgress() {
                           formatter={(value) => [`NPR ${Number(value).toFixed(2)}M`, '']}
                         />
                         <Legend />
-                        <Bar dataKey="approved" fill="#3b82f6" name="Approved Budget" radius={[8, 8, 0, 0]} />
+                        <Bar dataKey="budget" fill="#3b82f6" name="Approved Budget" radius={[8, 8, 0, 0]} />
                         <Bar dataKey="actual" fill="#10b981" name="Actual Expenditure" radius={[8, 8, 0, 0]} />
                         <Bar dataKey="revenue" fill="#f59e0b" name="Revenue Generated" radius={[8, 8, 0, 0]} />
                       </BarChart>
@@ -721,25 +869,133 @@ export default function AdminDashboardForProgress() {
                 </Card>
               </div>
 
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <Card className="shadow-lg">
+                  <CardHeader>
+                    <CardTitle className="flex items-center text-xl">
+                      <TrendingUp className="h-5 w-5 mr-2 text-green-600" />
+                      Financial Trend Analysis
+                    </CardTitle>
+                    <CardDescription>Budget vs Actual expenditure trend</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <ResponsiveContainer width="100%" height={350}>
+                      <ComposedChart data={financialData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                        <XAxis dataKey="category" tick={{ fill: '#64748b', fontSize: 12, fontWeight: 600 }} />
+                        <YAxis tick={{ fill: '#64748b', fontSize: 11 }} />
+                        <Tooltip 
+                          contentStyle={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '8px' }}
+                          formatter={(value) => [formatCurrency(Number(value)), '']}
+                        />
+                        <Legend />
+                        <Bar dataKey="budget" fill="#3b82f6" name="Budget" radius={[8, 8, 0, 0]} />
+                        <Bar dataKey="expenditure" fill="#10b981" name="Expenditure" radius={[8, 8, 0, 0]} />
+                        <Line type="monotone" dataKey="revenue" stroke="#f59e0b" name="Revenue" strokeWidth={2} />
+                      </ComposedChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
+
+                <Card className="shadow-lg">
+                  <CardHeader>
+                    <CardTitle className="flex items-center text-xl">
+                      <FileText className="h-5 w-5 mr-2 text-orange-600" />
+                      Financial Documents
+                    </CardTitle>
+                    <CardDescription>Audited statements and budget documents</CardDescription>
+                  </CardHeader>
+                  {/* <CardContent>
+                    <div className="space-y-4">
+                      {selectedCollege.financialStatus?.attachments?.auditedFinancialStatements && (
+                        <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg border border-green-200">
+                          <div className="flex items-center space-x-3">
+                            <FileText className="h-8 w-8 text-green-600" />
+                            <div>
+                              <div className="font-semibold text-green-800">
+                                {selectedCollege.financialStatus.attachments.auditedFinancialStatementsFilename || 'Audited Financial Statements'}
+                              </div>
+                              <div className="text-sm text-green-600">Financial audit report</div>
+                            </div>
+                          </div>
+                          <Button
+                            variant="outline"
+                            onClick={() => handleFileView(
+                              selectedCollege.financialStatus!.attachments.auditedFinancialStatements!,
+                              selectedCollege.financialStatus!.attachments.auditedFinancialStatementsFilename || 'audited_financial_statements.pdf'
+                            )}
+                          >
+                            <Eye className="h-4 w-4 mr-2" />
+                            View
+                          </Button>
+                        </div>
+                      )}
+
+                      {selectedCollege.financialStatus?.attachments?.budgetCopy && (
+                        <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg border border-blue-200">
+                          <div className="flex items-center space-x-3">
+                            <FileText className="h-8 w-8 text-blue-600" />
+                            <div>
+                              <div className="font-semibold text-blue-800">
+                                {selectedCollege.financialStatus.attachments.budgetCopyFilename || 'Budget Copy'}
+                              </div>
+                              <div className="text-sm text-blue-600">Annual budget document</div>
+                            </div>
+                          </div>
+                          <Button
+                            variant="outline"
+                            onClick={() => handleFileView(
+                              selectedCollege.financialStatus!.attachments.budgetCopy!,
+                              selectedCollege.financialStatus!.attachments.budgetCopyFilename || 'budget_copy.pdf'
+                            )}
+                          >
+                            <Eye className="h-4 w-4 mr-2" />
+                            View
+                          </Button>
+                        </div>
+                      )}
+
+                      {!selectedCollege.financialStatus?.attachments?.auditedFinancialStatements && 
+                       !selectedCollege.financialStatus?.attachments?.budgetCopy && (
+                        <div className="text-center py-8 text-gray-500">
+                          <FileText className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                          <p>No financial documents available</p>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent> */}
+
+
+                  <FinancialDocumentsSection selectedCollege={selectedCollege}/>
+                  
+                </Card>
+              </div>
+
               <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                 <Card className="shadow-lg bg-gradient-to-br from-blue-50 to-blue-100">
                   <CardContent className="p-6 text-center">
-                    <div className="text-sm text-blue-700 font-semibold mb-2">Approved Budget</div>
-                    <div className="text-2xl font-bold text-blue-900">{formatCurrency(selectedCollege.approvedBudget)}</div>
+                    <div className="text-sm text-blue-700 font-semibold mb-2">Total Budget</div>
+                    <div className="text-2xl font-bold text-blue-900">
+                      {selectedCollege.financialStatus ? formatCurrency(selectedCollege.financialStatus.totalAnnualBudget) : 'N/A'}
+                    </div>
                   </CardContent>
                 </Card>
 
                 <Card className="shadow-lg bg-gradient-to-br from-green-50 to-green-100">
                   <CardContent className="p-6 text-center">
-                    <div className="text-sm text-green-700 font-semibold mb-2">Actual Expenditure</div>
-                    <div className="text-2xl font-bold text-green-900">{formatCurrency(selectedCollege.actualExpenditure)}</div>
+                    <div className="text-sm text-green-700 font-semibold mb-2">Total Expenditure</div>
+                    <div className="text-2xl font-bold text-green-900">
+                      {selectedCollege.financialStatus ? formatCurrency(selectedCollege.financialStatus.totalActualExpenditure) : 'N/A'}
+                    </div>
                   </CardContent>
                 </Card>
 
                 <Card className="shadow-lg bg-gradient-to-br from-purple-50 to-purple-100">
                   <CardContent className="p-6 text-center">
-                    <div className="text-sm text-purple-700 font-semibold mb-2">Revenue Generated</div>
-                    <div className="text-2xl font-bold text-purple-900">{formatCurrency(selectedCollege.revenueGenerated)}</div>
+                    <div className="text-sm text-purple-700 font-semibold mb-2">Total Revenue</div>
+                    <div className="text-2xl font-bold text-purple-900">
+                      {selectedCollege.financialStatus ? formatCurrency(selectedCollege.financialStatus.totalRevenueGenerated) : 'N/A'}
+                    </div>
                   </CardContent>
                 </Card>
 
@@ -793,7 +1049,7 @@ export default function AdminDashboardForProgress() {
                   </CardHeader>
                   <CardContent>
                     <ResponsiveContainer width="100%" height={350}>
-                      <BarChart data={selectedCollege.programs?.map(p => ({ program: p.programName, passRate: p.passPercentage }))}>
+                      <BarChart data={passRateData}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                         <XAxis dataKey="program" tick={{ fill: '#64748b', fontSize: 12, fontWeight: 600 }} />
                         <YAxis tick={{ fill: '#64748b', fontSize: 11 }} domain={[0, 100]} />
@@ -816,9 +1072,13 @@ export default function AdminDashboardForProgress() {
                         <TrendingUp className="h-6 w-6 text-white" />
                       </div>
                     </div>
-                    <div className="text-3xl font-bold text-green-900">{selectedCollege.passPercentage}%</div>
-                    <div className="text-sm text-green-700 font-semibold mt-1">Overall Pass Percentage</div>
-                    <div className="text-xs text-green-600 mt-2">College-wide average</div>
+                    <div className="text-3xl font-bold text-green-900">
+                      {passRateData.length > 0 ? 
+                        Math.round(passRateData.reduce((sum, item) => sum + item.passRate, 0) / passRateData.length) : 0
+                      }%
+                    </div>
+                    <div className="text-sm text-green-700 font-semibold mt-1">Average Pass Percentage</div>
+                    <div className="text-xs text-green-600 mt-2">Across all programs</div>
                   </CardContent>
                 </Card>
 
@@ -829,9 +1089,9 @@ export default function AdminDashboardForProgress() {
                         <Users className="h-6 w-6 text-white" />
                       </div>
                     </div>
-                    <div className="text-3xl font-bold text-blue-900">{selectedCollege.facultyTraining}</div>
-                    <div className="text-sm text-blue-700 font-semibold mt-1">Training Sessions</div>
-                    <div className="text-xs text-blue-600 mt-2">Faculty development programs</div>
+                    <div className="text-3xl font-bold text-blue-900">{analysis.totalNewAdmissions}</div>
+                    <div className="text-sm text-blue-700 font-semibold mt-1">Total New Admissions</div>
+                    <div className="text-xs text-blue-600 mt-2">Current academic year</div>
                   </CardContent>
                 </Card>
 
@@ -839,12 +1099,12 @@ export default function AdminDashboardForProgress() {
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between mb-3">
                       <div className="p-3 bg-purple-600 rounded-lg">
-                        <FlaskConical className="h-6 w-6 text-white" />
+                        <GraduationCap className="h-6 w-6 text-white" />
                       </div>
                     </div>
-                    <div className="text-3xl font-bold text-purple-900">{selectedCollege.facultyResearch}</div>
-                    <div className="text-sm text-purple-700 font-semibold mt-1">Research Projects</div>
-                    <div className="text-xs text-purple-600 mt-2">Active research initiatives</div>
+                    <div className="text-3xl font-bold text-purple-900">{analysis.totalGraduated}</div>
+                    <div className="text-sm text-purple-700 font-semibold mt-1">Total Graduated</div>
+                    <div className="text-xs text-purple-600 mt-2">Completed programs</div>
                   </CardContent>
                 </Card>
 
@@ -857,7 +1117,7 @@ export default function AdminDashboardForProgress() {
                     </div>
                     <div className="text-3xl font-bold text-orange-900">{analysis.graduationRate}%</div>
                     <div className="text-sm text-orange-700 font-semibold mt-1">Graduation Rate</div>
-                    <div className="text-xs text-orange-600 mt-2">{selectedCollege.graduatedStudents} students</div>
+                    <div className="text-xs text-orange-600 mt-2">{analysis.totalGraduated} students</div>
                   </CardContent>
                 </Card>
               </div>
@@ -877,9 +1137,9 @@ export default function AdminDashboardForProgress() {
                   <CardContent>
                     <ResponsiveContainer width="100%" height={350}>
                       <BarChart data={[
-                        { name: 'Classrooms', count: selectedCollege.classroomCount },
-                        { name: 'Labs', count: selectedCollege.labCount },
-                        { name: 'Library (K)', count: Math.round(selectedCollege.libraryBooks / 1000) }
+                        { name: 'Classrooms', count: selectedCollege.classroomCount || 0 },
+                        { name: 'Labs', count: selectedCollege.labCount || 0 },
+                        { name: 'Library (K)', count: Math.round((selectedCollege.libraryBooks || 0) / 1000) }
                       ]}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                         <XAxis dataKey="name" tick={{ fill: '#64748b', fontSize: 12, fontWeight: 600 }} />
@@ -925,10 +1185,10 @@ export default function AdminDashboardForProgress() {
                     <div className="flex items-center justify-between mb-4">
                       <School className="h-8 w-8 text-orange-600" />
                       <Badge variant={selectedCollege.buildingStatus === 'Complete' ? "default" : "secondary"}>
-                        {selectedCollege.buildingStatus}
+                        {selectedCollege.buildingStatus || 'N/A'}
                       </Badge>
                     </div>
-                    <div className="text-2xl font-bold text-gray-900">{selectedCollege.classroomCount}</div>
+                    <div className="text-2xl font-bold text-gray-900">{selectedCollege.classroomCount || 0}</div>
                     <div className="text-sm text-gray-600 mt-1">Classrooms</div>
                     <div className="text-xs text-gray-500 mt-2">Ratio: {analysis.studentClassroomRatio}:1</div>
                   </CardContent>
@@ -940,7 +1200,7 @@ export default function AdminDashboardForProgress() {
                       <FlaskConical className="h-8 w-8 text-blue-600" />
                       <Badge variant="secondary">Labs</Badge>
                     </div>
-                    <div className="text-2xl font-bold text-gray-900">{selectedCollege.labCount}</div>
+                    <div className="text-2xl font-bold text-gray-900">{selectedCollege.labCount || 0}</div>
                     <div className="text-sm text-gray-600 mt-1">Labs/Workshops</div>
                     <div className="text-xs text-gray-500 mt-2">Ratio: {analysis.studentLabRatio}:1</div>
                   </CardContent>
@@ -952,9 +1212,9 @@ export default function AdminDashboardForProgress() {
                       <BookOpen className="h-8 w-8 text-purple-600" />
                       <Badge variant="secondary">Library</Badge>
                     </div>
-                    <div className="text-2xl font-bold text-gray-900">{(selectedCollege.libraryBooks / 1000).toFixed(1)}K</div>
+                    <div className="text-2xl font-bold text-gray-900">{((selectedCollege.libraryBooks || 0) / 1000).toFixed(1)}K</div>
                     <div className="text-sm text-gray-600 mt-1">Books Available</div>
-                    <div className="text-xs text-gray-500 mt-2">{Math.round(selectedCollege.libraryBooks / selectedCollege.totalStudents)} per student</div>
+                    <div className="text-xs text-gray-500 mt-2">{Math.round((selectedCollege.libraryBooks || 0) / (selectedCollege.totalStudents || 1))} per student</div>
                   </CardContent>
                 </Card>
 
@@ -966,7 +1226,7 @@ export default function AdminDashboardForProgress() {
                         selectedCollege.itConnectivity === 'Excellent' ? "default" :
                         selectedCollege.itConnectivity === 'Good' ? "secondary" : "destructive"
                       }>
-                        {selectedCollege.itConnectivity}
+                        {selectedCollege.itConnectivity || 'N/A'}
                       </Badge>
                     </div>
                     <div className="text-2xl font-bold text-gray-900">IT</div>
@@ -977,8 +1237,8 @@ export default function AdminDashboardForProgress() {
               </div>
             </TabsContent>
 
-            {/* Insights Tab */}
-            <TabsContent value="insights" className="space-y-6">
+            {/* Progress Tab */}
+            <TabsContent value="progress" className="space-y-6">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <Card className="shadow-lg">
                   <CardHeader>
@@ -992,7 +1252,7 @@ export default function AdminDashboardForProgress() {
                     <div>
                       <div className="flex justify-between mb-2">
                         <span className="text-sm font-semibold text-gray-700">Academic Progress</span>
-                        <span className="text-sm font-bold text-blue-600">{selectedCollege.academicProgress || 'Not reported'}</span>
+                        <span className="text-sm font-bold text-blue-600">Reported</span>
                       </div>
                       <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
                         <p className="text-sm text-gray-700">{selectedCollege.academicProgress || 'No progress details available'}</p>
@@ -1002,10 +1262,30 @@ export default function AdminDashboardForProgress() {
                     <div>
                       <div className="flex justify-between mb-2">
                         <span className="text-sm font-semibold text-gray-700">Research Progress</span>
-                        <span className="text-sm font-bold text-purple-600">{selectedCollege.researchProgress || 'Not reported'}</span>
+                        <span className="text-sm font-bold text-purple-600">Reported</span>
                       </div>
                       <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
                         <p className="text-sm text-gray-700">{selectedCollege.researchProgress || 'No research progress details'}</p>
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="flex justify-between mb-2">
+                        <span className="text-sm font-semibold text-gray-700">Administrative Progress</span>
+                        <span className="text-sm font-bold text-green-600">Reported</span>
+                      </div>
+                      <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                        <p className="text-sm text-gray-700">{selectedCollege.adminProgress || 'No administrative progress details'}</p>
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="flex justify-between mb-2">
+                        <span className="text-sm font-semibold text-gray-700">Quality Progress</span>
+                        <span className="text-sm font-bold text-orange-600">Reported</span>
+                      </div>
+                      <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
+                        <p className="text-sm text-gray-700">{selectedCollege.qualityProgress || 'No quality progress details'}</p>
                       </div>
                     </div>
                   </CardContent>
@@ -1042,7 +1322,10 @@ export default function AdminDashboardForProgress() {
                   </CardContent>
                 </Card>
               </div>
+            </TabsContent>
 
+            {/* Insights Tab */}
+            <TabsContent value="insights" className="space-y-6">
               <Card className="shadow-lg">
                 <CardHeader>
                   <CardTitle className="flex items-center text-xl">
@@ -1065,8 +1348,12 @@ export default function AdminDashboardForProgress() {
                       <div className="p-4 bg-purple-600 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
                         <GraduationCap className="h-8 w-8 text-white" />
                       </div>
-                      <div className="text-3xl font-bold text-purple-900">{selectedCollege.passPercentage}%</div>
-                      <div className="text-sm text-purple-700 font-semibold mt-2">Overall Pass Rate</div>
+                      <div className="text-3xl font-bold text-purple-900">
+                        {passRateData.length > 0 ? 
+                          Math.round(passRateData.reduce((sum, item) => sum + item.passRate, 0) / passRateData.length) : 0
+                        }%
+                      </div>
+                      <div className="text-sm text-purple-700 font-semibold mt-2">Average Pass Rate</div>
                       <div className="text-xs text-purple-600 mt-1">Academic performance</div>
                     </div>
 
@@ -1083,9 +1370,135 @@ export default function AdminDashboardForProgress() {
                   </div>
                 </CardContent>
               </Card>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Card className="shadow-lg">
+                  <CardHeader>
+                    <CardTitle className="flex items-center text-xl">
+                      <Users className="h-5 w-5 mr-2 text-green-600" />
+                      Leadership & Contacts
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                      <span className="font-semibold">Head of Planning/QAAC:</span>
+                      <span>{selectedCollege.headName || 'Not specified'}</span>
+                    </div>
+                    <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                      <span className="font-semibold">Campus Chief/Principal:</span>
+                      <span>{selectedCollege.principalName || 'Not specified'}</span>
+                    </div>
+                    <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                      <span className="font-semibold">Submitted By:</span>
+                      <span>{selectedCollege.submittedBy || 'Not specified'}</span>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="shadow-lg">
+                  <CardHeader>
+                    <CardTitle className="flex items-center text-xl">
+                      <FileText className="h-5 w-5 mr-2 text-blue-600" />
+                      Report Information
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                      <span className="font-semibold">Report ID:</span>
+                      <span className="font-mono text-sm">{selectedCollege.id}</span>
+                    </div>
+                    <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                      <span className="font-semibold">Created:</span>
+                      <span>{new Date(selectedCollege.createdAt!).toLocaleDateString()}</span>
+                    </div>
+                    <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                      <span className="font-semibold">Last Updated:</span>
+                      <span>{new Date(selectedCollege.updatedAt!).toLocaleDateString()}</span>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             </TabsContent>
           </Tabs>
         </div>
+
+        {/* Full Screen Modal */}
+        {isFullScreenOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90">
+            <div className="relative w-full h-full flex items-center justify-center">
+              {/* Close button */}
+              <Button
+                variant="secondary"
+                size="icon"
+                className="absolute top-4 right-4 z-10 bg-white hover:bg-gray-100"
+                onClick={() => {
+                  setIsFullScreenOpen(false);
+                  setSelectedImage(null);
+                  setSelectedDocument(null);
+                }}
+              >
+                <X className="h-6 w-6" />
+              </Button>
+              
+              {/* Download button */}
+              <Button
+                variant="secondary"
+                size="icon"
+                className="absolute top-4 right-16 z-10 bg-white hover:bg-gray-100"
+                onClick={() => {
+                  const url = selectedImage || selectedDocument?.url;
+                  const filename = selectedDocument?.filename || `document-${Date.now()}`;
+                  if (url) {
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = filename;
+                    link.click();
+                  }
+                }}
+              >
+                <Download className="h-6 w-6" />
+              </Button>
+              
+              {/* Content */}
+              <div className="max-w-4xl max-h-[90vh] overflow-auto">
+                {selectedImage ? (
+                  <img 
+                    src={selectedImage} 
+                    alt="Document full view"
+                    className="max-w-full max-h-full object-contain"
+                  />
+                ) : selectedDocument?.type === 'pdf' ? (
+                  <iframe 
+                    src={selectedDocument.url} 
+                    className="w-full h-[80vh] border-0 rounded-lg"
+                    title={selectedDocument.filename}
+                  />
+                ) : (
+                  <div className="bg-white p-8 rounded-lg max-w-4xl">
+                    <div className="flex flex-col items-center justify-center space-y-4">
+                      <FileText className="h-16 w-16 text-gray-400" />
+                      <p className="text-lg font-semibold">Document Preview</p>
+                      <p className="text-gray-500 text-center">
+                        This document cannot be previewed in full screen. Please download to view.
+                      </p>
+                      <Button
+                        onClick={() => {
+                          const link = document.createElement('a');
+                          link.href = selectedDocument!.url;
+                          link.download = selectedDocument!.filename;
+                          link.click();
+                        }}
+                      >
+                        <Download className="h-4 w-4 mr-2" />
+                        Download Document
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
@@ -1134,8 +1547,7 @@ export default function AdminDashboardForProgress() {
                     <TableHead className="font-bold">Academic Year</TableHead>
                     <TableHead className="font-bold">Total Students</TableHead>
                     <TableHead className="font-bold">Programs</TableHead>
-                    <TableHead className="font-bold">Pass Rate</TableHead>
-                    <TableHead className="font-bold">Budget Use</TableHead>
+                    <TableHead className="font-bold">Budget Utilization</TableHead>
                     <TableHead className="font-bold">Infrastructure</TableHead>
                     <TableHead className="font-bold">Actions</TableHead>
                   </TableRow>
@@ -1163,11 +1575,6 @@ export default function AdminDashboardForProgress() {
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          <Badge variant={report.passPercentage >= 80 ? "default" : report.passPercentage >= 60 ? "secondary" : "destructive"}>
-                            {report.passPercentage}%
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
                           <Badge variant={
                             analysis.budgetUtilization >= 85 && analysis.budgetUtilization <= 95 ? "default" :
                             analysis.budgetUtilization >= 60 ? "secondary" : "destructive"
@@ -1178,9 +1585,9 @@ export default function AdminDashboardForProgress() {
                         <TableCell>
                           <div className="flex items-center space-x-2">
                             <School className="h-4 w-4 text-gray-500" />
-                            <span className="text-sm">{report.classroomCount} classes</span>
+                            <span className="text-sm">{report.classroomCount || 0} classes</span>
                             <BookOpen className="h-4 w-4 text-gray-500 ml-2" />
-                            <span className="text-sm">{(report.libraryBooks / 1000).toFixed(1)}K books</span>
+                            <span className="text-sm">{((report.libraryBooks || 0) / 1000).toFixed(1)}K books</span>
                           </div>
                         </TableCell>
                         <TableCell>
@@ -1206,3 +1613,5 @@ export default function AdminDashboardForProgress() {
     </div>
   );
 }
+
+
