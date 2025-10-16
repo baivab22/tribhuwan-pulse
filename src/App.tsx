@@ -39,6 +39,7 @@ import FeedbackPage from './pages/feedback';
 import { ProgressReport } from './types';
 import ProgressForm from './pages/ProgressForm';
 import TUVision2030 from './pages/missionVision';
+import DigitalUniversity from './pages/digital';
 
 const queryClient = new QueryClient();
 
@@ -94,6 +95,9 @@ function Header() {
     { path: '/college-form', label: 'College Form', icon: FileText },
         { path: '/progress-form', label: 'Progress Form', icon: FileText },
               { path: '/mission-vision', label: 'Mission Vision', icon: FileText },
+              { path: '/digital-university', label: 'Digital University', icon: FileText },
+
+              
 
   ];
 
@@ -101,6 +105,8 @@ function Header() {
     { path: '/submit', label: 'Submit a Feedback', icon: Send },
     { path: '/feedback-status', label: 'Track Feedback', icon: MessageSquare },
         { path: '/public', label: 'Public Transparency', icon: Eye },
+
+        
   ];
 
   const isActivePath = (path) => {
@@ -263,9 +269,9 @@ function Header() {
                       onClick={() => setFeedbackMenuOpen(false)}
                     />
                     <div className="absolute left-0 mt-2 w-56 bg-white rounded-xl shadow-2xl border border-gray-200 py-2 z-20">
-                      <div className="px-3 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                      {/* <div className="px-3 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
                         Feedback Options
-                      </div>
+                      </div> */}
                       <div className="border-t border-gray-100 my-1" />
                       {feedbackItems.map((item) => {
                         const IconComponent = item.icon;
@@ -503,6 +509,9 @@ const App = () => {
               <Route path="/college-form" element={<CollegeDataForm />} />
                        <Route path="/progress-form" element={   <ProgressForm onSubmit={handleFormSubmit} isLoading={isSubmitting} /> } />
                             <Route path="/mission-vision" element={<TUVision2030 /> } />
+                            <Route path="/digital-university" element={<DigitalUniversity /> } />
+
+                            
               <Route path="*" element={<NotFound />} />
             </Routes>
           </main>
