@@ -10,9 +10,7 @@ import { Download, Search, Eye, TrendingUp, Users, DollarSign, Building, BookOpe
 import { toast } from 'sonner';
 import { ProgressReport, AnalyticsData } from '@/types';
 import { jsPDF } from 'jspdf';
-import 'jspdf-autotable';
-
-
+import autoTable from 'jspdf-autotable';
 
 // Import the required icons
 import { X } from 'lucide-react';
@@ -29,6 +27,16 @@ const CHART_COLORS = {
   gradient1: '#6366f1',
   gradient2: '#8b5cf6'
 };
+
+// Extend jsPDF with autoTable
+declare module 'jspdf' {
+  interface jsPDF {
+    lastAutoTable?: {
+      finalY: number;
+    };
+    autoTable: (options: any) => jsPDF;
+  }
+}
 
 export default function AdminDashboardForProgress() {
   const [reports, setReports] = useState<ProgressReport[]>([]);
@@ -106,79 +114,431 @@ export default function AdminDashboardForProgress() {
       const pdf = new jsPDF();
       const analysis = getCollegeAnalysis(report);
       
-      pdf.setFontSize(20);
-      pdf.text(`${report.collegeName} - Progress Report`, 20, 20);
-      pdf.setFontSize(12);
-      pdf.text(`Academic Year: ${report.academicYear} | Submission Date: ${report.submissionDate}`, 20, 30);
-
-      pdf.setFontSize(14);
-      pdf.text('Student Overview', 20, 45);
-      
-      pdf.autoTable({
-        startY: 50,
-        head: [['Metric', 'Value']],
-        body: [
-          ['Total Students', report.totalStudents.toLocaleString()],
-          ['Total Programs', report.programs?.length || 0],
-          ['Building Status', report.buildingStatus || 'N/A'],
-          ['Classroom Count', report.classroomCount?.toString() || '0'],
-          ['Lab Count', report.labCount?.toString() || '0'],
-          ['Library Books', report.libraryBooks?.toString() || '0']
-        ]
+      // Set document properties
+      pdf.setProperties({
+        title: `${report.collegeName} - Progress Report ${report.academicYear}`,
+        subject: 'College Progress Monitoring Report',
+        author: 'Education Monitoring System',
+        keywords: 'college, progress, report, education',
+        creator: 'Education Monitoring System'
       });
 
-      // Add program-wise data
-      const programY = (pdf as any).lastAutoTable.finalY + 15;
-      pdf.setFontSize(14);
-      pdf.text('Program-wise Student Data', 20, programY);
+      // Add header with styling
+      pdf.setFillColor(59, 130, 246); // Blue color
+      pdf.rect(0, 0, 220, 30, 'F');
       
+      pdf.setTextColor(255, 255, 255);
+      pdf.setFontSize(20);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('EDUCATION PROGRESS REPORT', 105, 15, { align: 'center' });
+      
+      pdf.setFontSize(12);
+      pdf.text(`${report.collegeName}`, 105, 22, { align: 'center' });
+      
+      // Reset text color for content
+      pdf.setTextColor(0, 0, 0);
+      
+      let currentY = 40;
+
+      // College Information Section
+      pdf.setFontSize(16);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('COLLEGE INFORMATION', 14, currentY);
+      currentY += 10;
+
+      pdf.setFontSize(10);
+      pdf.setFont('helvetica', 'normal');
+      
+      const collegeInfo = [
+        ['College Name:', report.collegeName || 'N/A'],
+        ['College ID:', report.collegeId || 'N/A'],
+        ['Academic Year:', report.academicYear || 'N/A'],
+        ['Submission Date:', report.submissionDate || 'N/A'],
+        ['Head of Planning/QAAC:', report.headName || 'N/A'],
+        ['Campus Chief/Principal:', report.principalName || 'N/A'],
+        ['Submitted By:', report.submittedBy || 'N/A']
+      ];
+
+      collegeInfo.forEach(([label, value]) => {
+        pdf.text(`${label}`, 14, currentY);
+        pdf.text(`${value}`, 60, currentY);
+        currentY += 6;
+      });
+
+      currentY += 5;
+
+      // Key Metrics Section
+      pdf.setFontSize(16);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('KEY PERFORMANCE METRICS', 14, currentY);
+      currentY += 10;
+
+      const metricsData = [
+        ['Total Students', report.totalStudents?.toLocaleString() || '0'],
+        ['Total Programs', (report.programs?.length || 0).toString()],
+        ['Budget Utilization', `${analysis.budgetUtilization}%`],
+        ['Student:Classroom Ratio', `${analysis.studentClassroomRatio}:1`],
+        ['Student:Lab Ratio', `${analysis.studentLabRatio}:1`],
+        ['Graduation Rate', `${analysis.graduationRate}%`],
+        ['New Admissions', analysis.totalNewAdmissions?.toLocaleString() || '0'],
+        ['Graduated Students', analysis.totalGraduated?.toLocaleString() || '0']
+      ];
+
+      pdf.autoTable({
+        startY: currentY,
+        head: [['Metric', 'Value']],
+        body: metricsData,
+        theme: 'grid',
+        headStyles: { fillColor: [59, 130, 246], textColor: 255, fontStyle: 'bold' },
+        styles: { fontSize: 10, cellPadding: 3 },
+        margin: { left: 14, right: 14 }
+      });
+
+      currentY = (pdf as any).lastAutoTable.finalY + 15;
+
+      // Infrastructure Overview
+      pdf.setFontSize(16);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('INFRASTRUCTURE OVERVIEW', 14, currentY);
+      currentY += 10;
+
+      const infrastructureData = [
+        ['Building Status', report.buildingStatus || 'N/A'],
+        ['Classroom Count', (report.classroomCount || 0).toString()],
+        ['Laboratory Count', (report.labCount || 0).toString()],
+        ['Library Books', (report.libraryBooks || 0).toLocaleString()],
+        ['IT Connectivity', report.itConnectivity || 'N/A'],
+        ['Books per Student', Math.round((report.libraryBooks || 0) / (report.totalStudents || 1)).toString()]
+      ];
+
+      pdf.autoTable({
+        startY: currentY,
+        head: [['Infrastructure Item', 'Details']],
+        body: infrastructureData,
+        theme: 'grid',
+        headStyles: { fillColor: [16, 185, 129], textColor: 255, fontStyle: 'bold' },
+        styles: { fontSize: 10, cellPadding: 3 },
+        margin: { left: 14, right: 14 }
+      });
+
+      currentY = (pdf as any).lastAutoTable.finalY + 15;
+
+      // Program-wise Student Data
       if (report.programs && report.programs.length > 0) {
+        pdf.setFontSize(16);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text('PROGRAM-WISE STUDENT DATA', 14, currentY);
+        currentY += 10;
+
         const programData = report.programs.map(program => [
-          program.programName,
-          program.totalStudents.toString(),
-          program.maleStudents.toString(),
-          program.femaleStudents.toString(),
-          program.scholarshipStudents.toString(),
+          program.programName || 'N/A',
+          (program.totalStudents || 0).toString(),
+          (program.maleStudents || 0).toString(),
+          (program.femaleStudents || 0).toString(),
+          (program.scholarshipStudents || 0).toString(),
           program.isScholarshipRuleApplied ? 'Yes' : 'No',
-          program.newAdmissions.toString(),
-          program.graduatedStudents.toString(),
-          `${program.passPercentage}%`,
-          program?.approvalLetterPath ? 'Yes' : 'No'
+          (program.newAdmissions || 0).toString(),
+          (program.graduatedStudents || 0).toString(),
+          `${program.passPercentage || 0}%`,
+          program.approvalLetterPath ? 'Available' : 'Not Available'
         ]);
 
         pdf.autoTable({
-          startY: programY + 5,
-          head: [['Program', 'Total', 'Male', 'Female', 'Scholarship', 'Scholarship Rule', 'New Admissions', 'Graduated', 'Pass %', 'Approval Letter']],
-          body: programData
+          startY: currentY,
+          head: [
+            ['Program Name', 'Total', 'Male', 'Female', 'Scholarship', 'Rule Applied', 'New Adm', 'Graduated', 'Pass %', 'Approval']
+          ],
+          body: programData,
+          theme: 'grid',
+          headStyles: { fillColor: [139, 92, 246], textColor: 255, fontStyle: 'bold' },
+          styles: { fontSize: 8, cellPadding: 2 },
+          margin: { left: 14, right: 14 },
+          pageBreak: 'auto'
         });
+
+        currentY = (pdf as any).lastAutoTable.finalY + 15;
       }
 
-      // Add financial data if available
+      // Financial Summary
       if (report.financialStatus) {
-        const financialY = (pdf as any).lastAutoTable.finalY + 15;
-        pdf.setFontSize(14);
-        pdf.text('Financial Summary', 20, financialY);
+        pdf.setFontSize(16);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text('FINANCIAL SUMMARY', 14, currentY);
+        currentY += 10;
+
+        const financial = report.financialStatus;
         
-        const financialData = [
-          ['Total Annual Budget', formatCurrency(report.financialStatus.totalAnnualBudget)],
-          ['Total Actual Expenditure', formatCurrency(report.financialStatus.totalActualExpenditure)],
-          ['Total Revenue Generated', formatCurrency(report.financialStatus.totalRevenueGenerated)],
-          ['Budget Utilization', `${((report.financialStatus.totalActualExpenditure / report.financialStatus.totalAnnualBudget) * 100).toFixed(2)}%`]
+        // Overall Financial Summary
+        const overallFinancial = [
+          ['Total Annual Budget', formatCurrency(financial.totalAnnualBudget)],
+          ['Total Actual Expenditure', formatCurrency(financial.totalActualExpenditure)],
+          ['Total Revenue Generated', formatCurrency(financial.totalRevenueGenerated)],
+          ['Budget Utilization Rate', `${analysis.budgetUtilization}%`],
+          ['Financial Efficiency', analysis.budgetUtilization >= 85 && analysis.budgetUtilization <= 95 ? 'Optimal' : 'Needs Review']
         ];
 
         pdf.autoTable({
-          startY: financialY + 5,
+          startY: currentY,
           head: [['Financial Item', 'Amount']],
-          body: financialData
+          body: overallFinancial,
+          theme: 'grid',
+          headStyles: { fillColor: [245, 158, 11], textColor: 255, fontStyle: 'bold' },
+          styles: { fontSize: 10, cellPadding: 3 },
+          margin: { left: 14, right: 14 }
         });
+
+        currentY = (pdf as any).lastAutoTable.finalY + 15;
+
+        // Detailed Financial Breakdown
+        const financialCategories = [
+          {
+            category: 'Salaries',
+            data: financial.salaries
+          },
+          {
+            category: 'Capital',
+            data: financial.capital
+          },
+          {
+            category: 'Operational',
+            data: financial.operational
+          },
+          {
+            category: 'Research',
+            data: financial.research
+          }
+        ];
+
+        const detailedFinancialData = financialCategories.map(item => {
+          const data = item.data;
+          if (!data) return [item.category, 'N/A', 'N/A', 'N/A', 'N/A'];
+          
+          return [
+            item.category,
+            formatCurrency(data.annualBudget || 0),
+            formatCurrency(data.actualExpenditure || 0),
+            formatCurrency(data.revenueGenerated || 0),
+            data.sources?.join(', ') || 'N/A'
+          ];
+        });
+
+        pdf.autoTable({
+          startY: currentY,
+          head: [['Category', 'Annual Budget', 'Actual Expenditure', 'Revenue Generated', 'Funding Sources']],
+          body: detailedFinancialData,
+          theme: 'grid',
+          headStyles: { fillColor: [59, 130, 246], textColor: 255, fontStyle: 'bold' },
+          styles: { fontSize: 8, cellPadding: 2 },
+          margin: { left: 14, right: 14 }
+        });
+
+        currentY = (pdf as any).lastAutoTable.finalY + 15;
       }
 
-      pdf.save(`${report.collegeName}_${report.academicYear}_report.pdf`);
+      // Progress and Development Section
+      pdf.setFontSize(16);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('PROGRESS & DEVELOPMENT', 14, currentY);
+      currentY += 10;
+
+      const progressData = [
+        ['Academic Progress', report.academicProgress || 'No information provided'],
+        ['Research Progress', report.researchProgress || 'No information provided'],
+        ['Administrative Progress', report.adminProgress || 'No information provided'],
+        ['Quality Progress', report.qualityProgress || 'No information provided']
+      ];
+
+      progressData.forEach(([category, progress]) => {
+        pdf.setFontSize(10);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text(`${category}:`, 14, currentY);
+        currentY += 4;
+        
+        pdf.setFont('helvetica', 'normal');
+        const lines = pdf.splitTextToSize(progress, 180);
+        pdf.text(lines, 20, currentY);
+        currentY += (lines.length * 5) + 8;
+        
+        // Check if we need a new page
+        if (currentY > 250) {
+          pdf.addPage();
+          currentY = 20;
+        }
+      });
+
+      // Challenges and Future Plans
+      if (report.majorChallenges || report.nextYearPlan) {
+        pdf.setFontSize(16);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text('CHALLENGES & FUTURE PLANS', 14, currentY);
+        currentY += 10;
+
+        if (report.majorChallenges) {
+          pdf.setFontSize(10);
+          pdf.setFont('helvetica', 'bold');
+          pdf.text('Major Challenges:', 14, currentY);
+          currentY += 4;
+          
+          pdf.setFont('helvetica', 'normal');
+          const challengeLines = pdf.splitTextToSize(report.majorChallenges, 180);
+          pdf.text(challengeLines, 20, currentY);
+          currentY += (challengeLines.length * 5) + 8;
+        }
+
+        if (report.nextYearPlan) {
+          pdf.setFontSize(10);
+          pdf.setFont('helvetica', 'bold');
+          pdf.text('Next Year Plan:', 14, currentY);
+          currentY += 4;
+          
+          pdf.setFont('helvetica', 'normal');
+          const planLines = pdf.splitTextToSize(report.nextYearPlan, 180);
+          pdf.text(planLines, 20, currentY);
+          currentY += (planLines.length * 5) + 8;
+        }
+      }
+
+      // Performance Analysis Section
+      pdf.setFontSize(16);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('PERFORMANCE ANALYSIS', 14, currentY);
+      currentY += 10;
+
+      const performanceAnalysis = [
+        ['Overall Performance Rating', getPerformanceRating(analysis)],
+        ['Budget Efficiency', analysis.budgetUtilization >= 85 && analysis.budgetUtilization <= 95 ? 'Optimal' : 'Needs Improvement'],
+        ['Resource Utilization', analysis.studentClassroomRatio <= 40 ? 'Good' : 'Overcrowded'],
+        ['Academic Performance', analysis.graduationRate >= 75 ? 'Good' : 'Needs Attention'],
+        ['Infrastructure Status', report.buildingStatus === 'Complete' ? 'Adequate' : 'Development Needed']
+      ];
+
+      pdf.autoTable({
+        startY: currentY,
+        head: [['Aspect', 'Assessment']],
+        body: performanceAnalysis,
+        theme: 'grid',
+        headStyles: { fillColor: [16, 185, 129], textColor: 255, fontStyle: 'bold' },
+        styles: { fontSize: 10, cellPadding: 3 },
+        margin: { left: 14, right: 14 }
+      });
+
+      currentY = (pdf as any).lastAutoTable.finalY + 15;
+
+      // Summary and Recommendations
+      pdf.setFontSize(16);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('SUMMARY & RECOMMENDATIONS', 14, currentY);
+      currentY += 10;
+
+      const summary = generateSummary(report, analysis);
+      pdf.setFontSize(10);
+      pdf.setFont('helvetica', 'normal');
+      const summaryLines = pdf.splitTextToSize(summary, 180);
+      pdf.text(summaryLines, 14, currentY);
+      currentY += (summaryLines.length * 5) + 10;
+
+      // Footer
+      const pageCount = pdf.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        pdf.setPage(i);
+        pdf.setFontSize(8);
+        pdf.setTextColor(100, 100, 100);
+        pdf.text(
+          `Page ${i} of ${pageCount} | Generated on ${new Date().toLocaleDateString()} | Education Monitoring System`,
+          105,
+          290,
+          { align: 'center' }
+        );
+      }
+
+      // Save the PDF
+      pdf.save(`${report.collegeName}_Progress_Report_${report.academicYear}.pdf`);
       toast.success('PDF report exported successfully');
     } catch (error) {
       console.error('Error exporting PDF:', error);
       toast.error('Failed to export PDF');
     }
+  };
+
+  // Helper function to generate performance rating
+  const getPerformanceRating = (analysis: any) => {
+    let score = 0;
+    
+    // Budget utilization (30%)
+    if (analysis.budgetUtilization >= 85 && analysis.budgetUtilization <= 95) score += 30;
+    else if (analysis.budgetUtilization >= 70) score += 20;
+    else score += 10;
+
+    // Student-classroom ratio (25%)
+    if (analysis.studentClassroomRatio <= 30) score += 25;
+    else if (analysis.studentClassroomRatio <= 40) score += 20;
+    else score += 10;
+
+    // Graduation rate (25%)
+    if (analysis.graduationRate >= 80) score += 25;
+    else if (analysis.graduationRate >= 60) score += 20;
+    else score += 10;
+
+    // Infrastructure (20%)
+    if (analysis.studentLabRatio <= 100) score += 20;
+    else if (analysis.studentLabRatio <= 150) score += 15;
+    else score += 5;
+
+    if (score >= 80) return 'Excellent';
+    if (score >= 60) return 'Good';
+    if (score >= 40) return 'Average';
+    return 'Needs Improvement';
+  };
+
+  // Helper function to generate summary
+  const generateSummary = (report: ProgressReport, analysis: any) => {
+    const strengths = [];
+    const areasForImprovement = [];
+
+    // Identify strengths
+    if (analysis.budgetUtilization >= 85 && analysis.budgetUtilization <= 95) {
+      strengths.push('optimal budget utilization');
+    }
+    if (analysis.studentClassroomRatio <= 40) {
+      strengths.push('good classroom capacity management');
+    }
+    if (analysis.graduationRate >= 75) {
+      strengths.push('strong academic performance');
+    }
+    if (report.programs && report.programs.length >= 3) {
+      strengths.push('diverse program offerings');
+    }
+
+    // Identify areas for improvement
+    if (analysis.budgetUtilization < 70 || analysis.budgetUtilization > 100) {
+      areasForImprovement.push('budget management needs optimization');
+    }
+    if (analysis.studentClassroomRatio > 40) {
+      areasForImprovement.push('classroom infrastructure requires expansion');
+    }
+    if (analysis.graduationRate < 60) {
+      areasForImprovement.push('academic outcomes need enhancement');
+    }
+    if (analysis.studentLabRatio > 150) {
+      areasForImprovement.push('laboratory facilities are insufficient');
+    }
+
+    let summary = `The ${report.collegeName} has demonstrated `;
+    
+    if (strengths.length > 0) {
+      summary += strengths.join(', ') + '. ';
+    } else {
+      summary += 'satisfactory performance across basic metrics. ';
+    }
+
+    if (areasForImprovement.length > 0) {
+      summary += `Key areas requiring attention include ${areasForImprovement.join(', ')}. `;
+    }
+
+    summary += `Overall institutional performance is rated as "${getPerformanceRating(analysis)}". `;
+    summary += `Recommendations include continuous monitoring of resource allocation and strategic planning for infrastructure development.`;
+
+    return summary;
   };
 
   const convertCollegeToCSV = (report: ProgressReport): string => {
@@ -778,6 +1138,7 @@ export default function AdminDashboardForProgress() {
                       {selectedCollege.programs?.reduce((sum, prog) => sum + (prog.maleStudents || 0), 0).toLocaleString()}
                     </div>
                     <div className="text-sm text-blue-700 font-semibold mt-2">Total Male Students</div>
+                    <div className="text-xs text-blue-600 mt-2">Across all programs</div>
                   </CardContent>
                 </Card>
 
@@ -790,6 +1151,7 @@ export default function AdminDashboardForProgress() {
                       {selectedCollege.programs?.reduce((sum, prog) => sum + (prog.femaleStudents || 0), 0).toLocaleString()}
                     </div>
                     <div className="text-sm text-pink-700 font-semibold mt-2">Total Female Students</div>
+                    <div className="text-xs text-pink-600 mt-2">Across all programs</div>
                   </CardContent>
                 </Card>
 
@@ -802,6 +1164,7 @@ export default function AdminDashboardForProgress() {
                       {selectedCollege.programs?.reduce((sum, prog) => sum + (prog.scholarshipStudents || 0), 0).toLocaleString()}
                     </div>
                     <div className="text-sm text-purple-700 font-semibold mt-2">Total Scholarship Students</div>
+                    <div className="text-xs text-purple-600 mt-2">Across all programs</div>
                   </CardContent>
                 </Card>
               </div>
@@ -905,69 +1268,7 @@ export default function AdminDashboardForProgress() {
                     </CardTitle>
                     <CardDescription>Audited statements and budget documents</CardDescription>
                   </CardHeader>
-                  {/* <CardContent>
-                    <div className="space-y-4">
-                      {selectedCollege.financialStatus?.attachments?.auditedFinancialStatements && (
-                        <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg border border-green-200">
-                          <div className="flex items-center space-x-3">
-                            <FileText className="h-8 w-8 text-green-600" />
-                            <div>
-                              <div className="font-semibold text-green-800">
-                                {selectedCollege.financialStatus.attachments.auditedFinancialStatementsFilename || 'Audited Financial Statements'}
-                              </div>
-                              <div className="text-sm text-green-600">Financial audit report</div>
-                            </div>
-                          </div>
-                          <Button
-                            variant="outline"
-                            onClick={() => handleFileView(
-                              selectedCollege.financialStatus!.attachments.auditedFinancialStatements!,
-                              selectedCollege.financialStatus!.attachments.auditedFinancialStatementsFilename || 'audited_financial_statements.pdf'
-                            )}
-                          >
-                            <Eye className="h-4 w-4 mr-2" />
-                            View
-                          </Button>
-                        </div>
-                      )}
-
-                      {selectedCollege.financialStatus?.attachments?.budgetCopy && (
-                        <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg border border-blue-200">
-                          <div className="flex items-center space-x-3">
-                            <FileText className="h-8 w-8 text-blue-600" />
-                            <div>
-                              <div className="font-semibold text-blue-800">
-                                {selectedCollege.financialStatus.attachments.budgetCopyFilename || 'Budget Copy'}
-                              </div>
-                              <div className="text-sm text-blue-600">Annual budget document</div>
-                            </div>
-                          </div>
-                          <Button
-                            variant="outline"
-                            onClick={() => handleFileView(
-                              selectedCollege.financialStatus!.attachments.budgetCopy!,
-                              selectedCollege.financialStatus!.attachments.budgetCopyFilename || 'budget_copy.pdf'
-                            )}
-                          >
-                            <Eye className="h-4 w-4 mr-2" />
-                            View
-                          </Button>
-                        </div>
-                      )}
-
-                      {!selectedCollege.financialStatus?.attachments?.auditedFinancialStatements && 
-                       !selectedCollege.financialStatus?.attachments?.budgetCopy && (
-                        <div className="text-center py-8 text-gray-500">
-                          <FileText className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                          <p>No financial documents available</p>
-                        </div>
-                      )}
-                    </div>
-                  </CardContent> */}
-
-
                   <FinancialDocumentsSection selectedCollege={selectedCollege}/>
-                  
                 </Card>
               </div>
 
@@ -1613,5 +1914,3 @@ export default function AdminDashboardForProgress() {
     </div>
   );
 }
-
-
