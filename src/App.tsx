@@ -91,7 +91,7 @@ function Header() {
   const mainNavigationItems = [
     { path: '/', label: t('nav.home'), icon: Home },
 
-    // { path: '/admin', label: t('nav.admin'), icon: Settings },
+    { path: '/admin', label: t('nav.admin'), icon: Settings },
     { path: '/college-form', label: 'College Form', icon: FileText },
         { path: '/progress-form', label: 'Progress Form', icon: FileText },
               { path: '/mission-vision', label: 'Mission Vision', icon: FileText },
