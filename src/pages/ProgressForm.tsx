@@ -279,7 +279,7 @@ export default function ProgressForm({ onSubmit, initialData, isLoading = false 
     // Validate file type
     const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'image/jpeg', 'image/jpg', 'image/png'];
     if (!allowedTypes.includes(file.type)) {
-      toast.error('Please upload a valid file (PDF, DOC, DOCX, JPG, JPEG, PNG)');
+      toast.error('Please upload a valid file ( JPG, JPEG, PNG)');
       return;
     }
 
@@ -819,7 +819,7 @@ export default function ProgressForm({ onSubmit, initialData, isLoading = false 
                               disabled={uploadingFiles[index]}
                             />
                             <p className="text-xs text-gray-500">
-                              Accepted formats: PDF, DOC, DOCX, JPG, JPEG, PNG (Max 10MB)
+                              Accepted formats: JPG, JPEG, PNG (Max 10MB)
                             </p>
                           </div>
                         )}
@@ -1201,7 +1201,7 @@ export default function ProgressForm({ onSubmit, initialData, isLoading = false 
                               disabled={uploadingFinancialFiles.auditedFinancialStatements}
                             />
                             <p className="text-xs text-gray-500">
-                              Accepted formats: PDF, DOC, DOCX (Max 10MB)
+                              Accepted formats: jpg,png(Max 10MB)
                             </p>
                           </div>
                         )}
@@ -1248,7 +1248,7 @@ export default function ProgressForm({ onSubmit, initialData, isLoading = false 
                               disabled={uploadingFinancialFiles.budgetCopy}
                             />
                             <p className="text-xs text-gray-500">
-                              Accepted formats: PDF, DOC, DOCX (Max 10MB)
+                              Accepted formats: jpg,jpeg,png (Max 10MB)
                             </p>
                           </div>
                         )}
