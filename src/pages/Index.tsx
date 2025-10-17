@@ -21,6 +21,7 @@ import {
 import DirectorMessage from '@/components/directorMessage';
 import WelcomeDirectorate from '@/components/welcomeDirectorate';
 import { goals, visionPoints } from './missionVision';
+import SummaryDashboard from '@/components/digitalShort.component';
 
 export default function UniversityHomepage() {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -218,6 +219,8 @@ export default function UniversityHomepage() {
         </div>
       </div>
 
+     
+
       {/* Stats Section */}
       <div className="bg-gray-50 py-12 border-b border-gray-200 flex justify-center">
         <div className="w-[90vw]">
@@ -246,6 +249,9 @@ export default function UniversityHomepage() {
           <WelcomeDirectorate/>
         </div>
       </div>
+
+
+       <SummaryDashboard/>
 
             <div className="py-20 flex justify-center">
         <div className="w-[90vw]">
