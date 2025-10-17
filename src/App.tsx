@@ -34,7 +34,7 @@ import {
 } from 'lucide-react';
 import CollegeDataForm from './pages/collegeForm';
 import { useIsMobile } from './hooks/use-mobile';
-import FeedbackPage from './pages/feedback';
+import FeedbackPage from './pages/Feedback';
 // import {ProgressReportForm} from './pages/ProgressForm';
 import { ProgressReport } from './types';
 import ProgressForm from './pages/ProgressForm';
