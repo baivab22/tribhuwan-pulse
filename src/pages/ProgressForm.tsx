@@ -16,7 +16,10 @@ interface ProgressFormProps {
   isLoading?: boolean;
 }
 
+const tabOrder = ['basic', 'programs', 'financial', 'infrastructure', 'progress', 'declaration'] as const;
+
 export default function ProgressForm({ onSubmit, initialData, isLoading = false }: ProgressFormProps) {
+  const [activeTab, setActiveTab] = useState<(typeof tabOrder)[number]>('basic');
   const [formData, setFormData] = useState<Partial<ProgressReport>>(
     initialData || {
       collegeId: '',
@@ -356,13 +359,6 @@ export default function ProgressForm({ onSubmit, initialData, isLoading = false 
     const file = event.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
-    // const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
-    // if (!allowedTypes.includes(file.type)) {
-    //   toast.error('Please upload a valid file (PDF, DOC, DOCX)');
-    //   return;
-    // }
-
     // Validate file size (10MB max for Cloudinary)
     const maxSize = 10 * 1024 * 1024; // 10MB in bytes
     if (file.size > maxSize) {
@@ -506,42 +502,92 @@ export default function ProgressForm({ onSubmit, initialData, isLoading = false 
     }
   };
 
+  const validateCurrentTab = (): boolean => {
+    switch (activeTab) {
+      case 'basic':
+        if (!formData.collegeId || !formData.collegeName || !formData.academicYear) {
+          toast.error('Please fill in all required fields in Basic Information');
+          return false;
+        }
+        return true;
+      
+      case 'programs':
+        if (programs.length === 0) {
+          toast.error('Please add at least one program');
+          return false;
+        }
+        
+        for (let i = 0; i < programs.length; i++) {
+          const program = programs[i];
+          if (!program.programName || program.programName.trim() === '') {
+            toast.error(`Program ${i + 1}: Program name is required`);
+            return false;
+          }
+
+          if (program.maleStudents + program.femaleStudents !== program.totalStudents) {
+            toast.error(`Program ${i + 1}: Male + Female students must equal Total Students`);
+            return false;
+          }
+
+          if (program.scholarshipStudents > program.totalStudents) {
+            toast.error(`Program ${i + 1}: Scholarship students cannot exceed total students`);
+            return false;
+          }
+
+          if (program.passPercentage < 0 || program.passPercentage > 100) {
+            toast.error(`Program ${i + 1}: Pass percentage must be between 0 and 100`);
+            return false;
+          }
+        }
+        return true;
+      
+      case 'declaration':
+        if (!formData.headName || !formData.principalName || !formData.submittedBy) {
+          toast.error('Please fill in all required fields in Declaration');
+          return false;
+        }
+        return true;
+      
+      default:
+        return true;
+    }
+  };
+
+  const handleNext = () => {
+    if (!validateCurrentTab()) return;
+    
+    const currentIndex = tabOrder.indexOf(activeTab);
+    if (currentIndex < tabOrder.length - 1) {
+      setActiveTab(tabOrder[currentIndex + 1]);
+    }
+  };
+
+  const handlePrevious = () => {
+    const currentIndex = tabOrder.indexOf(activeTab);
+    if (currentIndex > 0) {
+      setActiveTab(tabOrder[currentIndex - 1]);
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Basic validation
+    if (!validateCurrentTab()) return;
+
+    // Final validation before submission
     if (!formData.collegeId || !formData.collegeName || !formData.academicYear) {
       toast.error('Please fill in all required fields');
       return;
     }
 
-    // Validate programs
     if (programs.length === 0) {
       toast.error('Please add at least one program');
       return;
     }
 
-    for (let i = 0; i < programs.length; i++) {
-      const program = programs[i];
-      if (!program.programName || program.programName.trim() === '') {
-        toast.error(`Program ${i + 1}: Program name is required`);
-        return;
-      }
-
-      if (program.maleStudents + program.femaleStudents !== program.totalStudents) {
-        toast.error(`Program ${i + 1}: Male + Female students must equal Total Students`);
-        return;
-      }
-
-      if (program.scholarshipStudents > program.totalStudents) {
-        toast.error(`Program ${i + 1}: Scholarship students cannot exceed total students`);
-        return;
-      }
-
-      if (program.passPercentage < 0 || program.passPercentage > 100) {
-        toast.error(`Program ${i + 1}: Pass percentage must be between 0 and 100`);
-        return;
-      }
+    if (!formData.headName || !formData.principalName || !formData.submittedBy) {
+      toast.error('Please fill in all required fields in Declaration');
+      return;
     }
     
     const submitData = {
@@ -569,6 +615,9 @@ export default function ProgressForm({ onSubmit, initialData, isLoading = false 
     }
   };
 
+  const isLastTab = activeTab === 'declaration';
+  const isFirstTab = activeTab === 'basic';
+
   return (
     <div className="max-w-6xl mx-auto p-6">
       <Card className="mb-6">
@@ -583,7 +632,7 @@ export default function ProgressForm({ onSubmit, initialData, isLoading = false 
       </Card>
 
       <form onSubmit={handleSubmit}>
-        <Tabs defaultValue="basic" className="space-y-6">
+        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as typeof activeTab)} className="space-y-6">
           <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="basic">Basic Info</TabsTrigger>
             <TabsTrigger value="programs">Programs</TabsTrigger>
@@ -1431,31 +1480,34 @@ export default function ProgressForm({ onSubmit, initialData, isLoading = false 
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="headName">Head of Planning/QAAC Committee</Label>
+                    <Label htmlFor="headName">Head of Planning/QAAC Committee *</Label>
                     <Input
                       id="headName"
                       value={formData.headName}
                       onChange={(e) => handleInputChange('headName', e.target.value)}
                       placeholder="Full name"
+                      required
                     />
                   </div>
                   <div>
-                    <Label htmlFor="principalName">Campus Chief/Principal</Label>
+                    <Label htmlFor="principalName">Campus Chief/Principal *</Label>
                     <Input
                       id="principalName"
                       value={formData.principalName}
                       onChange={(e) => handleInputChange('principalName', e.target.value)}
                       placeholder="Full name"
+                      required
                     />
                   </div>
                 </div>
                 <div>
-                  <Label htmlFor="submittedBy">Submitted By</Label>
+                  <Label htmlFor="submittedBy">Submitted By *</Label>
                   <Input
                     id="submittedBy"
                     value={formData.submittedBy}
                     onChange={(e) => handleInputChange('submittedBy', e.target.value)}
                     placeholder="Name and designation"
+                    required
                   />
                 </div>
               </CardContent>
@@ -1463,13 +1515,30 @@ export default function ProgressForm({ onSubmit, initialData, isLoading = false 
           </TabsContent>
         </Tabs>
 
-        <div className="flex justify-end space-x-4 mt-6">
-          <Button type="button" variant="outline">
-            Save as Draft
-          </Button>
-          <Button type="submit" disabled={isLoading} className="bg-blue-600 hover:bg-blue-700">
-            {isLoading ? 'Submitting...' : 'Submit Report'}
-          </Button>
+        <div className="flex justify-between space-x-4 mt-6">
+          <div>
+            {!isFirstTab && (
+              <Button type="button" variant="outline" onClick={handlePrevious}>
+                Previous
+              </Button>
+            )}
+          </div>
+          
+          <div className="flex space-x-4">
+            <Button type="button" variant="outline">
+              Save as Draft
+            </Button>
+            
+            {!isLastTab ? (
+              <Button type="button" onClick={handleNext} className="bg-blue-600 hover:bg-blue-700">
+                Next
+              </Button>
+            ) : (
+              <Button type="submit" disabled={isLoading} className="bg-green-600 hover:bg-green-700">
+                {isLoading ? 'Submitting...' : 'Submit Report'}
+              </Button>
+            )}
+          </div>
         </div>
       </form>
     </div>

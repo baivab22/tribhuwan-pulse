@@ -5662,7 +5662,7 @@ const CollegeDataForm: React.FC = () => {
     setSuccess('');
 
     try {
-      const response = await axios.post('http://localhost:4000/api/collegeform', formData);
+      const response = await axios.post('http://172.25.205.32/api/collegeform', formData);
       
       if (response.data.success) {
         setSuccess('College form submitted successfully!');

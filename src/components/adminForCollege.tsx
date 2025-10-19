@@ -334,7 +334,7 @@ const AdminForCollege = () => {
         limit: rowsPerPage,
         ...filters
       };
-      const response = await axios.get('http://localhost:4000/api/collegeform', { params });
+      const response = await axios.get('http://172.25.205.32/api/collegeform', { params });
       if (response.data.success) {
         setColleges(response.data.data);
         setTotalCount(response.data.pagination.totalForms);
@@ -350,7 +350,7 @@ const AdminForCollege = () => {
   const fetchCollegeDetails = async (id) => {
     setLoading(true);
     try {
-      const response = await axios.get(`http://localhost:4000/api/collegeform/${id}`);
+      const response = await axios.get(`http://172.25.205.32/api/collegeform/${id}`);
       if (response.data.success) {
         setSelectedCollege(response.data.data);
         setDetailOpen(true);
