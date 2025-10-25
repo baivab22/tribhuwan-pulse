@@ -6,13 +6,13 @@ export default function SummaryDashboard() {
     { 
       title: 'Connectivity', 
       icon: Wifi, 
-      stat: '100%',
+      stat: '65%',
       desc: 'Broadband Coverage'
     },
     { 
       title: 'Learning Management', 
       icon: BookOpen, 
-      stat: 'Moodle',
+      stat: 'LMS',
       desc: 'Centralized LMS'
     },
     { 
@@ -27,13 +27,13 @@ export default function SummaryDashboard() {
     { 
       title: 'Digital Resources', 
       icon: BarChart3, 
-      stat: '50%',
+      stat: '70%',
       desc: 'Interactive Materials'
     },
     { 
       title: 'Capacity Building', 
       icon: Brain, 
-      stat: '100%',
+      stat: '60%',
       desc: 'Teaching Staff'
     },
     { 

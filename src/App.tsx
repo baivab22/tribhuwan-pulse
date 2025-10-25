@@ -95,7 +95,7 @@ function Header() {
     { path: '/college-form', label: 'College Form', icon: FileText },
         { path: '/progress-form', label: 'Progress Form', icon: FileText },
               { path: '/mission-vision', label: 'Mission Vision', icon: FileText },
-              { path: '/digital-university', label: 'Digital University', icon: FileText },
+              { path: '/digitalization', label: 'Digitallization', icon: FileText },
 
               
 
@@ -467,6 +467,8 @@ const App = () => {
 
     // const API_BASE_URL='https://feedbackbackend-4.onrender.com/api/progress';
     const API_BASE_URL='http://202.70.90.11:81/api/progress'
+    // const API_BASE_URL='http://localhost:4000/api/progress'
+
   
     const handleFormSubmit = async (data: ProgressReport) => {
     setIsSubmitting(true);
@@ -513,7 +515,7 @@ const App = () => {
               <Route path="/college-form" element={<CollegeDataForm />} />
                        <Route path="/progress-form" element={   <ProgressForm onSubmit={handleFormSubmit} isLoading={isSubmitting} /> } />
                             <Route path="/mission-vision" element={<TUVision2030 /> } />
-                            <Route path="/digital-university" element={<DigitalUniversity /> } />
+                            <Route path="/digitalization" element={<DigitalUniversity /> } />
 
                             
               <Route path="*" element={<NotFound />} />

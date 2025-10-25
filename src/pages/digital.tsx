@@ -246,7 +246,7 @@ function LMSSection() {
   ];
 
   const programs = [
-    { name: 'Centralized LMS (Moodle)', status: 'Short-term', icon: BookOpen, color: 'from-purple-500 to-pink-500', desc: 'Central hosting at university' },
+    { name: 'Centralized LMS', status: 'Short-term', icon: BookOpen, color: 'from-purple-500 to-pink-500', desc: 'Central hosting at university' },
     { name: 'Self-paced Learning (MOOC)', status: 'Mid-term', icon: Globe, color: 'from-blue-500 to-cyan-500', desc: 'Flexible learning platform' },
     { name: 'Video Conference System', status: 'Short-term', icon: Video, color: 'from-indigo-500 to-purple-500', desc: 'MS Teams integration' },
     { name: 'Virtual Lab Access', status: 'Mid-term', icon: Cpu, color: 'from-green-500 to-emerald-500', desc: 'Cloud-based labs' }

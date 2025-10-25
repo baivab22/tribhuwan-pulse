@@ -120,9 +120,10 @@ export default function UniversityHomepage() {
   ];
 
   const stats = [
-    { icon: Building2, value: "250+", label: "Affiliated Colleges", color: "text-blue-600" },
-    { icon: GraduationCap, value: "50,000+", label: "Active Students", color: "text-indigo-600" },
-    { icon: MessageSquare, value: "15,000+", label: "Feedbacks Processed", color: "text-purple-600" },
+      { icon: Building2, value: "64", label: "Constituent Colleges", color: "text-blue-600" },
+    { icon: Building2, value: "989+", label: "Affiliated Colleges", color: "text-blue-600" },
+    { icon: GraduationCap, value: "200,000+", label: "Active Students", color: "text-indigo-600" },
+    { icon: MessageSquare, value: "1,000+", label: "Feedbacks Processed", color: "text-purple-600" },
     { icon: FolderKanban, value: "500+", label: "Active Projects", color: "text-emerald-600" }
   ];
 
@@ -224,7 +225,7 @@ export default function UniversityHomepage() {
       {/* Stats Section */}
       <div className="bg-gray-50 py-12 border-b border-gray-200 flex justify-center">
         <div className="w-[90vw]">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-8">
             {stats.map((stat, index) => {
               const IconComponent = stat.icon;
               return (

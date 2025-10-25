@@ -1,233 +1,234 @@
 import React from 'react';
-import { Facebook, Twitter, Instagram, Linkedin, Youtube, MessageSquare } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useTranslation } from "react-i18next";
+import { Link } from 'react-router-dom';
+import { 
+  Home, 
+  Settings, 
+  FileText, 
+  TrendingUp, 
+  Target, 
+  Building, 
+  Send, 
+  MessageSquare, 
+  Eye, 
+  UserPlus,
+  GraduationCap,
+  ExternalLink,
+  MapPin // Changed from Map to avoid conflict
+} from 'lucide-react';
 
-const UniversityFooter = ({ 
-  universityName = "Tribhuwan University",
-  brandDescription = "Nepal's premier institution of higher education. Our feedback system ensures continuous improvement across all campuses and departments.",
-  contactEmail = "feedback@tribhuwan.edu.np",
-  contactPhone = "01-4330437",
-  address = "Kirtipur, Kathmandu, Nepal",
-  socialLinks = {
-    facebook: "https://facebook.com/tribhuwanuniversity",
-    twitter: "https://twitter.com/tribhuwanuni",
-    instagram: "https://instagram.com/tribhuwanuniversity",
-    linkedin: "https://linkedin.com/school/tribhuwan-university",
-    youtube: "https://youtube.com/tribhuwanuniversity"
-  },
-  customLinks = {}
-}) => {
-
-  const defaultLinks = {
-    platform: [
-      { name: 'Home', href: '/' },
-      { name: 'Submit Feedback', href: '/submit' },
-      { name: 'Public Feedback', href: '/public' },
-      { name: 'Track Feedback', href: '/track' }
-    ],
-    departments: [
-      { name: 'Faculty of Humanities', href: '/departments/humanities' },
-      { name: 'Faculty of Science', href: '/departments/science' },
-      { name: 'Faculty of Education', href: '/departments/education' },
-      { name: 'Faculty of Management', href: '/departments/management' }
-    ],
-    resources: [
-      { name: 'Help Center', href: '/help' },
-      { name: 'User Guides', href: '/guides' },
-      { name: 'FAQ', href: '/faq' },
-      { name: 'Contact Support', href: '/support' }
-    ],
-    policies: [
-      { name: 'Privacy Policy', href: '/privacy' },
-      { name: 'Terms of Service', href: '/terms' },
-      { name: 'Feedback Policy', href: '/feedback-policy' },
-      { name: 'Code of Conduct', href: '/conduct' }
-    ]
-  };
-
-  const links = { ...defaultLinks, ...customLinks };
-
-  const socialIcons = {
-    twitter: Twitter,
-    youtube: Youtube,
-    instagram: Instagram,
-    facebook: Facebook,
-    linkedin: Linkedin
-  };
+export const UniversityFooter = () => {
+  const { t, i18n } = useTranslation();
   const isMobile = useIsMobile();
+
+  const quickLinks = [
+    { path: '/', label: 'Home', icon: Home },
+    { path: '/admin', label: 'Admin Dashboard', icon: Settings },
+    { path: '/college-form', label: 'College Form', icon: FileText },
+    { path: '/progress-form', label: 'Progress Form', icon: TrendingUp },
+    { path: '/mission-vision', label: 'TU Vision 2030', icon: Target },
+    { path: '/digital-university', label: 'digitallization', icon: Building },
+    { path: '/submit', label: 'Submit Feedback', icon: Send },
+    { path: '/feedback-status', label: 'Track Feedback', icon: MessageSquare },
+    { path: '/public', label: 'Public Transparency', icon: Eye },
+    { path: '/register', label: 'Register', icon: UserPlus },
+  ];
+
+  const externalLinks = [
+    { 
+      label: 'UGC Nepal', 
+      url: 'https://www.ugcnepal.edu.np/',
+      icon: ExternalLink
+    },
+    { 
+      label: 'TUGIS', 
+      url: 'https://gis.tu.edu.np/',
+      icon: MapPin // Changed from Map to MapPin
+    },
+    { 
+      label: 'MOEST', 
+      url: 'https://moest.gov.np/',
+      icon: GraduationCap
+    }
+  ];
+
+  const institutesFaculties = [
+    "Institute of Science and Technology",
+    "Faculty of Humanities and Social Sciences",
+    "Faculty of Management",
+    "Faculty of Education",
+    "Institute of Engineering",
+    "Faculty of Law",
+    "Institute of Medicine",
+    "Faculty of Agriculture",
+    "Institute of Forestry"
+  ];
+
+  const contactInfo = [
+    { label: "Phone", value: "+977-1-4330437" },
+    { label: "Email", value: "director.pd@tu.edu.np" },
+    { label: "Address", value: "Kirtipur, Kathmandu, Nepal" }
+  ];
+
   return (
-    <footer className="bg-slate-900 text-white relative overflow-hidden flex justify-center">
-      {/* Background decoration dots */}
-      <div className="absolute inset-0 opacity-20">
-        <div className="absolute top-20 left-1/4 w-1 h-1 bg-white rounded-full"></div>
-        <div className="absolute bottom-40 right-1/3 w-2 h-2 bg-blue-400 rounded-full opacity-60"></div>
-        <div className="absolute top-32 right-1/4 w-1.5 h-1.5 bg-purple-400 rounded-full opacity-40"></div>
-        <div className="absolute bottom-20 left-1/3 w-1 h-1 bg-white rounded-full opacity-80"></div>
+    <footer className="bg-gradient-to-br from-gray-900 to-indigo-900 text-white ">
+      {/* Main Footer Content */}
+      <div className=" px-4 py-12 mb-3 pb-3 max-w-[90vw] mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          
+          {/* University Info */}
+          <div className="lg:col-span-1">
+            <div className="flex items-center gap-3 mb-4">
+              <img
+                src="https://portal.tu.edu.np/medias/Tulogo_2024_02_25_10_03_06.png"
+                alt="Tribhuvan University Logo"
+                className="h-12 w-auto"
+              />
+              <div>
+                <h3 className="text-lg font-bold text-white">Tribhuvan University</h3>
+                <p className="text-sm text-gray-300">Planning Directorate</p>
+              </div>
+            </div>
+            <p className="text-gray-300 text-sm mb-4">
+     The Planning Directorate serves as one of the key directorates under the Office of the Vice Chancellor at Tribhuvan University. It functions as the central secretariat of the university, responsible for strategic planning, policy development, and institutional coordination. The directorate plays a vital role in shaping the university's academic and administrative direction through comprehensive planning and implementation oversight.
+            </p>
+            <div className="space-y-2">
+              {contactInfo.map((item, index) => (
+                <div key={index} className="flex items-center text-sm text-gray-300">
+                  <span className="font-medium text-white mr-2">{item.label}:</span>
+                  {item.value}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Quick Links */}
+          <div className="lg:col-span-1">
+            <h3 className="text-lg font-bold mb-4 text-white flex items-center gap-2">
+              <GraduationCap className="w-5 h-5" />
+              Quick Links
+            </h3>
+            <div className="grid grid-cols-1 gap-2">
+              {quickLinks.map((link) => (
+                <Link
+                  key={link.path}
+                  to={link.path}
+                  className="text-gray-300 hover:text-white text-sm transition-colors duration-200 flex items-center gap-2 py-1"
+                >
+                  <link.icon className="w-4 h-4" />
+                  {link.label}
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          {/* Institutes & Faculties */}
+          <div className="lg:col-span-1">
+            <h3 className="text-lg font-bold mb-4 text-white flex items-center gap-2">
+              <Building className="w-5 h-5" />
+              Institutes & Faculties
+            </h3>
+            <div className="space-y-2">
+              {institutesFaculties.map((institute, index) => (
+                <div
+                  key={index}
+                  className="text-gray-300 hover:text-white text-sm transition-colors duration-200 py-1 cursor-pointer"
+                >
+                  {institute}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Social & External Links */}
+          <div className="lg:col-span-1">
+            <h3 className="text-lg font-bold mb-4 text-white">Connect With Us</h3>
+            <div className="space-y-4">
+              {/* Social Media Links */}
+              <div className="flex space-x-3">
+                <a 
+                  href="https://www.facebook.com/tribhuvan.viswavidyalaya/" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="bg-indigo-600 hover:bg-indigo-500 p-2 rounded-lg transition-colors duration-200"
+                >
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                  </svg>
+                </a>
+                <a 
+                  href="https://x.com/" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="bg-indigo-600 hover:bg-indigo-500 p-2 rounded-lg transition-colors duration-200"
+                >
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                  </svg>
+                </a>
+              </div>
+
+              {/* External Links */}
+              <div className="space-y-2">
+                <h4 className="font-semibold text-white mb-2">Important Links</h4>
+                {externalLinks.map((link, index) => (
+                  <a
+                    key={index}
+                    href={link.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-gray-300 hover:text-white text-sm transition-colors duration-200 flex items-center gap-2 py-1"
+                  >
+                    <link.icon className="w-4 h-4" />
+                    {link.label}
+                  </a>
+                ))}
+              </div>
+
+              {/* Latest Updates */}
+              <div className="bg-indigo-800/30 rounded-lg p-4">
+                <h4 className="font-semibold text-white mb-2">Latest Updates</h4>
+                <p className="text-sm text-gray-300">
+                  Stay informed about the latest developments in higher education and university initiatives.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div className="relative z-10 w-[90vw] py-8">
-        
-        {/* Main Content - All in one row */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 mb-8">
-          
-          {/* Brand Section */}
-          <div className="lg:col-span-2">
-            <div className="flex items-center mb-4 gap-3">
-              {/* University Logo Placeholder */}
-           <img
-          src="https://portal.tu.edu.np/medias/Tulogo_2024_02_25_10_03_06.png"
-          alt="Tribhuvan University Logo"
-          className={`${isMobile ? 'h-12' : 'h-16'} w-auto`}
-        />
-              <div>
-                <h3 className="text-xl font-bold text-white tracking-tight">{universityName}</h3>
-                <p className="text-slate-400 text-xs">Kathmandu, Nepal</p>
-              </div>
+      {/* Bottom Bar */}
+      <div className="border-t border-gray-700">
+        <div className="mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex flex-col md:flex-row justify-between items-center space-y-3 md:space-y-0">
+            {/* Copyright */}
+            <div className="text-sm text-gray-400">
+              © {new Date().getFullYear()} Tribhuvan University. All rights reserved.
             </div>
-            
-            <p className="text-slate-300 text-sm leading-relaxed mb-4 max-w-xs">
-              {brandDescription}
-            </p>
 
-            {/* Social Links */}
-            <div className="space-y-2">
-              <div className="text-slate-400 text-xs">Follow Tribhuvan University</div>
-              <div className="flex space-x-2">
-                {Object.entries(socialLinks).map(([platform, url]) => {
-                  const IconComponent = socialIcons[platform];
-                  if (!IconComponent) return null;
-                  return (
-                    <a
-                      key={platform}
-                      href={url}
-                      className="w-8 h-8 bg-slate-800 hover:bg-blue-600 rounded-full flex items-center justify-center transition-colors duration-200"
-                      aria-label={`Follow Tribhuwan University on ${platform}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <IconComponent className="w-4 h-4 text-slate-300" />
-                    </a>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
+            {/* Policy Links */}
+  
 
-          {/* Platform Links */}
-          <div>
-            <h4 className="text-white font-semibold mb-3 text-xs uppercase tracking-wide">Feedback System</h4>
-            <div className="space-y-2">
-              {links.platform.map((link) => (
-                <a
-                  key={link.name}
-                  href={link.href}
-                  className="block text-slate-400 hover:text-white transition-colors duration-200 text-sm"
-                >
-                  {link.name}
-                </a>
-              ))}
-            </div>
-          </div>
-
-          {/* Departments Links */}
-          <div>
-            <h4 className="text-white font-semibold mb-3 text-xs uppercase tracking-wide">Faculties</h4>
-            <div className="space-y-2">
-              {links.departments.map((link) => (
-                <a
-                  key={link.name}
-                  href={link.href}
-                  className="block text-slate-400 hover:text-white transition-colors duration-200 text-sm"
-                >
-                  {link.name}
-                </a>
-              ))}
-            </div>
-          </div>
-
-          {/* Resources & Policies */}
-          <div>
-            <h4 className="text-white font-semibold mb-3 text-xs uppercase tracking-wide">Resources</h4>
-            <div className="space-y-2">
-              {links.resources.map((link) => (
-                <a
-                  key={link.name}
-                  href={link.href}
-                  className="block text-slate-400 hover:text-white transition-colors duration-200 text-sm"
-                >
-                  {link.name}
-                </a>
-              ))}
-              <div className="pt-2">
-                <h4 className="text-white font-semibold mb-2 text-xs uppercase tracking-wide">Policies</h4>
-                <div className="space-y-2">
-                  {links.policies.map((link) => (
-                    <a
-                      key={link.name}
-                      href={link.href}
-                      className="block text-slate-400 hover:text-white transition-colors duration-200 text-xs"
-                    >
-                      {link.name}
-                    </a>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Contact Information */}
-        <div className="border-t border-slate-800 pt-6 pb-4">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
-            <div className="text-slate-400 text-sm mb-4 md:mb-0">
-              <div className="font-semibold mb-1">Contact Information:</div>
-              <div className="flex flex-col sm:flex-row sm:space-x-4 text-xs">
-                <div className="flex items-center mb-1 sm:mb-0">
-                  <span className="mr-1">📧</span>
-                  <a href={`mailto:${contactEmail}`} className="hover:text-white transition-colors">
-                    {contactEmail}
-                  </a>
-                </div>
-                <div className="flex items-center mb-1 sm:mb-0">
-                  <span className="mr-1">📞</span>
-                  <a href={`tel:${contactPhone.replace(/\s/g, '')}`} className="hover:text-white transition-colors">
-                    {contactPhone}
-                  </a>
-                </div>
-                <div className="flex items-center">
-                  <span className="mr-1">📍</span>
-                  <span>{address}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Footer Bottom with Powered By */}
-        <div className="border-t border-slate-800 pt-4">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="text-slate-400 text-xs mb-3 md:mb-0">
-              © {new Date().getFullYear()} {universityName}. All rights reserved.
-            </div>
-            
-            {/* Powered By Section */}
+            {/* Developer Credit */}
             <div className="flex items-center space-x-2">
               <span className="text-slate-500 text-xs">Developed by</span>
               <div className="flex items-center bg-slate-800 px-3 py-1 rounded-lg">
-                {/* Company Logo Placeholder - Replace with actual logo */}
                 <div className="w-15 h-10 bg-gradient-to-r from-green-500 to-blue-500 rounded mr-2 flex items-center justify-center">
-                  {/* <span className="text-white text-xs font-bold">N</span> */}
-                  <img src="/nsoft.jpeg" alt="Nsoft Innovations" style={{height:'50px',width:'auto'}} />
+                  <img 
+                    src="/nsoft.jpeg" 
+                    alt="Nsoft Innovations" 
+                    className="h-8 w-auto object-contain"
+                  />
                 </div>
-                {/* <span className="text-slate-300 text-sm font-medium">Nsoft Innovations</span> */}
               </div>
               <a 
-                href="https://nsoftInnovations.com.np" 
+                href="https://nsoftInnovation.com.np" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="text-blue-400 hover:text-blue-300 text-xs"
               >
-               nsoftInnovations.com.np
+                nsoftInnovation.com.np
               </a>
             </div>
           </div>
