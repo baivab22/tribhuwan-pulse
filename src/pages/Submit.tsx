@@ -318,6 +318,38 @@ export default function SubmitPage() {
     }
   };
 
+  // Sort departments with priority order
+  const sortedDepartments = useMemo(() => {
+    const priorityOrder = [
+      'Planning Directorate',
+      'VC office',
+      'Rector Office',
+      'Registrar office',
+      'TU controller office'
+    ];
+
+    const sorted = [...departments].sort((a, b) => {
+      const aIndex = priorityOrder.indexOf(a.name);
+      const bIndex = priorityOrder.indexOf(b.name);
+      
+      // If both are in priority list, sort by priority order
+      if (aIndex !== -1 && bIndex !== -1) {
+        return aIndex - bIndex;
+      }
+      
+      // If only a is in priority list, a comes first
+      if (aIndex !== -1) return -1;
+      
+      // If only b is in priority list, b comes first
+      if (bIndex !== -1) return 1;
+      
+      // If neither is in priority list, sort alphabetically
+      return a.name.localeCompare(b.name);
+    });
+
+    return sorted;
+  }, [departments]);
+
   // Debug logging
   useEffect(() => {
     console.log('assignedToDepartment state changed:', assignedToDepartment);
@@ -537,14 +569,14 @@ export default function SubmitPage() {
                     <SelectValue placeholder={
                       departmentsLoading 
                         ? "Loading departments..." 
-                        : departments.length === 0 
+                        : sortedDepartments.length === 0 
                         ? "No departments available"
                         : "Select department (optional)"
                     } />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">No preference</SelectItem>
-                    {departments.map((d) => (
+                    {sortedDepartments.map((d) => (
                       <SelectItem key={d._id || d.id} value={d.name} className="hover:bg-indigo-50">
                         <div className="flex flex-col">
                           <span className="font-medium">{d.name}</span>
@@ -585,14 +617,14 @@ export default function SubmitPage() {
                 )}
 
                 {/* Success state showing department count */}
-                {!departmentsLoading && !departmentsError && departments.length > 0 && (
+                {!departmentsLoading && !departmentsError && sortedDepartments.length > 0 && (
                   <p className="text-xs text-gray-500">
-                    {departments.length} departments available • Current: {assignedToDepartment === 'none' || !assignedToDepartment ? 'None selected' : assignedToDepartment}
+                    {sortedDepartments.length} departments available • Current: {assignedToDepartment === 'none' || !assignedToDepartment ? 'None selected' : assignedToDepartment}
                   </p>
                 )}
 
                 {/* No departments available */}
-                {!departmentsLoading && !departmentsError && departments.length === 0 && (
+                {!departmentsLoading && !departmentsError && sortedDepartments.length === 0 && (
                   <div className="flex items-center gap-2 p-3 bg-gray-50 border border-gray-200 rounded-lg">
                     <AlertCircle className="w-4 h-4 text-gray-500" />
                     <p className="text-sm text-gray-600">
@@ -930,7 +962,7 @@ export default function SubmitPage() {
                 <li>• Focus on actionable improvements</li>
                 <li>• Respect others and maintain professionalism</li>
                 <li>• Avoid submitting duplicate suggestions</li>
-                {departments.length > 0 && (
+                {sortedDepartments.length > 0 && (
                   <li>• Selecting a department helps route your suggestion appropriately</li>
                 )}
               </ul>
