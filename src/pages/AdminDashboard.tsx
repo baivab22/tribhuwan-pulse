@@ -452,7 +452,7 @@ export default function AdminDashboard() {
         
      
         >
-          <TabsList className="grid w-full grid-cols-5"
+          <TabsList className="grid w-full grid-cols-6"
           
           >
             <TabsTrigger value="manage">{t('admin.suggestionList')}</TabsTrigger>
@@ -460,7 +460,7 @@ export default function AdminDashboard() {
             <TabsTrigger value="analytics">{t('admin.analytics')}</TabsTrigger>
             <TabsTrigger value="progress">Progress</TabsTrigger>
             <TabsTrigger value="college">Campus Form</TabsTrigger>
-                     <TabsTrigger value="faculty">Faculty Form</TabsTrigger>
+                     <TabsTrigger value="faculty">Institute/Faculty Form</TabsTrigger>
           </TabsList>
           
           <div className="flex space-x-2">

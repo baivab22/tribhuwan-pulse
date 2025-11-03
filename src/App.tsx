@@ -95,7 +95,7 @@ function Header() {
     { path: '/admin', label: t('nav.admin'), icon: Settings },
     { path: '/college-form', label: 'Campus Form', icon: FileText },
         { path: '/progress-form', label: 'Progress Form', icon: FileText },
-          { path: '/faculty-form', label: 'Faculty Form', icon: FileText },
+          { path: '/faculty-form', label: 'Faculty/Institute Form', icon: FileText },
               { path: '/mission-vision', label: 'Mission Vision', icon: FileText },
               { path: '/digitalization', label: 'Digitallization', icon: FileText },
 

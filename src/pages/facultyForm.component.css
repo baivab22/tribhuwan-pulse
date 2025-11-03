@@ -9,7 +9,7 @@
 
 .faculty-form-card {
   width: 100%;
-  max-width: 1200px;
+  /* max-width: 1200px; */
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
   border-radius: 20px;
@@ -39,6 +39,7 @@
 
 .faculty-form-tabs {
   width: 100%;
+
 }
 
 .faculty-tabs-list {
@@ -49,7 +50,11 @@
   padding: 1rem;
   border-radius: 0;
   height: auto;
-  margin-bottom: 1rem;
+
+    height: auto;
+  min-height: 150px;
+  /* border: 2ps solid red; */
+  margin-bottom: 3rem;
 }
 
 .faculty-tabs-list [data-state="active"] {
@@ -97,7 +102,7 @@
   background: rgba(248, 250, 252, 0.5);
   border-radius: 0 0 20px 20px;
   display: flex;
-  justify-content: center;
+  justify-content: flex-end;
 }
 
 .faculty-submit-btn {
@@ -140,7 +145,7 @@
   font-weight: 600;
   color: #374151;
   margin-bottom: 0.5rem;
-  display: block;
+  display: flex;
 }
 
 /* Table styling */
@@ -255,4 +260,192 @@
     padding: 0.875rem 2rem;
     font-size: 1rem;
   }
+}
+
+
+.faculty-form-container {
+  width: 90vw;
+  max-width: 90vw;
+  margin: 0 auto;
+  padding: 20px;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  min-height: 100vh;
+}
+
+.faculty-form-card {
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.faculty-form-tabs {
+  width: 100%;
+}
+
+.faculty-tabs-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.faculty-tab-content {
+  padding: 0;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.faculty-form-actions {
+  display: flex;
+  justify-content: center;
+  padding: 30px;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  border-radius: 12px;
+  margin-top: 30px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.faculty-submit-btn {
+  padding: 16px 32px;
+  font-weight: 600;
+  font-size: 16px;
+  box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+  transition: all 0.3s ease;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+}
+
+.faculty-submit-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 25px rgba(59, 130, 246, 0.4);
+}
+
+/* Table styling enhancements */
+.bg-green-25 {
+  background-color: rgba(34, 197, 94, 0.05);
+}
+
+.bg-orange-25 {
+  background-color: rgba(249, 115, 22, 0.05);
+}
+
+.bg-blue-100 {
+  background-color: #dbeafe;
+}
+
+.bg-green-100 {
+  background-color: #dcfce7;
+}
+
+.bg-orange-100 {
+  background-color: #ffedd5;
+}
+
+.bg-red-100 {
+  background-color: #fee2e2;
+}
+
+.bg-green-50 {
+  background-color: #f0fdf4;
+}
+
+.bg-orange-50 {
+  background-color: #fff7ed;
+}
+
+/* Custom scrollbar for tables */
+.overflow-x-auto::-webkit-scrollbar {
+  height: 8px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .faculty-form-container {
+    width: 95vw;
+    padding: 10px;
+  }
+  
+  .faculty-tabs-list {
+    gap: 4px;
+  }
+  
+  .faculty-tabs-list button {
+    font-size: 12px;
+    padding: 8px 12px;
+  }
+  
+  .faculty-form-actions {
+    padding: 20px;
+  }
+  
+  .faculty-submit-btn {
+    padding: 12px 24px;
+    font-size: 14px;
+  }
+}
+
+/* Print styles */
+@media print {
+  .faculty-form-container {
+    width: 100%;
+    padding: 0;
+    background: white;
+  }
+  
+  .faculty-tabs-list {
+    display: none;
+  }
+  
+  .faculty-form-actions {
+    display: none;
+  }
+  
+  .faculty-form-card {
+    box-shadow: none;
+    border: none;
+  }
+}
+
+/* Loading states */
+.faculty-form-loading {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+/* Success states */
+.faculty-form-success {
+  border-color: #10b981;
+}
+
+/* Error states */
+.faculty-form-error {
+  border-color: #ef4444;
 }

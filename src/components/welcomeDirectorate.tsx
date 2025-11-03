@@ -8,7 +8,7 @@ const WelcomeDirectorate = () => {
           {/* Left Section - Image */}
           <div className="lg:col-span-2">
             <div className="relative">
-              <div className="absolute inset-0 bg-blue-600 rounded-2xl transform translate-x-4 translate-y-4"></div>
+              <div className="absolute inset-0 rounded-2xl transform translate-x-4 translate-y-4"></div>
               <div className="relative overflow-hidden rounded-2xl shadow-2xl">
                 <img
                   src="https://portal.tu.edu.np/medias/Picture1_2025_01_26_10_50_11.jpg"

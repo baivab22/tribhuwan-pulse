@@ -2062,7 +2062,7 @@ const AdminForFaculty: React.FC = () => {
   const [selectedFaculty, setSelectedFaculty] = useState<FacultyData | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState('faculties');
 
   useEffect(() => {
     fetchFacultyData();
@@ -2111,14 +2111,14 @@ const AdminForFaculty: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
+      <div className="mx-auto space-y-6">
         {/* Header */}
         <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
                 <BarChart3 className="w-8 h-8 text-indigo-600" />
-                Faculty Analytics Dashboard
+                Institute/Faculty Analytics Dashboard
               </h1>
               <p className="text-gray-600 mt-2">
                 {facultyData.length} faculty reports analyzed • Real-time performance metrics
@@ -2149,7 +2149,7 @@ const AdminForFaculty: React.FC = () => {
         {/* Main Content Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-4 lg:grid-cols-6">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
+            {/* <TabsTrigger value="overview">Overview</TabsTrigger> */}
             <TabsTrigger value="faculties">Faculties</TabsTrigger>
             <TabsTrigger value="academics">Academics</TabsTrigger>
             <TabsTrigger value="research">Research</TabsTrigger>
@@ -2158,7 +2158,7 @@ const AdminForFaculty: React.FC = () => {
           </TabsList>
 
           {/* Overview Tab */}
-          <TabsContent value="overview" className="space-y-6">
+          {/* <TabsContent value="overview" className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {facultyData.slice(0, 6).map((faculty) => {
                 const analytics = getFacultyAnalytics(faculty);
@@ -2220,7 +2220,7 @@ const AdminForFaculty: React.FC = () => {
                 );
               })}
             </div>
-          </TabsContent>
+          </TabsContent> */}
 
           {/* Faculties Tab */}
           <TabsContent value="faculties" className="space-y-6">
@@ -2305,7 +2305,7 @@ const AdminForFaculty: React.FC = () => {
                               </Badge>
                             </TableCell>
                             <TableCell>
-                              <Dialog>
+                              <Dialog >
                                 <DialogTrigger asChild>
                                   <Button 
                                     variant="outline" 
@@ -2317,7 +2317,7 @@ const AdminForFaculty: React.FC = () => {
                                     View
                                   </Button>
                                 </DialogTrigger>
-                                <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+                                <DialogContent className="  overflow-y-auto" style={{width:"90vw",maxWidth:'98vw',height:'98vh'}}>
                                   <DialogHeader>
                                     <DialogTitle>{faculty.instituteName}</DialogTitle>
                                     <DialogDescription>
@@ -2352,10 +2352,12 @@ const AdminForFaculty: React.FC = () => {
 
 // Analytics calculations for individual faculty
 const getFacultyAnalytics = (faculty: FacultyData) => {
-  const totalStudents = faculty.studentEnrollment.reduce((sum, enrollment) => 
+
+  console.log('Calculating analytics for faculty:',faculty, faculty.instituteName); 
+  const totalGraduates = faculty.studentEnrollment.reduce((sum, enrollment) => 
     sum + enrollment.constituentExamAppearedT + enrollment.affiliatedExamAppearedT, 0);
   
-  const totalGraduates = faculty.graduates.reduce((sum, graduate) => 
+  const totalStudents = faculty.graduates.reduce((sum, graduate) => 
     sum + graduate.constituentExamPassedT + graduate.affiliatedExamPassedT, 0);
   
   const totalResearch = faculty.researchProjectsInitiated + faculty.researchProjectsCompleted;
@@ -2387,6 +2389,8 @@ const getFacultyAnalytics = (faculty: FacultyData) => {
 
 // Faculty Detail View Component
 const FacultyDetailView: React.FC<{ faculty: FacultyData }> = ({ faculty }) => {
+
+  console.log("oohhhh faculty in detail view:", faculty);
   const analytics = getFacultyAnalytics(faculty);
 
   // Chart data preparations
@@ -2481,7 +2485,7 @@ const FacultyDetailView: React.FC<{ faculty: FacultyData }> = ({ faculty }) => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 ">
       {/* Overview Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card className="bg-gradient-to-r from-blue-50 to-blue-100 border-blue-200">
