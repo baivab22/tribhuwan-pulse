@@ -71,7 +71,7 @@ export default function UniversityHomepage() {
   const features = [
     {
       icon: Building2,
-      title: "College Management",
+      title: "Campus Management",
       description: "Comprehensive data management for all affiliated colleges with real-time updates",
       color: "text-blue-600",
       bgColor: "bg-blue-50",

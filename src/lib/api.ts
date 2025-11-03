@@ -50,7 +50,7 @@ export interface Department {
 }
 
 /* ===========================
-   College Performance & Monitoring Types
+   Campus Performance & Monitoring Types
 =========================== */
 
 export interface CollegePerformance {
@@ -959,7 +959,7 @@ export async function adminSummary() {
 }
 
 /* ===========================
-   College Performance & Monitoring Services
+   Campus Performance & Monitoring Services
 =========================== */
 
 // GET /api/colleges/:id/performance

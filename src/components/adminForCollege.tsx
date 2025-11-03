@@ -1318,15 +1318,15 @@
 
 //     let yPosition = 70;
 
-//     // College Overview Table
+//     // Campus Overview Table
 //     doc.setFontSize(16);
 //     doc.setTextColor(0, 0, 0);
-//     doc.text('College Overview', 20, yPosition);
+//     doc.text('Campus Overview', 20, yPosition);
 //     yPosition += 10;
 
 //     const overviewData = [
 //       ['Established:', new Date(selectedCollege.establishmentDate).toLocaleDateString()],
-//       ['College ID:', selectedCollege.collegeId],
+//       ['Campus ID:', selectedCollege.collegeId],
 //       ['Principal:', selectedCollege.principalInfo.name],
 //       ['Contact:', selectedCollege.principalInfo.contactNumber],
 //       ['Email:', selectedCollege.principalInfo.email],
@@ -1474,15 +1474,15 @@
 
 //     const workbook = XLSX.utils.book_new();
 
-//     // College Overview Sheet
+//     // Campus Overview Sheet
 //     const overviewData = [
-//       ['College Overview', ''],
-//       ['College Name', selectedCollege.collegeName],
+//       ['Campus Overview', ''],
+//       ['Campus Name', selectedCollege.collegeName],
 //       ['Campus Type', selectedCollege.campusType],
 //       ['District', selectedCollege.location.district],
 //       ['Province', selectedCollege.location.province],
 //       ['Established', new Date(selectedCollege.establishmentDate).toLocaleDateString()],
-//       ['College ID', selectedCollege.collegeId],
+//       ['Campus ID', selectedCollege.collegeId],
 //       ['Principal', selectedCollege.principalInfo.name],
 //       ['Contact', selectedCollege.principalInfo.contactNumber],
 //       ['Email', selectedCollege.principalInfo.email],
@@ -1676,7 +1676,7 @@
 //               fontWeight: 700
 //             }}>
 //               <School sx={{ mr: 2, fontSize: 40 }} />
-//               College Administration Dashboard
+//               Campus Administration Dashboard
 //             </Typography>
 //             <Typography variant="h6" sx={{ opacity: 0.9 }}>
 //               Comprehensive management and analytics for educational institutions
@@ -1717,7 +1717,7 @@
 //                     size="small"
 //                     value={filters.search}
 //                     onChange={(e) => handleFilterChange('search', e.target.value)}
-//                     placeholder="College name..."
+//                     placeholder="Campus name..."
 //                     InputProps={{
 //                       startAdornment: (
 //                         <InputAdornment position="start">
@@ -1814,7 +1814,7 @@
 //             <Table>
 //               <TableHead sx={{ bgcolor: '#f1f5f9' }}>
 //                 <TableRow>
-//                   <TableCell><strong>College Name</strong></TableCell>
+//                   <TableCell><strong>Campus Name</strong></TableCell>
 //                   <TableCell><strong>Campus Type</strong></TableCell>
 //                   <TableCell><strong>Location</strong></TableCell>
 //                   <TableCell><strong>Principal</strong></TableCell>
@@ -1996,7 +1996,7 @@
 //                     <CardContent>
 //                       <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
 //                         <Download sx={{ mr: 1 }} />
-//                         Export College Data
+//                         Export Campus Data
 //                       </Typography>
 //                       <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
 //                         <Button 
@@ -2070,7 +2070,7 @@
 //           <School sx={{ fontSize: 20, mr: 2 }} />
 //           <Box>
 //             <Typography variant="h4" fontWeight="bold" gutterBottom>
-//               College Overview
+//               Campus Overview
 //             </Typography>
 //             <Typography variant="h6" sx={{ opacity: 0.9 }}>
 //               Comprehensive dashboard with key metrics and performance indicators
@@ -5399,15 +5399,15 @@
 
 //     let yPosition = 70;
 
-//     // College Overview Table
+//     // Campus Overview Table
 //     doc.setFontSize(16);
 //     doc.setTextColor(0, 0, 0);
-//     doc.text('College Overview', 20, yPosition);
+//     doc.text('Campus Overview', 20, yPosition);
 //     yPosition += 10;
 
 //     const overviewData = [
 //       ['Established:', new Date(selectedCollege.establishmentDate).toLocaleDateString()],
-//       ['College ID:', selectedCollege.collegeId],
+//       ['Campus ID:', selectedCollege.collegeId],
 //       ['Principal:', selectedCollege.principalInfo.name],
 //       ['Contact:', selectedCollege.principalInfo.contactNumber],
 //       ['Email:', selectedCollege.principalInfo.email],
@@ -5555,15 +5555,15 @@
 
 //     const workbook = XLSX.utils.book_new();
 
-//     // College Overview Sheet
+//     // Campus Overview Sheet
 //     const overviewData = [
-//       ['College Overview', ''],
-//       ['College Name', selectedCollege.collegeName],
+//       ['Campus Overview', ''],
+//       ['Campus Name', selectedCollege.collegeName],
 //       ['Campus Type', selectedCollege.campusType],
 //       ['District', selectedCollege.location.district],
 //       ['Province', selectedCollege.location.province],
 //       ['Established', new Date(selectedCollege.establishmentDate).toLocaleDateString()],
-//       ['College ID', selectedCollege.collegeId],
+//       ['Campus ID', selectedCollege.collegeId],
 //       ['Principal', selectedCollege.principalInfo.name],
 //       ['Contact', selectedCollege.principalInfo.contactNumber],
 //       ['Email', selectedCollege.principalInfo.email],
@@ -5757,7 +5757,7 @@
 //               fontWeight: 700
 //             }}>
 //               <School sx={{ mr: 2, fontSize: 40 }} />
-//               College Administration Dashboard
+//               Campus Administration Dashboard
 //             </Typography>
 //             <Typography variant="h6" sx={{ opacity: 0.9 }}>
 //               Comprehensive management and analytics for educational institutions
@@ -5798,7 +5798,7 @@
 //                     size="small"
 //                     value={filters.search}
 //                     onChange={(e) => handleFilterChange('search', e.target.value)}
-//                     placeholder="College name..."
+//                     placeholder="Campus name..."
 //                     InputProps={{
 //                       startAdornment: (
 //                         <InputAdornment position="start">
@@ -5895,7 +5895,7 @@
 //             <Table>
 //               <TableHead sx={{ bgcolor: '#f1f5f9' }}>
 //                 <TableRow>
-//                   <TableCell><strong>College Name</strong></TableCell>
+//                   <TableCell><strong>Campus Name</strong></TableCell>
 //                   <TableCell><strong>Campus Type</strong></TableCell>
 //                   <TableCell><strong>Location</strong></TableCell>
 //                   <TableCell><strong>Principal</strong></TableCell>
@@ -6098,7 +6098,7 @@
 //                     <CardContent>
 //                       <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
 //                         <Download sx={{ mr: 1 }} />
-//                         Export College Data
+//                         Export Campus Data
 //                       </Typography>
 //                       <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
 //                         <Button 
@@ -6172,7 +6172,7 @@
 //           <School sx={{ fontSize: 20, mr: 2 }} />
 //           <Box>
 //             <Typography variant="h4" fontWeight="bold" gutterBottom>
-//               College Overview
+//               Campus Overview
 //             </Typography>
 //             <Typography variant="h6" sx={{ opacity: 0.9 }}>
 //               Comprehensive dashboard with key metrics and performance indicators
@@ -9726,15 +9726,15 @@ const AdminForCollege = () => {
 
     let yPosition = 70;
 
-    // College Overview Table
+    // Campus Overview Table
     doc.setFontSize(16);
     doc.setTextColor(0, 0, 0);
-    doc.text('College Overview', 20, yPosition);
+    doc.text('Campus Overview', 20, yPosition);
     yPosition += 10;
 
     const overviewData = [
       ['Established:', new Date(selectedCollege.establishmentDate).toLocaleDateString()],
-      ['College ID:', selectedCollege.collegeId],
+      ['Campus ID:', selectedCollege.collegeId],
       ['Principal:', selectedCollege.principalInfo.name],
       ['Contact:', selectedCollege.principalInfo.contactNumber],
       ['Email:', selectedCollege.principalInfo.email],
@@ -9940,15 +9940,15 @@ const AdminForCollege = () => {
 
     const workbook = XLSX.utils.book_new();
 
-    // College Overview Sheet
+    // Campus Overview Sheet
     const overviewData = [
-      ['College Overview', ''],
-      ['College Name', selectedCollege.collegeName],
+      ['Campus Overview', ''],
+      ['Campus Name', selectedCollege.collegeName],
       ['Campus Type', selectedCollege.campusType],
       ['District', selectedCollege.location.district],
       ['Province', selectedCollege.location.province],
       ['Established', new Date(selectedCollege.establishmentDate).toLocaleDateString()],
-      ['College ID', selectedCollege.collegeId],
+      ['Campus ID', selectedCollege.collegeId],
       ['Principal', selectedCollege.principalInfo.name],
       ['Contact', selectedCollege.principalInfo.contactNumber],
       ['Email', selectedCollege.principalInfo.email],
@@ -10188,7 +10188,7 @@ const AdminForCollege = () => {
               fontWeight: 700
             }}>
               <School sx={{ mr: 2, fontSize: 40 }} />
-              College Administration Dashboard
+              Campus Administration Dashboard
             </Typography>
             <Typography variant="h6" sx={{ opacity: 0.9 }}>
               Comprehensive management and analytics for educational institutions
@@ -10229,7 +10229,7 @@ const AdminForCollege = () => {
                     size="small"
                     value={filters.search}
                     onChange={(e) => handleFilterChange('search', e.target.value)}
-                    placeholder="College name..."
+                    placeholder="Campus name..."
                     InputProps={{
                       startAdornment: (
                         <InputAdornment position="start">
@@ -10326,7 +10326,7 @@ const AdminForCollege = () => {
             <Table>
               <TableHead sx={{ bgcolor: '#f1f5f9' }}>
                 <TableRow>
-                  <TableCell><strong>College Name</strong></TableCell>
+                  <TableCell><strong>Campus Name</strong></TableCell>
                   <TableCell><strong>Campus Type</strong></TableCell>
                   <TableCell><strong>Location</strong></TableCell>
                   <TableCell><strong>Principal</strong></TableCell>
@@ -10529,7 +10529,7 @@ const AdminForCollege = () => {
                     <CardContent>
                       <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
                         <Download sx={{ mr: 1 }} />
-                        Export College Data
+                        Export Campus Data
                       </Typography>
                       <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
                         <Button 

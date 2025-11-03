@@ -27,9 +27,9 @@ import {
 
 export const campusTypes = [
   'Constituent Campus',
-  'Affiliated College',
+  'Affiliated Campus',
   'Community Campus',
-  'Private College'
+  'Private Campus'
 ];
 
 export const provinces = [
@@ -51,7 +51,7 @@ export const steps = [
   {
     id: 0,
     title: 'Basic Information',
-    description: 'College details and principal info',
+    description: 'Campus details and principal info',
     icon: GraduationCap
   },
   {

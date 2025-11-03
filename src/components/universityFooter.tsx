@@ -25,7 +25,7 @@ export const UniversityFooter = () => {
   const quickLinks = [
     { path: '/', label: 'Home', icon: Home },
     { path: '/admin', label: 'Admin Dashboard', icon: Settings },
-    { path: '/college-form', label: 'College Form', icon: FileText },
+    { path: '/college-form', label: 'Campus Form', icon: FileText },
     { path: '/progress-form', label: 'Progress Form', icon: TrendingUp },
     { path: '/mission-vision', label: 'TU Vision 2030', icon: Target },
     { path: '/digital-university', label: 'digitallization', icon: Building },

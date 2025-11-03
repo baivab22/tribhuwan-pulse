@@ -40,6 +40,7 @@ import { ProgressReport } from './types';
 import ProgressForm from './pages/ProgressForm';
 import TUVision2030 from './pages/missionVision';
 import DigitalUniversity from './pages/digital';
+import FacultyForm from './pages/facultyForm.component';
 
 const queryClient = new QueryClient();
 
@@ -92,8 +93,9 @@ function Header() {
     { path: '/', label: t('nav.home'), icon: Home },
 
     { path: '/admin', label: t('nav.admin'), icon: Settings },
-    { path: '/college-form', label: 'College Form', icon: FileText },
+    { path: '/college-form', label: 'Campus Form', icon: FileText },
         { path: '/progress-form', label: 'Progress Form', icon: FileText },
+          { path: '/faculty-form', label: 'Faculty Form', icon: FileText },
               { path: '/mission-vision', label: 'Mission Vision', icon: FileText },
               { path: '/digitalization', label: 'Digitallization', icon: FileText },
 
@@ -513,6 +515,7 @@ const App = () => {
               <Route path="/register" element={<RegisterPage />} />
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/college-form" element={<CollegeDataForm />} />
+                <Route path="/faculty-form" element={<FacultyForm/>} />
                        <Route path="/progress-form" element={   <ProgressForm onSubmit={handleFormSubmit} isLoading={isSubmitting} /> } />
                             <Route path="/mission-vision" element={<TUVision2030 /> } />
                             <Route path="/digitalization" element={<DigitalUniversity /> } />

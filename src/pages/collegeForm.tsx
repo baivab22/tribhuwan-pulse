@@ -4425,11 +4425,11 @@ const academicLevels = ["Bachelor", "Master", "MPhil", "PhD", "Post Graduate Dip
 
 const primaryCampusTypes = [
   'Constituent Campus',
-  'Affiliated College'
+  'Affiliated Campus'
 ];
 
 const affiliatedCollegeTypes = [
-  'Private College',
+  'Private Campus',
   'Community Campus'
 ];
 
@@ -4943,7 +4943,7 @@ const CollegeDataForm: React.FC = () => {
 
       
       if (response.data.success) {
-        setSuccess('College form submitted successfully!');
+        setSuccess('Campus form submitted successfully!');
         setFormData(initialFormData);
         setSelectedPrimaryType('');
         setSelectedAffiliatedType('');
@@ -4967,7 +4967,7 @@ const CollegeDataForm: React.FC = () => {
         <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50">
           <CardTitle className="flex items-center gap-3 text-blue-800">
             <School className="h-6 w-6" />
-            College Basic Information
+            Campus Basic Information
           </CardTitle>
         </CardHeader>
         <CardContent className="p-6 space-y-4">
@@ -4975,7 +4975,7 @@ const CollegeDataForm: React.FC = () => {
             <div className="space-y-2">
               <Label htmlFor="collegeName" className="text-sm font-medium flex items-center gap-2">
                 <School className="h-4 w-4" />
-                College Name *
+                Campus Name *
               </Label>
               <Input
                 id="collegeName"
@@ -5008,11 +5008,11 @@ const CollegeDataForm: React.FC = () => {
               </Select>
             </div>
 
-            {selectedPrimaryType === 'Affiliated College' && (
+            {selectedPrimaryType === 'Affiliated Campus' && (
               <div className="space-y-2">
                 <Label htmlFor="affiliatedCollegeType" className="text-sm font-medium flex items-center gap-2">
                   <Building className="h-4 w-4" />
-                  Affiliated College Type *
+                  Affiliated Campus Type *
                 </Label>
                 <Select 
                   value={selectedAffiliatedType} 
@@ -5049,7 +5049,7 @@ const CollegeDataForm: React.FC = () => {
             <div className="space-y-2">
               <Label htmlFor="collegeId" className="text-sm font-medium flex items-center gap-2">
                 <FileText className="h-4 w-4" />
-                College ID
+                Campus ID
               </Label>
               <Input
                 id="collegeId"
@@ -5206,7 +5206,7 @@ const CollegeDataForm: React.FC = () => {
         <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50">
           <CardTitle className="flex items-center gap-3 text-green-800">
             <MapPin className="h-6 w-6" />
-            College Location Details
+            Campus Location Details
           </CardTitle>
         </CardHeader>
         <CardContent className="p-6 space-y-4">
@@ -5402,7 +5402,7 @@ const CollegeDataForm: React.FC = () => {
             <div className="space-y-2">
               <Label htmlFor="website" className="text-sm font-medium flex items-center gap-2">
                 <Globe className="h-4 w-4" />
-                College Website
+                Campus Website
               </Label>
               <Input
                 id="website"
@@ -7078,7 +7078,7 @@ const CollegeDataForm: React.FC = () => {
         <CardHeader className="bg-gradient-to-r from-emerald-50 to-green-50">
           <CardTitle className="flex items-center gap-3 text-emerald-800">
             <CheckCircle className="h-6 w-6" />
-            Review College Information
+            Review Campus Information
           </CardTitle>
         </CardHeader>
         <CardContent className="p-6 space-y-6">
@@ -7091,14 +7091,14 @@ const CollegeDataForm: React.FC = () => {
 
           <Card className="border-2 border-emerald-200 bg-emerald-50/50">
             <CardHeader>
-              <CardTitle className="text-lg text-emerald-700">College Summary</CardTitle>
+              <CardTitle className="text-lg text-emerald-700">Campus Summary</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
                     <School className="h-4 w-4 text-emerald-600" />
-                    <span className="font-medium">College Name:</span>
+                    <span className="font-medium">Campus Name:</span>
                     <span>{formData.collegeName || 'Not provided'}</span>
                   </div>
                   <div className="flex items-center gap-2">
@@ -7198,7 +7198,7 @@ const CollegeDataForm: React.FC = () => {
               Tribhuvan University
             </h1>
             <h2 className="text-2xl font-semibold text-blue-600 mb-4">
-              College Information Collection Form
+              Campus Information Collection Form
             </h2>
             <div className="flex items-center justify-center gap-4 text-sm text-gray-600">
               <Badge variant="outline" className="border-blue-300 text-blue-700">

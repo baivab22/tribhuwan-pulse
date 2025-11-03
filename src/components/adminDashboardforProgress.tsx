@@ -86,7 +86,7 @@
 //       if (report) {
 //         const csvData = convertCollegeToCSV(report);
 //         downloadCSV(csvData, `${report.collegeName}_${report.academicYear}_raw_data.csv`);
-//         toast.success('College CSV exported successfully');
+//         toast.success('Campus CSV exported successfully');
 //       } else {
 //         const response = await fetch(`${API_BASE_URL}/export/csv`);
 //         if (response.ok) {
@@ -118,7 +118,7 @@
 //       // Set document properties
 //       pdf.setProperties({
 //         title: `${report.collegeName} - Progress Report ${report.academicYear}`,
-//         subject: 'College Progress Monitoring Report',
+//         subject: 'Campus Progress Monitoring Report',
 //         author: 'Education Monitoring System',
 //         keywords: 'college, progress, report, education',
 //         creator: 'Education Monitoring System'
@@ -141,7 +141,7 @@
       
 //       let currentY = 40;
 
-//       // College Information Section
+//       // Campus Information Section
 //       pdf.setFontSize(16);
 //       pdf.setFont('helvetica', 'bold');
 //       pdf.text('COLLEGE INFORMATION', 14, currentY);
@@ -151,8 +151,8 @@
 //       pdf.setFont('helvetica', 'normal');
       
 //       const collegeInfo = [
-//         ['College Name:', report.collegeName || 'N/A'],
-//         ['College ID:', report.collegeId || 'N/A'],
+//         ['Campus Name:', report.collegeName || 'N/A'],
+//         ['Campus ID:', report.collegeId || 'N/A'],
 //         ['Academic Year:', report.academicYear || 'N/A'],
 //         ['Submission Date:', report.submissionDate || 'N/A'],
 //         ['Head of Planning/QAAC:', report.headName || 'N/A'],
@@ -546,7 +546,7 @@
 
 //   const convertCollegeToCSV = (report: ProgressReport): string => {
 //     const headers = [
-//       'College Name', 'Academic Year', 'Total Students', 'Building Status', 'Classroom Count', 
+//       'Campus Name', 'Academic Year', 'Total Students', 'Building Status', 'Classroom Count', 
 //       'Lab Count', 'Library Books', 'IT Connectivity', 'Head Name', 'Principal Name', 'Submitted By'
 //     ];
 
@@ -1084,7 +1084,7 @@
 //               onClick={() => setSelectedCollege(null)} 
 //               className="mb-4 shadow-sm hover:shadow-md transition-all"
 //             >
-//               ← Back to College List
+//               ← Back to Campus List
 //             </Button>
 //             <div className="flex items-start justify-between">
 //               <div>
@@ -2177,7 +2177,7 @@
 //     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
 //       <div className="max-w-[1600px] mx-auto p-8">
 //         <div className="mb-8">
-//           <h1 className="text-4xl font-bold text-gray-900 mb-3">College Progress Monitoring Dashboard</h1>
+//           <h1 className="text-4xl font-bold text-gray-900 mb-3">Campus Progress Monitoring Dashboard</h1>
 //           <p className="text-lg text-gray-600">Comprehensive institutional performance tracking and analysis</p>
 //         </div>
 
@@ -2202,7 +2202,7 @@
 
 //         <Card className="shadow-xl border-0 mb-8">
 //           <CardHeader className="">
-//             <CardTitle className="text-2xl">College Performance Overview</CardTitle>
+//             <CardTitle className="text-2xl">Campus Performance Overview</CardTitle>
 //             <CardDescription className="">
 //               Click on any college to view detailed analysis and export reports ({filteredReports.length} colleges)
 //             </CardDescription>
@@ -2212,7 +2212,7 @@
 //               <Table>
 //                 <TableHeader>
 //                   <TableRow className="bg-gray-50">
-//                     <TableHead className="font-bold">College</TableHead>
+//                     <TableHead className="font-bold">Campus</TableHead>
 //                     <TableHead className="font-bold">Academic Year</TableHead>
 //                     <TableHead className="font-bold">Total Students</TableHead>
 //                     <TableHead className="font-bold">Programs</TableHead>
@@ -2510,7 +2510,7 @@
 //                 <School className="h-8 w-8 text-white" />
 //               </div>
 //               <div className="text-3xl font-bold text-purple-900">{getAverageStudentsPerCollege()}</div>
-//               <div className="text-sm text-purple-700 font-semibold mt-2">Avg Students per College</div>
+//               <div className="text-sm text-purple-700 font-semibold mt-2">Avg Students per Campus</div>
 //               <div className="text-xs text-purple-600 mt-2">Average enrollment</div>
 //             </CardContent>
 //           </Card>
@@ -2521,7 +2521,7 @@
 //                 <GraduationCap className="h-8 w-8 text-white" />
 //               </div>
 //               <div className="text-3xl font-bold text-orange-900">{getAverageProgramsPerCollege()}</div>
-//               <div className="text-sm text-orange-700 font-semibold mt-2">Avg Programs per College</div>
+//               <div className="text-sm text-orange-700 font-semibold mt-2">Avg Programs per Campus</div>
 //               <div className="text-xs text-orange-600 mt-2">Academic diversity</div>
 //             </CardContent>
 //           </Card>
@@ -2652,7 +2652,7 @@
 //           <CardHeader>
 //             <CardTitle className="flex items-center text-xl">
 //               <TrendingUp className="h-5 w-5 mr-2 text-green-600" />
-//               College Program Statistics
+//               Campus Program Statistics
 //             </CardTitle>
 //             <CardDescription>Program count and student distribution across colleges</CardDescription>
 //           </CardHeader>
@@ -2805,7 +2805,7 @@ export default function AdminDashboardForProgress() {
       // Set document properties
       pdf.setProperties({
         title: 'All Colleges Progress Reports',
-        subject: 'Comprehensive College Progress Monitoring Report',
+        subject: 'Comprehensive Campus Progress Monitoring Report',
         author: 'Education Monitoring System',
         keywords: 'college, progress, report, education, all colleges',
         creator: 'Education Monitoring System'
@@ -2836,8 +2836,8 @@ export default function AdminDashboardForProgress() {
         ['Total Colleges', reports.length.toString()],
         ['Total Students', getTotalStudents().toLocaleString()],
         ['Total Programs', getTotalPrograms().toString()],
-        ['Average Students per College', getAverageStudentsPerCollege().toLocaleString()],
-        ['Average Programs per College', getAverageProgramsPerCollege().toString()],
+        ['Average Students per Campus', getAverageStudentsPerCollege().toLocaleString()],
+        ['Average Programs per Campus', getAverageProgramsPerCollege().toString()],
         ['Report Generation Date', new Date().toLocaleDateString()]
       ];
 
@@ -2853,7 +2853,7 @@ export default function AdminDashboardForProgress() {
 
       currentY = (pdf as any).lastAutoTable.finalY + 15;
 
-      // College-wise Summary Table
+      // Campus-wise Summary Table
       pdf.setFontSize(16);
       pdf.setFont('helvetica', 'bold');
       pdf.text('COLLEGE-WISE PERFORMANCE SUMMARY', 14, currentY);
@@ -2876,7 +2876,7 @@ export default function AdminDashboardForProgress() {
 
       pdf.autoTable({
         startY: currentY,
-        head: [['#', 'College Name', 'Academic Year', 'Students', 'Programs', 'Budget Util%', 'S:C Ratio', 'Building Status', 'Submission Date']],
+        head: [['#', 'Campus Name', 'Academic Year', 'Students', 'Programs', 'Budget Util%', 'S:C Ratio', 'Building Status', 'Submission Date']],
         body: collegeSummaryData,
         theme: 'grid',
         headStyles: { fillColor: [16, 185, 129], textColor: 255, fontStyle: 'bold' },
@@ -2887,7 +2887,7 @@ export default function AdminDashboardForProgress() {
 
       currentY = (pdf as any).lastAutoTable.finalY + 15;
 
-      // Detailed College Reports
+      // Detailed Campus Reports
       pdf.setFontSize(16);
       pdf.setFont('helvetica', 'bold');
       pdf.text('DETAILED COLLEGE REPORTS', 14, currentY);
@@ -2904,7 +2904,7 @@ export default function AdminDashboardForProgress() {
           currentY = 20;
         }
 
-        // College Header
+        // Campus Header
         pdf.setFontSize(14);
         pdf.setFont('helvetica', 'bold');
         pdf.setTextColor(59, 130, 246);
@@ -2913,7 +2913,7 @@ export default function AdminDashboardForProgress() {
 
         pdf.setFontSize(10);
         pdf.setTextColor(0, 0, 0);
-        pdf.text(`Academic Year: ${report.academicYear} | College ID: ${report.collegeId} | Submitted: ${report.submissionDate}`, 14, currentY);
+        pdf.text(`Academic Year: ${report.academicYear} | Campus ID: ${report.collegeId} | Submitted: ${report.submissionDate}`, 14, currentY);
         currentY += 10;
 
         // Key Metrics
@@ -3055,7 +3055,7 @@ export default function AdminDashboardForProgress() {
       if (report) {
         const csvData = convertCollegeToCSV(report);
         downloadCSV(csvData, `${report.collegeName}_${report.academicYear}_raw_data.csv`);
-        toast.success('College CSV exported successfully');
+        toast.success('Campus CSV exported successfully');
       } else {
         // For all data, we'll use PDF instead as requested
         await handleExportAllPDF();
@@ -3074,7 +3074,7 @@ export default function AdminDashboardForProgress() {
       // Set document properties
       pdf.setProperties({
         title: `${report.collegeName} - Progress Report ${report.academicYear}`,
-        subject: 'College Progress Monitoring Report',
+        subject: 'Campus Progress Monitoring Report',
         author: 'Education Monitoring System',
         keywords: 'college, progress, report, education',
         creator: 'Education Monitoring System'
@@ -3097,7 +3097,7 @@ export default function AdminDashboardForProgress() {
       
       let currentY = 40;
 
-      // College Information Section
+      // Campus Information Section
       pdf.setFontSize(16);
       pdf.setFont('helvetica', 'bold');
       pdf.text('COLLEGE INFORMATION', 14, currentY);
@@ -3107,8 +3107,8 @@ export default function AdminDashboardForProgress() {
       pdf.setFont('helvetica', 'normal');
       
       const collegeInfo = [
-        ['College Name:', report.collegeName || 'N/A'],
-        ['College ID:', report.collegeId || 'N/A'],
+        ['Campus Name:', report.collegeName || 'N/A'],
+        ['Campus ID:', report.collegeId || 'N/A'],
         ['Academic Year:', report.academicYear || 'N/A'],
         ['Submission Date:', report.submissionDate || 'N/A'],
         ['Head of Planning/QAAC:', report.headName || 'N/A'],
@@ -3502,7 +3502,7 @@ export default function AdminDashboardForProgress() {
 
   const convertCollegeToCSV = (report: ProgressReport): string => {
     const headers = [
-      'College Name', 'Academic Year', 'Total Students', 'Building Status', 'Classroom Count', 
+      'Campus Name', 'Academic Year', 'Total Students', 'Building Status', 'Classroom Count', 
       'Lab Count', 'Library Books', 'IT Connectivity', 'Head Name', 'Principal Name', 'Submitted By'
     ];
 
@@ -4050,7 +4050,7 @@ const formatCurrency = (amount: number): string => {
               onClick={() => setSelectedCollege(null)} 
               className="mb-4 shadow-sm hover:shadow-md transition-all"
             >
-              ← Back to College List
+              ← Back to Campus List
             </Button>
             <div className="flex items-start justify-between">
               <div>
@@ -5143,7 +5143,7 @@ const formatCurrency = (amount: number): string => {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       <div className="max-w-[1600px] mx-auto p-8">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-3">College Progress Monitoring Dashboard</h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-3">Campus Progress Monitoring Dashboard</h1>
           <p className="text-lg text-gray-600">Comprehensive institutional performance tracking and analysis</p>
         </div>
 
@@ -5168,7 +5168,7 @@ const formatCurrency = (amount: number): string => {
 
         <Card className="shadow-xl border-0 mb-8">
           <CardHeader className="">
-            <CardTitle className="text-2xl">College Performance Overview</CardTitle>
+            <CardTitle className="text-2xl">Campus Performance Overview</CardTitle>
             <CardDescription className="">
               Click on any college to view detailed analysis and export reports ({filteredReports.length} colleges)
             </CardDescription>
@@ -5178,7 +5178,7 @@ const formatCurrency = (amount: number): string => {
               <Table>
                 <TableHeader>
                   <TableRow className="bg-gray-50">
-                    <TableHead className="font-bold">College</TableHead>
+                    <TableHead className="font-bold">Campus</TableHead>
                     <TableHead className="font-bold">Academic Year</TableHead>
                     <TableHead className="font-bold">Total Students</TableHead>
                     <TableHead className="font-bold">Programs</TableHead>
@@ -5535,7 +5535,7 @@ const formatCurrency = (amount: number): string => {
                 <School className="h-8 w-8 text-white" />
               </div>
               <div className="text-3xl font-bold text-purple-900">{getAverageStudentsPerCollege()}</div>
-              <div className="text-sm text-purple-700 font-semibold mt-2">Avg Students per College</div>
+              <div className="text-sm text-purple-700 font-semibold mt-2">Avg Students per Campus</div>
               <div className="text-xs text-purple-600 mt-2">Average enrollment</div>
             </CardContent>
           </Card>
@@ -5546,7 +5546,7 @@ const formatCurrency = (amount: number): string => {
                 <GraduationCap className="h-8 w-8 text-white" />
               </div>
               <div className="text-3xl font-bold text-orange-900">{getAverageProgramsPerCollege()}</div>
-              <div className="text-sm text-orange-700 font-semibold mt-2">Avg Programs per College</div>
+              <div className="text-sm text-orange-700 font-semibold mt-2">Avg Programs per Campus</div>
               <div className="text-xs text-orange-600 mt-2">Academic diversity</div>
             </CardContent>
           </Card>
@@ -5677,7 +5677,7 @@ const formatCurrency = (amount: number): string => {
           <CardHeader>
             <CardTitle className="flex items-center text-xl">
               <TrendingUp className="h-5 w-5 mr-2 text-green-600" />
-              College Program Statistics
+              Campus Program Statistics
             </CardTitle>
             <CardDescription>Program count and student distribution across colleges</CardDescription>
           </CardHeader>

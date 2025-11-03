@@ -65,6 +65,7 @@ import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import AdminDashboardForProgress from '@/components/adminDashboardforProgress';
 import AdminForCollege from '@/components/adminForCollege';
+import AdminForFaculty from './AdminForFaculty';
 
 const categories: Category[] = ['academic', 'administrative', 'infrastructure', 'other'];
 const statuses: Status[] = ['Received', 'In Process', 'Resolved'];
@@ -458,7 +459,8 @@ export default function AdminDashboard() {
             <TabsTrigger value="departments">Departments</TabsTrigger>
             <TabsTrigger value="analytics">{t('admin.analytics')}</TabsTrigger>
             <TabsTrigger value="progress">Progress</TabsTrigger>
-            <TabsTrigger value="college">College Form</TabsTrigger>
+            <TabsTrigger value="college">Campus Form</TabsTrigger>
+                     <TabsTrigger value="faculty">Faculty Form</TabsTrigger>
           </TabsList>
           
           <div className="flex space-x-2">
@@ -1230,6 +1232,10 @@ export default function AdminDashboard() {
 
                   <TabsContent value='college' className="mt-4">
           <AdminForCollege/>
+          </TabsContent> 
+
+                 <TabsContent value='faculty' className="mt-4">
+          <AdminForFaculty/>
           </TabsContent> 
          
       </Tabs>

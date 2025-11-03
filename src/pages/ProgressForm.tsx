@@ -647,12 +647,12 @@
 //             <Card>
 //               <CardHeader>
 //                 <CardTitle>Basic Information</CardTitle>
-//                 <CardDescription>College identification and academic year details</CardDescription>
+//                 <CardDescription>Campus identification and academic year details</CardDescription>
 //               </CardHeader>
 //               <CardContent className="space-y-4">
 //                 <div className="grid grid-cols-2 gap-4">
 //                   <div>
-//                     <Label htmlFor="collegeId">College ID *</Label>
+//                     <Label htmlFor="collegeId">Campus ID *</Label>
 //                     <Input
 //                       id="collegeId"
 //                       value={formData.collegeId}
@@ -662,7 +662,7 @@
 //                     />
 //                   </div>
 //                   <div>
-//                     <Label htmlFor="collegeName">College Name *</Label>
+//                     <Label htmlFor="collegeName">Campus Name *</Label>
 //                     <Input
 //                       id="collegeName"
 //                       value={formData.collegeName}
@@ -2615,12 +2615,12 @@ export default function ProgressForm({ onSubmit, initialData, isLoading = false 
             <Card>
               <CardHeader>
                 <CardTitle>Basic Information</CardTitle>
-                <CardDescription>College identification and academic year details</CardDescription>
+                <CardDescription>Campus identification and academic year details</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="collegeId">College ID *</Label>
+                    <Label htmlFor="collegeId">Campus ID *</Label>
                     <Input
                       id="collegeId"
                       value={formData.collegeId}
@@ -2630,7 +2630,7 @@ export default function ProgressForm({ onSubmit, initialData, isLoading = false 
                     />
                   </div>
                   <div>
-                    <Label htmlFor="collegeName">College Name *</Label>
+                    <Label htmlFor="collegeName">Campus Name *</Label>
                     <Input
                       id="collegeName"
                       value={formData.collegeName}
