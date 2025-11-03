@@ -2081,7 +2081,7 @@ const AdminForFaculty: React.FC = () => {
   const fetchFacultyData = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('http://localhost:4000/api/faculty-forms', {
+      const response = await axios.get('http://202.70.90.11:81/api/faculty-forms', {
         headers: {
           'Content-Type': 'application/json',
         },
