@@ -1,7 +1,7 @@
 import React from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useTranslation } from "react-i18next";
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { 
   Home, 
   Settings, 
@@ -21,6 +21,7 @@ import {
 export const UniversityFooter = () => {
   const { t, i18n } = useTranslation();
   const isMobile = useIsMobile();
+  const navigate=useNavigate();
 
   const quickLinks = [
     { path: '/', label: 'Home', icon: Home },
@@ -53,16 +54,17 @@ export const UniversityFooter = () => {
     }
   ];
 
-  const institutesFaculties = [
-    "Institute of Science and Technology",
-    "Faculty of Humanities and Social Sciences",
-    "Faculty of Management",
-    "Faculty of Education",
-    "Institute of Engineering",
-    "Faculty of Law",
-    "Institute of Medicine",
-    "Faculty of Agriculture",
-    "Institute of Forestry"
+ const institutesFaculties = [
+    { name: "Institute of Medicine", url: "https://iom.tu.edu.np" },
+    { name: "Institute of Forestry", url: "https://ioff.tu.edu.np" },
+    { name: "Institute of Agriculture and Animal Science", url: "https://iaas.tu.edu.np" },
+    { name: "Institute of Science and Technology", url: "https://iost.tu.edu.np" },
+    { name: "Institute of Engineering", url: "https://ioe.tu.edu.np" },
+    { name: "Faculty of Humanities and Social Sciences", url: "https://fohss.tu.edu.np" },
+    { name: "Faculty of Education", url: "https://foe.tu.edu.np" },
+    { name: "Faculty of Law", url: "https://fol.tu.edu.np" },
+    { name: "Faculty of Management", url: "https://fom.tu.edu.np" },
+    { name: "Ayurveda Teaching Hospital, Kirtipur", url: "https://ath.tu.edu.np" }
   ];
 
   const contactInfo = [
@@ -134,8 +136,11 @@ export const UniversityFooter = () => {
                 <div
                   key={index}
                   className="text-gray-300 hover:text-white text-sm transition-colors duration-200 py-1 cursor-pointer"
+                  onClick={()=>{
+                    window.open(institute.url, '_blank');
+                  }}
                 >
-                  {institute}
+                  {institute.name}
                 </div>
               ))}
             </div>
