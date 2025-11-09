@@ -3514,7 +3514,7 @@ export default function ProgressForm({ onSubmit, initialData, isLoading = false 
                 <div className="bg-blue-50 p-4 rounded-lg">
                   <p className="text-sm text-blue-800">
                     <strong>Declaration:</strong> I hereby certify that the information provided in this Annual Progress Report 
-                    is accurate and complete to the best of my knowledge and is based on the official records of the college.
+                    is accurate and complete to the best of my knowledge and is based on the official records of the campus.
                   </p>
                 </div>
                 <div className="grid grid-cols-2 gap-4">

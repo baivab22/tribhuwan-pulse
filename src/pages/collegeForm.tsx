@@ -4982,7 +4982,7 @@ const CollegeDataForm: React.FC = () => {
                 name="collegeName"
                 value={formData.collegeName}
                 onChange={handleInputChange}
-                placeholder="Enter college name"
+                placeholder="Enter campuss name"
                 className="border-2 focus:border-blue-500"
                 required
               />
@@ -4991,7 +4991,7 @@ const CollegeDataForm: React.FC = () => {
             <div className="space-y-2">
               <Label htmlFor="primaryCampusType" className="text-sm font-medium flex items-center gap-2">
                 <Building className="h-4 w-4" />
-                Campus Type *
+                Type *
               </Label>
               <Select 
                 value={selectedPrimaryType} 
@@ -5019,7 +5019,7 @@ const CollegeDataForm: React.FC = () => {
                   onValueChange={handleAffiliatedTypeChange}
                 >
                   <SelectTrigger className="border-2 focus:border-blue-500">
-                    <SelectValue placeholder="Select affiliated college type" />
+                    <SelectValue placeholder="Select affiliated campus type" />
                   </SelectTrigger>
                   <SelectContent>
                     {affiliatedCollegeTypes.map((type) => (
@@ -5033,7 +5033,7 @@ const CollegeDataForm: React.FC = () => {
             <div className="space-y-2">
               <Label htmlFor="establishmentDate" className="text-sm font-medium flex items-center gap-2">
                 <Calendar className="h-4 w-4" />
-                Establishment Date *
+                Established Date *
               </Label>
               <Input
                 id="establishmentDate"
@@ -5068,7 +5068,7 @@ const CollegeDataForm: React.FC = () => {
         <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50">
           <CardTitle className="flex items-center gap-3 text-green-800">
             <Users className="h-6 w-6" />
-            Principal Information
+            Information about Campus Chief
           </CardTitle>
         </CardHeader>
         <CardContent className="p-6 space-y-4">
@@ -5076,7 +5076,7 @@ const CollegeDataForm: React.FC = () => {
             <div className="space-y-2">
               <Label htmlFor="principalName" className="text-sm font-medium flex items-center gap-2">
                 <Users className="h-4 w-4" />
-                Principal Name *
+                Full Name *
               </Label>
               <Input
                 id="principalName"
@@ -5092,7 +5092,7 @@ const CollegeDataForm: React.FC = () => {
             <div className="space-y-2">
               <Label htmlFor="principalContact" className="text-sm font-medium flex items-center gap-2">
                 <Phone className="h-4 w-4" />
-                Contact Number
+                Official Contact Number
               </Label>
               <Input
                 id="principalContact"
@@ -5107,7 +5107,7 @@ const CollegeDataForm: React.FC = () => {
             <div className="space-y-2">
               <Label htmlFor="principalEmail" className="text-sm font-medium flex items-center gap-2">
                 <Mail className="h-4 w-4" />
-                Email
+                Official Email ID
               </Label>
               <Input
                 id="principalEmail"
@@ -5127,7 +5127,7 @@ const CollegeDataForm: React.FC = () => {
         <CardHeader className="bg-gradient-to-r from-purple-50 to-violet-50">
           <CardTitle className="flex items-center gap-3 text-purple-800">
             <Phone className="h-6 w-6" />
-            Staff Contacts
+            Information about Official Staffs
           </CardTitle>
         </CardHeader>
         <CardContent className="p-6 space-y-4">
@@ -5135,11 +5135,11 @@ const CollegeDataForm: React.FC = () => {
             <div className="space-y-4">
               <h4 className="font-semibold text-purple-700 flex items-center gap-2">
                 <Users className="h-4 w-4" />
-                Admin Chief
+                Chief of Admin Section
               </h4>
               <div className="space-y-3">
                 <div className="space-y-2">
-                  <Label htmlFor="adminChiefName" className="text-sm font-medium">Name</Label>
+                  <Label htmlFor="adminChiefName" className="text-sm font-medium">Full Name</Label>
                   <Input
                     id="adminChiefName"
                     name="staffContacts.adminChief.name"
@@ -5150,7 +5150,7 @@ const CollegeDataForm: React.FC = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="adminChiefMobile" className="text-sm font-medium">Mobile</Label>
+                  <Label htmlFor="adminChiefMobile" className="text-sm font-medium">Contact Number: (Official & Personal)</Label>
                   <Input
                     id="adminChiefMobile"
                     name="staffContacts.adminChief.mobile"
@@ -5166,11 +5166,11 @@ const CollegeDataForm: React.FC = () => {
             <div className="space-y-4">
               <h4 className="font-semibold text-purple-700 flex items-center gap-2">
                 <Users className="h-4 w-4" />
-                Account Chief
+                Chief of Account Section
               </h4>
               <div className="space-y-3">
                 <div className="space-y-2">
-                  <Label htmlFor="accountChiefName" className="text-sm font-medium">Name</Label>
+                  <Label htmlFor="accountChiefName" className="text-sm font-medium">Full Name</Label>
                   <Input
                     id="accountChiefName"
                     name="staffContacts.accountChief.name"
@@ -5181,7 +5181,7 @@ const CollegeDataForm: React.FC = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="accountChiefMobile" className="text-sm font-medium">Mobile</Label>
+                  <Label htmlFor="accountChiefMobile" className="text-sm font-medium">Contact Number: (Official & Personal)</Label>
                   <Input
                     id="accountChiefMobile"
                     name="staffContacts.accountChief.mobile"
@@ -5363,7 +5363,7 @@ const CollegeDataForm: React.FC = () => {
         <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50">
           <CardTitle className="flex items-center gap-3 text-blue-800">
             <Phone className="h-6 w-6" />
-            Contact Information
+            Campus Contact Information
           </CardTitle>
         </CardHeader>
         <CardContent className="p-6 space-y-4">
