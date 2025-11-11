@@ -325,7 +325,7 @@ const FacultyForm: React.FC = () => {
         throw new Error('Failed to submit form');
       }
     } catch (error) {
-      toast.error('Error submitting form. Please try again.');
+      // toast.error('Error submitting form. Please try again.');
       console.error('Error:', error);
     }
   };
