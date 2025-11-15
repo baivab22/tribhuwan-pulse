@@ -67,7 +67,10 @@ import {
   Trees,
   Sprout,
   Shield,
-  DollarSign
+  DollarSign,
+  Wrench,
+  HardHat,
+  ClipboardList
 } from 'lucide-react';
 
 // Location Data Interface
@@ -156,346 +159,61 @@ interface ProgramBreakdown {
   other: string;
 }
 
-// Main Form Interface
-interface CollegeFormData {
-  collegeName: string;
-  campusType: string;
-  establishmentDate: string;
-  collegeId: string;
-  principalInfo: {
-    name: string;
-    contactNumber: string;
-    email: string;
-  };
-  contactInfo: {
-    officialPhone: string;
-    officialEmail: string;
-    website: string;
-  };
-  staffContacts: {
-    adminChief: {
-      name: string;
-      mobile: string;
-    };
-    accountChief: {
-      name: string;
-      mobile: string;
-    };
-  };
-  dataCollectionContact: {
-    name: string;
-    designation: string;
-    phone: string;
-    email: string;
-  };
-  location: {
-    province: string;
-    district: string;
-    localLevel: string;
-    wardNo: string;
-    streetTole: string;
-    landmark: string;
-    latitude: string;
-    longitude: string;
-    googleMapsLink: string;
-  };
-  infrastructure: {
-    landArea: {
-      traditionalUnits: {
-        bigaha: string;
-        katha: string;
-        dhur: string;
-        ropani: string;
-        ana: string;
-        daam: string;
-        paisa: string;
-      };
-      squareMeters: string;
-      acquisitionDate: string;
-      taxClearanceStatus: string;
-      haalsabikStatus: string;
-    };
-    landOwnership: {
-      lalpurja: {
-        area: string;
-        address: string;
-      };
-      bhogadhikar: {
-        area: string;
-        address: string;
-      };
-      localGovernment: {
-        area: string;
-        address: string;
-      };
-      other: {
-        area: string;
-        address: string;
-      };
-    };
-    landUse: {
-      buildingArea: string;
-      playgroundArea: string;
-      naturalForestArea: string;
-      plantationArea: string;
-      leasedArea: string;
-      leaseIncome: string;
-      encroachmentExists: boolean;
-      encroachmentDetails: string;
-      protectionSteps: string;
-      commercialUseSuggestions: string;
-      commercialPlans: string;
-      masterPlanExists: boolean;
-      masterPlanAttachment: string;
-      suggestions: string;
-    };
-    buildings: Building[];
-    healthSanitation: {
-      toilets: {
-        male: string;
-        female: string;
-        disabledFriendly: string;
-      };
-      drinkingWater: {
-        available: boolean;
-        qualityTested: boolean;
-        purificationSystem: string;
-      };
-      wasteManagement: {
-        segregation: boolean;
-        disposalMethod: string;
-        recycling: boolean;
-      };
-      medicalFacilities: {
-        firstAid: boolean;
-        healthPost: boolean;
-        staffAvailable: boolean;
-      };
-    };
-  };
-  academicPrograms: {
-    totalFaculties: string;
-    programs: AcademicProgram[];
-    enrollment: {
-      total: string;
-      male: string;
-      female: string;
-      other: string;
-      programBreakdown: ProgramBreakdown[];
-    };
-  };
-  projectPlanning: {
-    immediateConstruction: string;
-    futureConstruction: string;
-    priorityWork: {
-      p1: string;
-      p2: string;
-      p3: string;
-    };
-    ongoingProjects: Project[];
-  };
-  staff: {
-    academic: Array<{
-      name: string;
-      designation: string;
-      department: string;
-      qualification: string;
-      experience: string;
-      employmentType: string;
-    }>;
-    administrative: Array<{
-      name: string;
-      designation: string;
-      department: string;
-      employmentType: string;
-    }>;
-  };
-  educationalTechnology: {
-    digitalClassrooms: string;
-    computerLabs: string;
-    computersAvailable: string;
-    internetAvailability: {
-      available: boolean;
-      speed: string;
-      provider: string;
-    };
-    libraryResources: {
-      physicalBooks: string;
-      ebooks: string;
-      journals: string;
-      digitalDatabase: boolean;
-    };
-    learningManagementSystem: {
-      name: string;
-      active: boolean;
-    };
-  };
-  formStatus: string;
+// Future Land Use Plan Interface
+interface FutureLandUsePlan {
+  prepared: boolean;
+  dismantled: boolean;
+  proposalDocumentsSubmitted: boolean;
+  constructionStatus: string;
+  structureType: string;
+  structureStatus: string;
+  retrofittingPlan: string;
+  fundSource: string;
+  fundAmount: string;
+  fundUtilizedPercentage: string;
+  fundUtilizationIssues: string;
+  documentsSubmittedTo: string;
+  purposeOfBuilding: string;
 }
 
-const initialFormData: CollegeFormData = {
-  collegeName: '',
-  campusType: '',
-  establishmentDate: '',
-  collegeId: '',
-  principalInfo: {
-    name: '',
-    contactNumber: '',
-    email: ''
-  },
-  contactInfo: {
-    officialPhone: '',
-    officialEmail: '',
-    website: ''
-  },
-  staffContacts: {
-    adminChief: {
-      name: '',
-      mobile: ''
-    },
-    accountChief: {
-      name: '',
-      mobile: ''
-    }
-  },
-  dataCollectionContact: {
-    name: '',
-    designation: '',
-    phone: '',
-    email: ''
-  },
-  location: {
-    province: '',
-    district: '',
-    localLevel: '',
-    wardNo: '',
-    streetTole: '',
-    landmark: '',
-    latitude: '',
-    longitude: '',
-    googleMapsLink: ''
-  },
-  infrastructure: {
-    landArea: {
-      traditionalUnits: {
-        bigaha: '',
-        katha: '',
-        dhur: '',
-        ropani: '',
-        ana: '',
-        daam: '',
-        paisa: ''
-      },
-      squareMeters: '',
-      acquisitionDate: '',
-      taxClearanceStatus: '',
-      haalsabikStatus: ''
-    },
-    landOwnership: {
-      lalpurja: {
-        area: '',
-        address: ''
-      },
-      bhogadhikar: {
-        area: '',
-        address: ''
-      },
-      localGovernment: {
-        area: '',
-        address: ''
-      },
-      other: {
-        area: '',
-        address: ''
-      }
-    },
-    landUse: {
-      buildingArea: '',
-      playgroundArea: '',
-      naturalForestArea: '',
-      plantationArea: '',
-      leasedArea: '',
-      leaseIncome: '',
-      encroachmentExists: false,
-      encroachmentDetails: '',
-      protectionSteps: '',
-      commercialUseSuggestions: '',
-      commercialPlans: '',
-      masterPlanExists: false,
-      masterPlanAttachment: '',
-      suggestions: ''
-    },
-    buildings: [],
-    healthSanitation: {
-      toilets: {
-        male: '',
-        female: '',
-        disabledFriendly: ''
-      },
-      drinkingWater: {
-        available: false,
-        qualityTested: false,
-        purificationSystem: ''
-      },
-      wasteManagement: {
-        segregation: false,
-        disposalMethod: '',
-        recycling: false
-      },
-      medicalFacilities: {
-        firstAid: false,
-        healthPost: false,
-        staffAvailable: false
-      }
-    }
-  },
-  academicPrograms: {
-    totalFaculties: '',
-    programs: [],
-    enrollment: {
-      total: '',
-      male: '',
-      female: '',
-      other: '',
-      programBreakdown: []
-    }
-  },
-  projectPlanning: {
-    immediateConstruction: '',
-    futureConstruction: '',
-    priorityWork: {
-      p1: '',
-      p2: '',
-      p3: ''
-    },
-    ongoingProjects: []
-  },
-  staff: {
-    academic: [],
-    administrative: []
-  },
-  educationalTechnology: {
-    digitalClassrooms: '',
-    computerLabs: '',
-    computersAvailable: '',
-    internetAvailability: {
-      available: false,
-      speed: '',
-      provider: ''
-    },
-    libraryResources: {
-      physicalBooks: '',
-      ebooks: '',
-      journals: '',
-      digitalDatabase: false
-    },
-    learningManagementSystem: {
-      name: '',
-      active: false
-    }
-  },
-  formStatus: 'Draft'
-};
+// Water and Sanitation Interface
+interface WaterSanitation {
+  waterDrainageSystem: {
+    available: boolean;
+    status: string;
+  };
+  sewerageSystem: {
+    available: boolean;
+    status: string;
+  };
+  waterSeepage: {
+    status: string;
+  };
+  drinkingWater: {
+    available: boolean;
+    status: string;
+  };
+  toiletFacilities: {
+    available: boolean;
+    maleToilets: string;
+    femaleToilets: string;
+    disabledFriendlyToilets: string;
+  };
+}
+
+// Traditional Units Interface
+interface TraditionalUnits {
+  unitType: 'bigha' | 'ropani' | '';
+  bigaha: string;
+  katha: string;
+  dhur: string;
+  ropani: string;
+  aana: string;
+  paisa: string;
+  daam: string;
+}
+
+
 
 // Tribhuvan University Programs Data Structure
 const tuPrograms = {
@@ -4423,6 +4141,383 @@ const academicLevels = ["Bachelor", "Master", "MPhil", "PhD", "Post Graduate Dip
         }
 ];
 
+
+// Main Form Interface
+interface CollegeFormData {
+  collegeName: string;
+  campusType: string;
+  establishmentDate: string;
+  collegeId: string;
+  principalInfo: {
+    name: string;
+    contactNumber: string;
+    email: string;
+  };
+  contactInfo: {
+    officialPhone: string;
+    officialEmail: string;
+    website: string;
+  };
+  staffContacts: {
+    adminChief: {
+      name: string;
+      mobile: string;
+    };
+    accountChief: {
+      name: string;
+      mobile: string;
+    };
+  };
+  dataCollectionContact: {
+    name: string;
+    designation: string;
+    phone: string;
+    email: string;
+  };
+  location: {
+    province: string;
+    district: string;
+    localLevel: string;
+    wardNo: string;
+    streetTole: string;
+    landmark: string;
+    latitude: string;
+    longitude: string;
+    googleMapsLink: string;
+  };
+  infrastructure: {
+    landArea: {
+      traditionalUnits: TraditionalUnits;
+      squareMeters: string;
+      acquisitionDate: string;
+      taxClearanceStatus: string;
+      haalsabikStatus: string;
+    };
+    landOwnership: {
+      lalpurja: {
+        area: string;
+        address: string;
+      };
+      bhogadhikar: {
+        area: string;
+        address: string;
+      };
+      localGovernment: {
+        area: string;
+        address: string;
+      };
+      other: {
+        area: string;
+        address: string;
+      };
+    };
+    landUse: {
+      buildingArea: string;
+      playgroundArea: string;
+      naturalForestArea: string;
+      plantationArea: string;
+      leasedArea: string;
+      leaseIncome: string;
+      encroachmentExists: boolean;
+      encroachmentDetails: string;
+      protectionSteps: string;
+      commercialUseSuggestions: string;
+      commercialPlans: string;
+      masterPlanExists: boolean;
+      masterPlanAttachment: string;
+      suggestions: string;
+    };
+    buildings: Building[];
+    futureLandUsePlan: FutureLandUsePlan;
+    waterSanitation: WaterSanitation;
+    healthSanitation: {
+      toilets: {
+        male: string;
+        female: string;
+        disabledFriendly: string;
+      };
+      drinkingWater: {
+        available: boolean;
+        qualityTested: boolean;
+        purificationSystem: string;
+      };
+      wasteManagement: {
+        segregation: boolean;
+        disposalMethod: string;
+        recycling: boolean;
+      };
+      medicalFacilities: {
+        firstAid: boolean;
+        healthPost: boolean;
+        staffAvailable: boolean;
+      };
+    };
+  };
+  academicPrograms: {
+    totalFaculties: string;
+    programs: AcademicProgram[];
+    enrollment: {
+      total: string;
+      male: string;
+      female: string;
+      other: string;
+      programBreakdown: ProgramBreakdown[];
+    };
+  };
+  projectPlanning: {
+    immediateConstruction: string;
+    futureConstruction: string;
+    priorityWork: {
+      p1: string;
+      p2: string;
+      p3: string;
+    };
+    ongoingProjects: Project[];
+  };
+  staff: {
+    academic: Array<{
+      name: string;
+      designation: string;
+      department: string;
+      qualification: string;
+      experience: string;
+      employmentType: string;
+    }>;
+    administrative: Array<{
+      name: string;
+      designation: string;
+      department: string;
+      employmentType: string;
+    }>;
+  };
+  educationalTechnology: {
+    digitalClassrooms: string;
+    computerLabs: string;
+    computersAvailable: string;
+    internetAvailability: {
+      available: boolean;
+      speed: string;
+      provider: string;
+    };
+    libraryResources: {
+      physicalBooks: string;
+      ebooks: string;
+      journals: string;
+      digitalDatabase: boolean;
+    };
+    learningManagementSystem: {
+      name: string;
+      active: boolean;
+    };
+  };
+  formStatus: string;
+}
+
+const initialTraditionalUnits: TraditionalUnits = {
+  unitType: '',
+  bigaha: '',
+  katha: '',
+  dhur: '',
+  ropani: '',
+  aana: '',
+  paisa: '',
+  daam: ''
+};
+
+const initialFormData: CollegeFormData = {
+  collegeName: '',
+  campusType: '',
+  establishmentDate: '',
+  collegeId: '',
+  principalInfo: {
+    name: '',
+    contactNumber: '',
+    email: ''
+  },
+  contactInfo: {
+    officialPhone: '',
+    officialEmail: '',
+    website: ''
+  },
+  staffContacts: {
+    adminChief: {
+      name: '',
+      mobile: ''
+    },
+    accountChief: {
+      name: '',
+      mobile: ''
+    }
+  },
+  dataCollectionContact: {
+    name: '',
+    designation: '',
+    phone: '',
+    email: ''
+  },
+  location: {
+    province: '',
+    district: '',
+    localLevel: '',
+    wardNo: '',
+    streetTole: '',
+    landmark: '',
+    latitude: '',
+    longitude: '',
+    googleMapsLink: ''
+  },
+  infrastructure: {
+    landArea: {
+      traditionalUnits: initialTraditionalUnits,
+      squareMeters: '',
+      acquisitionDate: '',
+      taxClearanceStatus: '',
+      haalsabikStatus: ''
+    },
+    landOwnership: {
+      lalpurja: {
+        area: '',
+        address: ''
+      },
+      bhogadhikar: {
+        area: '',
+        address: ''
+      },
+      localGovernment: {
+        area: '',
+        address: ''
+      },
+      other: {
+        area: '',
+        address: ''
+      }
+    },
+    landUse: {
+      buildingArea: '',
+      playgroundArea: '',
+      naturalForestArea: '',
+      plantationArea: '',
+      leasedArea: '',
+      leaseIncome: '',
+      encroachmentExists: false,
+      encroachmentDetails: '',
+      protectionSteps: '',
+      commercialUseSuggestions: '',
+      commercialPlans: '',
+      masterPlanExists: false,
+      masterPlanAttachment: '',
+      suggestions: ''
+    },
+    buildings: [],
+    futureLandUsePlan: {
+      prepared: false,
+      dismantled: false,
+      proposalDocumentsSubmitted: false,
+      constructionStatus: '',
+      structureType: '',
+      structureStatus: '',
+      retrofittingPlan: '',
+      fundSource: '',
+      fundAmount: '',
+      fundUtilizedPercentage: '',
+      fundUtilizationIssues: '',
+      documentsSubmittedTo: '',
+      purposeOfBuilding: ''
+    },
+    waterSanitation: {
+      waterDrainageSystem: {
+        available: false,
+        status: ''
+      },
+      sewerageSystem: {
+        available: false,
+        status: ''
+      },
+      waterSeepage: {
+        status: ''
+      },
+      drinkingWater: {
+        available: false,
+        status: ''
+      },
+      toiletFacilities: {
+        available: false,
+        maleToilets: '',
+        femaleToilets: '',
+        disabledFriendlyToilets: ''
+      }
+    },
+    healthSanitation: {
+      toilets: {
+        male: '',
+        female: '',
+        disabledFriendly: ''
+      },
+      drinkingWater: {
+        available: false,
+        qualityTested: false,
+        purificationSystem: ''
+      },
+      wasteManagement: {
+        segregation: false,
+        disposalMethod: '',
+        recycling: false
+      },
+      medicalFacilities: {
+        firstAid: false,
+        healthPost: false,
+        staffAvailable: false
+      }
+    }
+  },
+  academicPrograms: {
+    totalFaculties: '',
+    programs: [],
+    enrollment: {
+      total: '',
+      male: '',
+      female: '',
+      other: '',
+      programBreakdown: []
+    }
+  },
+  projectPlanning: {
+    immediateConstruction: '',
+    futureConstruction: '',
+    priorityWork: {
+      p1: '',
+      p2: '',
+      p3: ''
+    },
+    ongoingProjects: []
+  },
+  staff: {
+    academic: [],
+    administrative: []
+  },
+  educationalTechnology: {
+    digitalClassrooms: '',
+    computerLabs: '',
+    computersAvailable: '',
+    internetAvailability: {
+      available: false,
+      speed: '',
+      provider: ''
+    },
+    libraryResources: {
+      physicalBooks: '',
+      ebooks: '',
+      journals: '',
+      digitalDatabase: false
+    },
+    learningManagementSystem: {
+      name: '',
+      active: false
+    }
+  },
+  formStatus: 'Draft'
+};
+
 const primaryCampusTypes = [
   'Constituent Campus',
   'Affiliated Campus'
@@ -4438,16 +4533,31 @@ const projectStatuses = ['Planning', 'In Progress', 'Completed', 'On Hold'];
 const buildingConditions = ['Excellent', 'Good', 'Fair', 'Poor'];
 const taxClearanceStatuses = ['Cleared', 'Pending', 'Not Required'];
 const haalsabikStatuses = ['Completed', 'In Progress', 'Not Started'];
+const constructionStatuses = ['Not Started', 'In Progress', 'Completed', 'On Hold'];
+const structureTypes = ['Academic Building', 'Administrative Building', 'Hostel', 'Library', 'Laboratory', 'Sports Facility', 'Other'];
+const systemStatuses = ['Functional', 'Partially Functional', 'Non-Functional', 'Under Maintenance'];
+const waterSeepageStatuses = ['No Seepage', 'Minor Seepage', 'Major Seepage', 'Critical Condition'];
+
+// Traditional unit options
+const bighaOptions = Array.from({ length: 20 }, (_, i) => i.toString());
+const kathaOptions = Array.from({ length: 20 }, (_, i) => i.toString());
+const dhurOptions = Array.from({ length: 20 }, (_, i) => i.toString());
+const ropaniOptions = Array.from({ length: 20 }, (_, i) => i.toString());
+const aanaOptions = Array.from({ length: 16 }, (_, i) => i.toString());
+const paisaOptions = Array.from({ length: 4 }, (_, i) => i.toString());
+const daamOptions = Array.from({ length: 4 }, (_, i) => i.toString());
 
 const steps = [
   { id: 0, title: 'Basic Information', icon: School, color: 'text-blue-600' },
   { id: 1, title: 'Location Details', icon: MapPin, color: 'text-green-600' },
   { id: 2, title: 'Infrastructure & Land', icon: Building, color: 'text-purple-600' },
-  { id: 3, title: 'Academic Programs', icon: GraduationCap, color: 'text-orange-600' },
-  { id: 4, title: 'Staff Information', icon: Users, color: 'text-cyan-600' },
-  { id: 5, title: 'Facilities & Technology', icon: Computer, color: 'text-indigo-600' },
-  { id: 6, title: 'Project Planning', icon: Hammer, color: 'text-red-600' },
-  { id: 7, title: 'Review & Submit', icon: CheckCircle, color: 'text-emerald-600' }
+  { id: 3, title: 'Future Land Use Plan', icon: ClipboardList, color: 'text-orange-600' },
+  { id: 4, title: 'Water & Sanitation', icon: Shield, color: 'text-cyan-600' },
+  { id: 5, title: 'Academic Programs', icon: GraduationCap, color: 'text-indigo-600' },
+  { id: 6, title: 'Staff Information', icon: Users, color: 'text-pink-600' },
+  { id: 7, title: 'Facilities & Technology', icon: Computer, color: 'text-teal-600' },
+  { id: 8, title: 'Project Planning', icon: Hammer, color: 'text-red-600' },
+  { id: 9, title: 'Review & Submit', icon: CheckCircle, color: 'text-emerald-600' }
 ];
 
 const CollegeDataForm: React.FC = () => {
@@ -4574,6 +4684,39 @@ const CollegeDataForm: React.FC = () => {
         [name]: type === 'checkbox' ? checked : value
       }));
     }
+  };
+
+  // Traditional Units Handlers
+  const handleUnitTypeChange = (value: 'bigha' | 'ropani' | '') => {
+    setFormData(prev => ({
+      ...prev,
+      infrastructure: {
+        ...prev.infrastructure,
+        landArea: {
+          ...prev.infrastructure.landArea,
+          traditionalUnits: {
+            ...initialTraditionalUnits,
+            unitType: value
+          }
+        }
+      }
+    }));
+  };
+
+  const handleTraditionalUnitChange = (field: keyof TraditionalUnits, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      infrastructure: {
+        ...prev.infrastructure,
+        landArea: {
+          ...prev.infrastructure.landArea,
+          traditionalUnits: {
+            ...prev.infrastructure.landArea.traditionalUnits,
+            [field]: value
+          }
+        }
+      }
+    }));
   };
 
   // Building handlers
@@ -4921,7 +5064,7 @@ const CollegeDataForm: React.FC = () => {
     }
   };
 
-  const handleNext = (e) => {
+  const handleNext = (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
     setActiveStep((prev) => prev + 1);
@@ -4939,7 +5082,7 @@ const CollegeDataForm: React.FC = () => {
     setSuccess('');
 
     try {
-      const response = await axios.post('http://202.70.90.11:81/api/collegeform', formData);
+      const response = await axios.post('http://localhost:4000/api/collegeform', formData);
 
       
       if (response.data.success) {
@@ -4982,7 +5125,7 @@ const CollegeDataForm: React.FC = () => {
                 name="collegeName"
                 value={formData.collegeName}
                 onChange={handleInputChange}
-                placeholder="Enter campuss name"
+                placeholder="Enter campus name"
                 className="border-2 focus:border-blue-500"
                 required
               />
@@ -5419,7 +5562,7 @@ const CollegeDataForm: React.FC = () => {
     </div>
   );
 
-  // Step 3: Infrastructure & Land with Media Support
+  // Step 3: Infrastructure & Land with Traditional Units
   const renderInfrastructureStep = () => (
     <div className="space-y-6">
       {/* Land Area Information */}
@@ -5437,48 +5580,165 @@ const CollegeDataForm: React.FC = () => {
                 <LandPlot className="h-5 w-5" />
                 Traditional Units
               </h4>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">Bigaha</Label>
-                  <Input
-                    name="infrastructure.landArea.traditionalUnits.bigaha"
-                    value={formData.infrastructure.landArea.traditionalUnits.bigaha}
-                    onChange={handleInputChange}
-                    placeholder="0"
-                    className="border-2 focus:border-purple-500"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">Katha</Label>
-                  <Input
-                    name="infrastructure.landArea.traditionalUnits.katha"
-                    value={formData.infrastructure.landArea.traditionalUnits.katha}
-                    onChange={handleInputChange}
-                    placeholder="0"
-                    className="border-2 focus:border-purple-500"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">Dhur</Label>
-                  <Input
-                    name="infrastructure.landArea.traditionalUnits.dhur"
-                    value={formData.infrastructure.landArea.traditionalUnits.dhur}
-                    onChange={handleInputChange}
-                    placeholder="0"
-                    className="border-2 focus:border-purple-500"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">Ropani</Label>
-                  <Input
-                    name="infrastructure.landArea.traditionalUnits.ropani"
-                    value={formData.infrastructure.landArea.traditionalUnits.ropani}
-                    onChange={handleInputChange}
-                    placeholder="0"
-                    className="border-2 focus:border-purple-500"
-                  />
-                </div>
+              
+              {/* Unit Type Selection */}
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Select Unit Type *</Label>
+                <Select 
+                  value={formData.infrastructure.landArea.traditionalUnits.unitType} 
+                  onValueChange={handleUnitTypeChange}
+                >
+                  <SelectTrigger className="border-2 focus:border-purple-500">
+                    <SelectValue placeholder="Select unit type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="bigha">Bigha System</SelectItem>
+                    <SelectItem value="ropani">Ropani System</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
+
+              {/* Bigha System */}
+              {formData.infrastructure.landArea.traditionalUnits.unitType === 'bigha' && (
+                <div className="space-y-4 mt-4">
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium">Bigha</Label>
+                      <Select 
+                        value={formData.infrastructure.landArea.traditionalUnits.bigaha} 
+                        onValueChange={(value) => handleTraditionalUnitChange('bigaha', value)}
+                      >
+                        <SelectTrigger className="border-2 focus:border-purple-500">
+                          <SelectValue placeholder="0" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {bighaOptions.map(value => (
+                            <SelectItem key={value} value={value}>{value}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium">Katha</Label>
+                      <Select 
+                        value={formData.infrastructure.landArea.traditionalUnits.katha} 
+                        onValueChange={(value) => handleTraditionalUnitChange('katha', value)}
+                      >
+                        <SelectTrigger className="border-2 focus:border-purple-500">
+                          <SelectValue placeholder="0" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {kathaOptions.map(value => (
+                            <SelectItem key={value} value={value}>{value}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium">Dhur</Label>
+                      <Select 
+                        value={formData.infrastructure.landArea.traditionalUnits.dhur} 
+                        onValueChange={(value) => handleTraditionalUnitChange('dhur', value)}
+                      >
+                        <SelectTrigger className="border-2 focus:border-purple-500">
+                          <SelectValue placeholder="0" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {dhurOptions.map(value => (
+                            <SelectItem key={value} value={value}>{value}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <div className="text-xs text-gray-500 bg-purple-50 p-2 rounded">
+                    <strong>Bigha System:</strong> 1 Bigha = 20 Katha, 1 Katha = 20 Dhur
+                  </div>
+                </div>
+              )}
+
+              {/* Ropani System */}
+              {formData.infrastructure.landArea.traditionalUnits.unitType === 'ropani' && (
+                <div className="space-y-4 mt-4">
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium">Ropani</Label>
+                      <Select 
+                        value={formData.infrastructure.landArea.traditionalUnits.ropani} 
+                        onValueChange={(value) => handleTraditionalUnitChange('ropani', value)}
+                      >
+                        <SelectTrigger className="border-2 focus:border-purple-500">
+                          <SelectValue placeholder="0" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {ropaniOptions.map(value => (
+                            <SelectItem key={value} value={value}>{value}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium">Aana</Label>
+                      <Select 
+                        value={formData.infrastructure.landArea.traditionalUnits.aana} 
+                        onValueChange={(value) => handleTraditionalUnitChange('aana', value)}
+                      >
+                        <SelectTrigger className="border-2 focus:border-purple-500">
+                          <SelectValue placeholder="0" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {aanaOptions.map(value => (
+                            <SelectItem key={value} value={value}>{value}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium">Paisa</Label>
+                      <Select 
+                        value={formData.infrastructure.landArea.traditionalUnits.paisa} 
+                        onValueChange={(value) => handleTraditionalUnitChange('paisa', value)}
+                      >
+                        <SelectTrigger className="border-2 focus:border-purple-500">
+                          <SelectValue placeholder="0" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {paisaOptions.map(value => (
+                            <SelectItem key={value} value={value}>{value}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium">Daam</Label>
+                      <Select 
+                        value={formData.infrastructure.landArea.traditionalUnits.daam} 
+                        onValueChange={(value) => handleTraditionalUnitChange('daam', value)}
+                      >
+                        <SelectTrigger className="border-2 focus:border-purple-500">
+                          <SelectValue placeholder="0" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {daamOptions.map(value => (
+                            <SelectItem key={value} value={value}>{value}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  
+                  <div className="text-xs text-gray-500 bg-purple-50 p-2 rounded">
+                    <strong>Ropani System:</strong> 1 Ropani = 16 Aana, 1 Aana = 4 Paisa, 1 Paisa = 4 Daam
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="space-y-4">
@@ -5487,16 +5747,7 @@ const CollegeDataForm: React.FC = () => {
                 Land Details
               </h4>
               <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">Square Meters</Label>
-                  <Input
-                    name="infrastructure.landArea.squareMeters"
-                    value={formData.infrastructure.landArea.squareMeters}
-                    onChange={handleInputChange}
-                    placeholder="Area in square meters"
-                    className="border-2 focus:border-purple-500"
-                  />
-                </div>
+           
                 <div className="space-y-2">
                   <Label className="text-sm font-medium">Acquisition Date</Label>
                   <Input
@@ -5989,46 +6240,85 @@ const CollegeDataForm: React.FC = () => {
           ))}
         </CardContent>
       </Card>
+    </div>
+  );
 
-      {/* Health & Sanitation */}
-      <Card className="border-l-4 border-l-green-500 shadow-lg">
-        <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50">
-          <CardTitle className="flex items-center gap-3 text-green-800">
-            <Shield className="h-6 w-6" />
-            Health & Sanitation
+  // Step 4: Future Land Use Plan
+  const renderFutureLandUsePlanStep = () => (
+    <div className="space-y-6">
+      <Card className="border-l-4 border-l-orange-500 shadow-lg">
+        <CardHeader className="bg-gradient-to-r from-orange-50 to-amber-50">
+          <CardTitle className="flex items-center gap-3 text-orange-800">
+            <ClipboardList className="h-6 w-6" />
+            Future Land Use Plan
           </CardTitle>
         </CardHeader>
         <CardContent className="p-6 space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">Male Toilets</Label>
-              <Input
-                name="infrastructure.healthSanitation.toilets.male"
-                value={formData.infrastructure.healthSanitation.toilets.male}
-                onChange={handleInputChange}
-                placeholder="Number of male toilets"
-                className="border-2 focus:border-green-500"
+          <div className="space-y-4">
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="futureLandUsePlanPrepared"
+                checked={formData.infrastructure.futureLandUsePlan.prepared}
+                onCheckedChange={(checked) => 
+                  setFormData(prev => ({
+                    ...prev,
+                    infrastructure: {
+                      ...prev.infrastructure,
+                      futureLandUsePlan: {
+                        ...prev.infrastructure.futureLandUsePlan,
+                        prepared: checked
+                      }
+                    }
+                  }))
+                }
               />
+              <Label htmlFor="futureLandUsePlanPrepared" className="text-sm font-medium">
+                Future Land Use Plan Prepared or not?
+              </Label>
             </div>
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">Female Toilets</Label>
-              <Input
-                name="infrastructure.healthSanitation.toilets.female"
-                value={formData.infrastructure.healthSanitation.toilets.female}
-                onChange={handleInputChange}
-                placeholder="Number of female toilets"
-                className="border-2 focus:border-green-500"
+
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="dismantledAlready"
+                checked={formData.infrastructure.futureLandUsePlan.dismantled}
+                onCheckedChange={(checked) => 
+                  setFormData(prev => ({
+                    ...prev,
+                    infrastructure: {
+                      ...prev.infrastructure,
+                      futureLandUsePlan: {
+                        ...prev.infrastructure.futureLandUsePlan,
+                        dismantled: checked
+                      }
+                    }
+                  }))
+                }
               />
+              <Label htmlFor="dismantledAlready" className="text-sm font-medium">
+                Dismantled already or in plan?
+              </Label>
             </div>
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">Disabled Friendly Toilets</Label>
-              <Input
-                name="infrastructure.healthSanitation.toilets.disabledFriendly"
-                value={formData.infrastructure.healthSanitation.toilets.disabledFriendly}
-                onChange={handleInputChange}
-                placeholder="Number of disabled friendly toilets"
-                className="border-2 focus:border-green-500"
+
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="proposalDocumentsSubmitted"
+                checked={formData.infrastructure.futureLandUsePlan.proposalDocumentsSubmitted}
+                onCheckedChange={(checked) => 
+                  setFormData(prev => ({
+                    ...prev,
+                    infrastructure: {
+                      ...prev.infrastructure,
+                      futureLandUsePlan: {
+                        ...prev.infrastructure.futureLandUsePlan,
+                        proposalDocumentsSubmitted: checked
+                      }
+                    }
+                  }))
+                }
               />
+              <Label htmlFor="proposalDocumentsSubmitted" className="text-sm font-medium">
+                Proposal documents submitted or in process?
+              </Label>
             </div>
           </div>
 
@@ -6036,149 +6326,100 @@ const CollegeDataForm: React.FC = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-4">
-              <h4 className="font-semibold text-green-700">Drinking Water</h4>
-              <div className="space-y-3">
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    id="drinkingWater"
-                    name="infrastructure.healthSanitation.drinkingWater.available"
-                    checked={formData.infrastructure.healthSanitation.drinkingWater.available}
-                    onCheckedChange={(checked) => 
-                      setFormData(prev => ({
-                        ...prev,
-                        infrastructure: {
-                          ...prev.infrastructure,
-                          healthSanitation: {
-                            ...prev.infrastructure.healthSanitation,
-                            drinkingWater: {
-                              ...prev.infrastructure.healthSanitation.drinkingWater,
-                              available: checked
-                            }
-                          }
-                        }
-                      }))
+              <h4 className="font-semibold text-orange-700">Construction Plans</h4>
+              
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Specify the construction status</Label>
+                <Select 
+                  value={formData.infrastructure.futureLandUsePlan.constructionStatus} 
+                  onValueChange={(value) => setFormData(prev => ({
+                    ...prev,
+                    infrastructure: {
+                      ...prev.infrastructure,
+                      futureLandUsePlan: {
+                        ...prev.infrastructure.futureLandUsePlan,
+                        constructionStatus: value
+                      }
                     }
-                  />
-                  <Label htmlFor="drinkingWater" className="text-sm font-medium">
-                    Drinking Water Available
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    id="qualityTested"
-                    name="infrastructure.healthSanitation.drinkingWater.qualityTested"
-                    checked={formData.infrastructure.healthSanitation.drinkingWater.qualityTested}
-                    onCheckedChange={(checked) => 
-                      setFormData(prev => ({
-                        ...prev,
-                        infrastructure: {
-                          ...prev.infrastructure,
-                          healthSanitation: {
-                            ...prev.infrastructure.healthSanitation,
-                            drinkingWater: {
-                              ...prev.infrastructure.healthSanitation.drinkingWater,
-                              qualityTested: checked
-                            }
-                          }
-                        }
-                      }))
+                  }))}
+                >
+                  <SelectTrigger className="border-2 focus:border-orange-500">
+                    <SelectValue placeholder="Select construction status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {constructionStatuses.map(status => (
+                      <SelectItem key={status} value={status}>{status}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Specify which type of structure</Label>
+                <Select 
+                  value={formData.infrastructure.futureLandUsePlan.structureType} 
+                  onValueChange={(value) => setFormData(prev => ({
+                    ...prev,
+                    infrastructure: {
+                      ...prev.infrastructure,
+                      futureLandUsePlan: {
+                        ...prev.infrastructure.futureLandUsePlan,
+                        structureType: value
+                      }
                     }
-                  />
-                  <Label htmlFor="qualityTested" className="text-sm font-medium">
-                    Quality Tested
-                  </Label>
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">Purification System</Label>
-                  <Input
-                    name="infrastructure.healthSanitation.drinkingWater.purificationSystem"
-                    value={formData.infrastructure.healthSanitation.drinkingWater.purificationSystem}
-                    onChange={handleInputChange}
-                    placeholder="Type of purification system"
-                    className="border-2 focus:border-green-500"
-                  />
-                </div>
+                  }))}
+                >
+                  <SelectTrigger className="border-2 focus:border-orange-500">
+                    <SelectValue placeholder="Select structure type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {structureTypes.map(type => (
+                      <SelectItem key={type} value={type}>{type}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Structure status</Label>
+                <Input
+                  value={formData.infrastructure.futureLandUsePlan.structureStatus}
+                  onChange={(e) => setFormData(prev => ({
+                    ...prev,
+                    infrastructure: {
+                      ...prev.infrastructure,
+                      futureLandUsePlan: {
+                        ...prev.infrastructure.futureLandUsePlan,
+                        structureStatus: e.target.value
+                      }
+                    }
+                  }))}
+                  placeholder="Enter structure status"
+                  className="border-2 focus:border-orange-500"
+                />
               </div>
             </div>
 
             <div className="space-y-4">
-              <h4 className="font-semibold text-green-700">Medical Facilities</h4>
-              <div className="space-y-3">
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    id="firstAid"
-                    name="infrastructure.healthSanitation.medicalFacilities.firstAid"
-                    checked={formData.infrastructure.healthSanitation.medicalFacilities.firstAid}
-                    onCheckedChange={(checked) => 
-                      setFormData(prev => ({
-                        ...prev,
-                        infrastructure: {
-                          ...prev.infrastructure,
-                          healthSanitation: {
-                            ...prev.infrastructure.healthSanitation,
-                            medicalFacilities: {
-                              ...prev.infrastructure.healthSanitation.medicalFacilities,
-                              firstAid: checked
-                            }
-                          }
-                        }
-                      }))
+              <h4 className="font-semibold text-orange-700">Retrofitting/Restructuring Plans</h4>
+              
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Plan for Retrofitting/Restructuring/Repair/Reconstruction</Label>
+                <Textarea
+                  value={formData.infrastructure.futureLandUsePlan.retrofittingPlan}
+                  onChange={(e) => setFormData(prev => ({
+                    ...prev,
+                    infrastructure: {
+                      ...prev.infrastructure,
+                      futureLandUsePlan: {
+                        ...prev.infrastructure.futureLandUsePlan,
+                        retrofittingPlan: e.target.value
+                      }
                     }
-                  />
-                  <Label htmlFor="firstAid" className="text-sm font-medium">
-                    First Aid Available
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    id="healthPost"
-                    name="infrastructure.healthSanitation.medicalFacilities.healthPost"
-                    checked={formData.infrastructure.healthSanitation.medicalFacilities.healthPost}
-                    onCheckedChange={(checked) => 
-                      setFormData(prev => ({
-                        ...prev,
-                        infrastructure: {
-                          ...prev.infrastructure,
-                          healthSanitation: {
-                            ...prev.infrastructure.healthSanitation,
-                            medicalFacilities: {
-                              ...prev.infrastructure.healthSanitation.medicalFacilities,
-                              healthPost: checked
-                            }
-                          }
-                        }
-                      }))
-                    }
-                  />
-                  <Label htmlFor="healthPost" className="text-sm font-medium">
-                    Health Post Available
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    id="staffAvailable"
-                    name="infrastructure.healthSanitation.medicalFacilities.staffAvailable"
-                    checked={formData.infrastructure.healthSanitation.medicalFacilities.staffAvailable}
-                    onCheckedChange={(checked) => 
-                      setFormData(prev => ({
-                        ...prev,
-                        infrastructure: {
-                          ...prev.infrastructure,
-                          healthSanitation: {
-                            ...prev.infrastructure.healthSanitation,
-                            medicalFacilities: {
-                              ...prev.infrastructure.healthSanitation.medicalFacilities,
-                              staffAvailable: checked
-                            }
-                          }
-                        }
-                      }))
-                    }
-                  />
-                  <Label htmlFor="staffAvailable" className="text-sm font-medium">
-                    Medical Staff Available
-                  </Label>
-                </div>
+                  }))}
+                  placeholder="Describe retrofitting/restructuring plans..."
+                  className="border-2 focus:border-orange-500 min-h-[100px]"
+                />
               </div>
             </div>
           </div>
@@ -6186,66 +6427,455 @@ const CollegeDataForm: React.FC = () => {
           <Separator />
 
           <div className="space-y-4">
-            <h4 className="font-semibold text-green-700">Waste Management</h4>
+            <h4 className="font-semibold text-orange-700">Funding Information</h4>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="segregation"
-                  name="infrastructure.healthSanitation.wasteManagement.segregation"
-                  checked={formData.infrastructure.healthSanitation.wasteManagement.segregation}
-                  onCheckedChange={(checked) => 
-                    setFormData(prev => ({
-                      ...prev,
-                      infrastructure: {
-                        ...prev.infrastructure,
-                        healthSanitation: {
-                          ...prev.infrastructure.healthSanitation,
-                          wasteManagement: {
-                            ...prev.infrastructure.healthSanitation.wasteManagement,
-                            segregation: checked
-                          }
-                        }
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Source of fund</Label>
+                <Input
+                  value={formData.infrastructure.futureLandUsePlan.fundSource}
+                  onChange={(e) => setFormData(prev => ({
+                    ...prev,
+                    infrastructure: {
+                      ...prev.infrastructure,
+                      futureLandUsePlan: {
+                        ...prev.infrastructure.futureLandUsePlan,
+                        fundSource: e.target.value
                       }
-                    }))
-                  }
+                    }
+                  }))}
+                  placeholder="Enter source of fund"
+                  className="border-2 focus:border-orange-500"
                 />
-                <Label htmlFor="segregation" className="text-sm font-medium">
-                  Waste Segregation
-                </Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="recycling"
-                  name="infrastructure.healthSanitation.wasteManagement.recycling"
-                  checked={formData.infrastructure.healthSanitation.wasteManagement.recycling}
-                  onCheckedChange={(checked) => 
-                    setFormData(prev => ({
-                      ...prev,
-                      infrastructure: {
-                        ...prev.infrastructure,
-                        healthSanitation: {
-                          ...prev.infrastructure.healthSanitation,
-                          wasteManagement: {
-                            ...prev.infrastructure.healthSanitation.wasteManagement,
-                            recycling: checked
-                          }
-                        }
-                      }
-                    }))
-                  }
-                />
-                <Label htmlFor="recycling" className="text-sm font-medium">
-                  Recycling
-                </Label>
               </div>
               <div className="space-y-2">
-                <Label className="text-sm font-medium">Disposal Method</Label>
+                <Label className="text-sm font-medium">Amount of fund</Label>
                 <Input
-                  name="infrastructure.healthSanitation.wasteManagement.disposalMethod"
-                  value={formData.infrastructure.healthSanitation.wasteManagement.disposalMethod}
-                  onChange={handleInputChange}
-                  placeholder="Waste disposal method"
-                  className="border-2 focus:border-green-500"
+                  type="number"
+                  value={formData.infrastructure.futureLandUsePlan.fundAmount}
+                  onChange={(e) => setFormData(prev => ({
+                    ...prev,
+                    infrastructure: {
+                      ...prev.infrastructure,
+                      futureLandUsePlan: {
+                        ...prev.infrastructure.futureLandUsePlan,
+                        fundAmount: e.target.value
+                      }
+                    }
+                  }))}
+                  placeholder="Enter fund amount"
+                  className="border-2 focus:border-orange-500"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Percentage of fund utilized</Label>
+                <Input
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={formData.infrastructure.futureLandUsePlan.fundUtilizedPercentage}
+                  onChange={(e) => setFormData(prev => ({
+                    ...prev,
+                    infrastructure: {
+                      ...prev.infrastructure,
+                      futureLandUsePlan: {
+                        ...prev.infrastructure.futureLandUsePlan,
+                        fundUtilizedPercentage: e.target.value
+                      }
+                    }
+                  }))}
+                  placeholder="0-100%"
+                  className="border-2 focus:border-orange-500"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Specify the cause if fund is not utilized, construction is not executed/stopped, or any other issues</Label>
+              <Textarea
+                value={formData.infrastructure.futureLandUsePlan.fundUtilizationIssues}
+                onChange={(e) => setFormData(prev => ({
+                  ...prev,
+                  infrastructure: {
+                    ...prev.infrastructure,
+                    futureLandUsePlan: {
+                      ...prev.infrastructure.futureLandUsePlan,
+                      fundUtilizationIssues: e.target.value
+                    }
+                  }
+                }))}
+                placeholder="Describe any issues with fund utilization or construction..."
+                className="border-2 focus:border-orange-500 min-h-[80px]"
+              />
+            </div>
+          </div>
+
+          <Separator />
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Specify whether the documents (hardcopy) have been submitted to:</Label>
+              <Input
+                value={formData.infrastructure.futureLandUsePlan.documentsSubmittedTo}
+                onChange={(e) => setFormData(prev => ({
+                  ...prev,
+                  infrastructure: {
+                    ...prev.infrastructure,
+                    futureLandUsePlan: {
+                      ...prev.infrastructure.futureLandUsePlan,
+                      documentsSubmittedTo: e.target.value
+                    }
+                  }
+                }))}
+                placeholder="TU Planning or others (specify)"
+                className="border-2 focus:border-orange-500"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Specify the purpose of proposed building</Label>
+              <Textarea
+                value={formData.infrastructure.futureLandUsePlan.purposeOfBuilding}
+                onChange={(e) => setFormData(prev => ({
+                  ...prev,
+                  infrastructure: {
+                    ...prev.infrastructure,
+                    futureLandUsePlan: {
+                      ...prev.infrastructure.futureLandUsePlan,
+                      purposeOfBuilding: e.target.value
+                    }
+                  }
+                }))}
+                placeholder="Describe the purpose of the proposed building..."
+                className="border-2 focus:border-orange-500 min-h-[80px]"
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+
+  // Step 5: Water & Sanitation
+  const renderWaterSanitationStep = () => (
+    <div className="space-y-6">
+      <Card className="border-l-4 border-l-cyan-500 shadow-lg">
+        <CardHeader className="bg-gradient-to-r from-cyan-50 to-blue-50">
+          <CardTitle className="flex items-center gap-3 text-cyan-800">
+            <Shield className="h-6 w-6" />
+            Water & Sanitation Systems
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-6 space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Water Drainage System */}
+            <div className="space-y-4">
+              <h4 className="font-semibold text-cyan-700">Water Drainage System</h4>
+              <div className="space-y-3">
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="waterDrainageAvailable"
+                    checked={formData.infrastructure.waterSanitation.waterDrainageSystem.available}
+                    onCheckedChange={(checked) => 
+                      setFormData(prev => ({
+                        ...prev,
+                        infrastructure: {
+                          ...prev.infrastructure,
+                          waterSanitation: {
+                            ...prev.infrastructure.waterSanitation,
+                            waterDrainageSystem: {
+                              ...prev.infrastructure.waterSanitation.waterDrainageSystem,
+                              available: checked
+                            }
+                          }
+                        }
+                      }))
+                    }
+                  />
+                  <Label htmlFor="waterDrainageAvailable" className="text-sm font-medium">
+                    Water Drainage System Available
+                  </Label>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Water Drainage System Status</Label>
+                  <Select 
+                    value={formData.infrastructure.waterSanitation.waterDrainageSystem.status} 
+                    onValueChange={(value) => setFormData(prev => ({
+                      ...prev,
+                      infrastructure: {
+                        ...prev.infrastructure,
+                        waterSanitation: {
+                          ...prev.infrastructure.waterSanitation,
+                          waterDrainageSystem: {
+                            ...prev.infrastructure.waterSanitation.waterDrainageSystem,
+                            status: value
+                          }
+                        }
+                      }
+                    }))}
+                  >
+                    <SelectTrigger className="border-2 focus:border-cyan-500">
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {systemStatuses.map(status => (
+                        <SelectItem key={status} value={status}>{status}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+
+            {/* Sewerage System */}
+            <div className="space-y-4">
+              <h4 className="font-semibold text-cyan-700">Sewerage System</h4>
+              <div className="space-y-3">
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="sewerageSystemAvailable"
+                    checked={formData.infrastructure.waterSanitation.sewerageSystem.available}
+                    onCheckedChange={(checked) => 
+                      setFormData(prev => ({
+                        ...prev,
+                        infrastructure: {
+                          ...prev.infrastructure,
+                          waterSanitation: {
+                            ...prev.infrastructure.waterSanitation,
+                            sewerageSystem: {
+                              ...prev.infrastructure.waterSanitation.sewerageSystem,
+                              available: checked
+                            }
+                          }
+                        }
+                      }))
+                    }
+                  />
+                  <Label htmlFor="sewerageSystemAvailable" className="text-sm font-medium">
+                    Sewerage System Available
+                  </Label>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Sewerage System Status</Label>
+                  <Select 
+                    value={formData.infrastructure.waterSanitation.sewerageSystem.status} 
+                    onValueChange={(value) => setFormData(prev => ({
+                      ...prev,
+                      infrastructure: {
+                        ...prev.infrastructure,
+                        waterSanitation: {
+                          ...prev.infrastructure.waterSanitation,
+                          sewerageSystem: {
+                            ...prev.infrastructure.waterSanitation.sewerageSystem,
+                            status: value
+                          }
+                        }
+                      }
+                    }))}
+                  >
+                    <SelectTrigger className="border-2 focus:border-cyan-500">
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {systemStatuses.map(status => (
+                        <SelectItem key={status} value={status}>{status}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <Separator />
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Water Seepage Status */}
+            <div className="space-y-4">
+              <h4 className="font-semibold text-cyan-700">Water Seepage Status</h4>
+              <div className="space-y-2">
+                <Select 
+                  value={formData.infrastructure.waterSanitation.waterSeepage.status} 
+                  onValueChange={(value) => setFormData(prev => ({
+                    ...prev,
+                    infrastructure: {
+                      ...prev.infrastructure,
+                      waterSanitation: {
+                        ...prev.infrastructure.waterSanitation,
+                        waterSeepage: {
+                          ...prev.infrastructure.waterSanitation.waterSeepage,
+                          status: value
+                        }
+                      }
+                    }
+                  }))}
+                >
+                  <SelectTrigger className="border-2 focus:border-cyan-500">
+                    <SelectValue placeholder="Select water seepage status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {waterSeepageStatuses.map(status => (
+                      <SelectItem key={status} value={status}>{status}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Drinking Water */}
+            <div className="space-y-4">
+              <h4 className="font-semibold text-cyan-700">Drinking Water</h4>
+              <div className="space-y-3">
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="drinkingWaterAvailable"
+                    checked={formData.infrastructure.waterSanitation.drinkingWater.available}
+                    onCheckedChange={(checked) => 
+                      setFormData(prev => ({
+                        ...prev,
+                        infrastructure: {
+                          ...prev.infrastructure,
+                          waterSanitation: {
+                            ...prev.infrastructure.waterSanitation,
+                            drinkingWater: {
+                              ...prev.infrastructure.waterSanitation.drinkingWater,
+                              available: checked
+                            }
+                          }
+                        }
+                      }))
+                    }
+                  />
+                  <Label htmlFor="drinkingWaterAvailable" className="text-sm font-medium">
+                    Drinking Water Available
+                  </Label>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Drinking Water Status</Label>
+                  <Select 
+                    value={formData.infrastructure.waterSanitation.drinkingWater.status} 
+                    onValueChange={(value) => setFormData(prev => ({
+                      ...prev,
+                      infrastructure: {
+                        ...prev.infrastructure,
+                        waterSanitation: {
+                          ...prev.infrastructure.waterSanitation,
+                          drinkingWater: {
+                            ...prev.infrastructure.waterSanitation.drinkingWater,
+                            status: value
+                          }
+                        }
+                      }
+                    }))}
+                  >
+                    <SelectTrigger className="border-2 focus:border-cyan-500">
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {systemStatuses.map(status => (
+                        <SelectItem key={status} value={status}>{status}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <Separator />
+
+          {/* Toilet Facilities */}
+          <div className="space-y-4">
+            <h4 className="font-semibold text-cyan-700">Toilet/Rest Room Facilities</h4>
+            <div className="flex items-center space-x-2 mb-4">
+              <Switch
+                id="toiletFacilitiesAvailable"
+                checked={formData.infrastructure.waterSanitation.toiletFacilities.available}
+                onCheckedChange={(checked) => 
+                  setFormData(prev => ({
+                    ...prev,
+                    infrastructure: {
+                      ...prev.infrastructure,
+                      waterSanitation: {
+                        ...prev.infrastructure.waterSanitation,
+                        toiletFacilities: {
+                          ...prev.infrastructure.waterSanitation.toiletFacilities,
+                          available: checked
+                        }
+                      }
+                    }
+                  }))
+                }
+              />
+              <Label htmlFor="toiletFacilitiesAvailable" className="text-sm font-medium">
+                Toilet/Rest Room Facilities Available
+              </Label>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Male Toilets</Label>
+                <Input
+                  type="number"
+                  value={formData.infrastructure.waterSanitation.toiletFacilities.maleToilets}
+                  onChange={(e) => setFormData(prev => ({
+                    ...prev,
+                    infrastructure: {
+                      ...prev.infrastructure,
+                      waterSanitation: {
+                        ...prev.infrastructure.waterSanitation,
+                        toiletFacilities: {
+                          ...prev.infrastructure.waterSanitation.toiletFacilities,
+                          maleToilets: e.target.value
+                        }
+                      }
+                    }
+                  }))}
+                  placeholder="Number of male toilets"
+                  className="border-2 focus:border-cyan-500"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Female Toilets</Label>
+                <Input
+                  type="number"
+                  value={formData.infrastructure.waterSanitation.toiletFacilities.femaleToilets}
+                  onChange={(e) => setFormData(prev => ({
+                    ...prev,
+                    infrastructure: {
+                      ...prev.infrastructure,
+                      waterSanitation: {
+                        ...prev.infrastructure.waterSanitation,
+                        toiletFacilities: {
+                          ...prev.infrastructure.waterSanitation.toiletFacilities,
+                          femaleToilets: e.target.value
+                        }
+                      }
+                    }
+                  }))}
+                  placeholder="Number of female toilets"
+                  className="border-2 focus:border-cyan-500"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Disabled Friendly Toilets</Label>
+                <Input
+                  type="number"
+                  value={formData.infrastructure.waterSanitation.toiletFacilities.disabledFriendlyToilets}
+                  onChange={(e) => setFormData(prev => ({
+                    ...prev,
+                    infrastructure: {
+                      ...prev.infrastructure,
+                      waterSanitation: {
+                        ...prev.infrastructure.waterSanitation,
+                        toiletFacilities: {
+                          ...prev.infrastructure.waterSanitation.toiletFacilities,
+                          disabledFriendlyToilets: e.target.value
+                        }
+                      }
+                    }
+                  }))}
+                  placeholder="Number of disabled friendly toilets"
+                  className="border-2 focus:border-cyan-500"
                 />
               </div>
             </div>
@@ -6255,12 +6885,12 @@ const CollegeDataForm: React.FC = () => {
     </div>
   );
 
-  // Step 4: Academic Programs
+  // Step 6: Academic Programs
   const renderAcademicProgramsStep = () => (
     <div className="space-y-6">
-      <Card className="border-l-4 border-l-orange-500 shadow-lg">
-        <CardHeader className="bg-gradient-to-r from-orange-50 to-amber-50">
-          <CardTitle className="flex items-center gap-3 text-orange-800">
+      <Card className="border-l-4 border-l-indigo-500 shadow-lg">
+        <CardHeader className="bg-gradient-to-r from-indigo-50 to-purple-50">
+          <CardTitle className="flex items-center gap-3 text-indigo-800">
             <GraduationCap className="h-6 w-6" />
             Academic Programs & Enrollment
           </CardTitle>
@@ -6278,7 +6908,7 @@ const CollegeDataForm: React.FC = () => {
               value={formData.academicPrograms.totalFaculties}
               onChange={handleInputChange}
               placeholder="Enter total number of faculties"
-              className="border-2 focus:border-orange-500"
+              className="border-2 focus:border-indigo-500"
             />
           </div>
 
@@ -6286,13 +6916,13 @@ const CollegeDataForm: React.FC = () => {
 
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h4 className="font-semibold text-orange-700 flex items-center gap-2">
+              <h4 className="font-semibold text-indigo-700 flex items-center gap-2">
                 <GraduationCap className="h-5 w-5" />
                 Programs Offered
               </h4>
               <Button 
                 onClick={(e) => {e.stopPropagation(); e.preventDefault(); addProgram()}}
-                className="bg-orange-600 hover:bg-orange-700 text-white"
+                className="bg-indigo-600 hover:bg-indigo-700 text-white"
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Add Program
@@ -6300,10 +6930,10 @@ const CollegeDataForm: React.FC = () => {
             </div>
             
             {formData.academicPrograms.programs.map((program, index) => (
-              <Card key={index} className="border-2 border-orange-200 bg-orange-50/30">
+              <Card key={index} className="border-2 border-indigo-200 bg-indigo-50/30">
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between mb-4">
-                    <h5 className="font-medium text-orange-700">Program #{index + 1}</h5>
+                    <h5 className="font-medium text-indigo-700">Program #{index + 1}</h5>
                     <Button
                       onClick={(e) => {e.stopPropagation(); e.preventDefault(); removeProgram(index)}}
                       variant="outline"
@@ -6322,7 +6952,7 @@ const CollegeDataForm: React.FC = () => {
                         value={program.institution}
                         onValueChange={(value) => handleProgramSelection(index, value, program.level, program.programName)}
                       >
-                        <SelectTrigger className="border-2 focus:border-orange-500">
+                        <SelectTrigger className="border-2 focus:border-indigo-500">
                           <SelectValue placeholder="Select institution" />
                         </SelectTrigger>
                         <SelectContent>
@@ -6342,7 +6972,7 @@ const CollegeDataForm: React.FC = () => {
                         onValueChange={(value) => handleProgramSelection(index, program.institution, value, program.programName)}
                         disabled={!program.institution}
                       >
-                        <SelectTrigger className="border-2 focus:border-orange-500">
+                        <SelectTrigger className="border-2 focus:border-indigo-500">
                           <SelectValue placeholder="Select level" />
                         </SelectTrigger>
                         <SelectContent>
@@ -6364,7 +6994,7 @@ const CollegeDataForm: React.FC = () => {
                         onValueChange={(value) => handleProgramSelection(index, program.institution, program.level, value)}
                         disabled={!program.level || !program.institution}
                       >
-                        <SelectTrigger className="border-2 focus:border-orange-500">
+                        <SelectTrigger className="border-2 focus:border-indigo-500">
                           <SelectValue placeholder="Select program" />
                         </SelectTrigger>
                         <SelectContent>
@@ -6388,7 +7018,7 @@ const CollegeDataForm: React.FC = () => {
                         type="number"
                         value={program.totalStudents}
                         readOnly
-                        className="bg-gray-100 border-2 focus:border-orange-500"
+                        className="bg-gray-100 border-2 focus:border-indigo-500"
                       />
                     </div>
                     <div className="space-y-2">
@@ -6398,7 +7028,7 @@ const CollegeDataForm: React.FC = () => {
                         min="0"
                         value={program.scholarshipStudents}
                         onChange={(e) => updateProgram(index, 'scholarshipStudents', e.target.value)}
-                        className="border-2 focus:border-orange-500"
+                        className="border-2 focus:border-indigo-500"
                       />
                     </div>
                   </div>
@@ -6411,7 +7041,7 @@ const CollegeDataForm: React.FC = () => {
                         min="0"
                         value={program.maleStudents}
                         onChange={(e) => updateProgram(index, 'maleStudents', e.target.value)}
-                        className="border-2 focus:border-orange-500"
+                        className="border-2 focus:border-indigo-500"
                       />
                     </div>
                     <div className="space-y-2">
@@ -6421,7 +7051,7 @@ const CollegeDataForm: React.FC = () => {
                         min="0"
                         value={program.femaleStudents}
                         onChange={(e) => updateProgram(index, 'femaleStudents', e.target.value)}
-                        className="border-2 focus:border-orange-500"
+                        className="border-2 focus:border-indigo-500"
                       />
                     </div>
                     <div className="space-y-2">
@@ -6431,7 +7061,7 @@ const CollegeDataForm: React.FC = () => {
                         min="0"
                         value={program.otherStudents}
                         onChange={(e) => updateProgram(index, 'otherStudents', e.target.value)}
-                        className="border-2 focus:border-orange-500"
+                        className="border-2 focus:border-indigo-500"
                       />
                     </div>
                   </div>
@@ -6444,7 +7074,7 @@ const CollegeDataForm: React.FC = () => {
                         min="0"
                         value={program.newAdmissions}
                         onChange={(e) => updateProgram(index, 'newAdmissions', e.target.value)}
-                        className="border-2 focus:border-orange-500"
+                        className="border-2 focus:border-indigo-500"
                       />
                     </div>
                     <div className="space-y-2">
@@ -6454,7 +7084,7 @@ const CollegeDataForm: React.FC = () => {
                         min="0"
                         value={program.graduatedStudents}
                         onChange={(e) => updateProgram(index, 'graduatedStudents', e.target.value)}
-                        className="border-2 focus:border-orange-500"
+                        className="border-2 focus:border-indigo-500"
                       />
                     </div>
                     <div className="space-y-2">
@@ -6466,7 +7096,7 @@ const CollegeDataForm: React.FC = () => {
                         step="0.1"
                         value={program.passPercentage}
                         onChange={(e) => updateProgram(index, 'passPercentage', e.target.value)}
-                        className="border-2 focus:border-orange-500"
+                        className="border-2 focus:border-indigo-500"
                       />
                     </div>
                   </div>
@@ -6478,7 +7108,7 @@ const CollegeDataForm: React.FC = () => {
           <Separator />
 
           <div className="space-y-4">
-            <h4 className="font-semibold text-orange-700 flex items-center gap-2">
+            <h4 className="font-semibold text-indigo-700 flex items-center gap-2">
               <Users className="h-5 w-5" />
               Overall Enrollment Summary
             </h4>
@@ -6491,7 +7121,7 @@ const CollegeDataForm: React.FC = () => {
                   value={formData.academicPrograms.enrollment.total}
                   onChange={handleInputChange}
                   placeholder="0"
-                  className="border-2 focus:border-orange-500"
+                  className="border-2 focus:border-indigo-500"
                 />
               </div>
               <div className="space-y-2">
@@ -6502,7 +7132,7 @@ const CollegeDataForm: React.FC = () => {
                   value={formData.academicPrograms.enrollment.male}
                   onChange={handleInputChange}
                   placeholder="0"
-                  className="border-2 focus:border-orange-500"
+                  className="border-2 focus:border-indigo-500"
                 />
               </div>
               <div className="space-y-2">
@@ -6513,7 +7143,7 @@ const CollegeDataForm: React.FC = () => {
                   value={formData.academicPrograms.enrollment.female}
                   onChange={handleInputChange}
                   placeholder="0"
-                  className="border-2 focus:border-orange-500"
+                  className="border-2 focus:border-indigo-500"
                 />
               </div>
               <div className="space-y-2">
@@ -6524,15 +7154,15 @@ const CollegeDataForm: React.FC = () => {
                   value={formData.academicPrograms.enrollment.other}
                   onChange={handleInputChange}
                   placeholder="0"
-                  className="border-2 focus:border-orange-500"
+                  className="border-2 focus:border-indigo-500"
                 />
               </div>
             </div>
           </div>
 
           {/* Program Summary */}
-          <div className="bg-orange-50 p-4 rounded-lg">
-            <h4 className="font-semibold text-orange-800 mb-2">Program Summary</h4>
+          <div className="bg-indigo-50 p-4 rounded-lg">
+            <h4 className="font-semibold text-indigo-800 mb-2">Program Summary</h4>
             <div className="grid grid-cols-4 gap-4 text-sm">
               <div>
                 <span className="font-medium">Total Programs:</span> {formData.academicPrograms.programs.length}
@@ -6570,12 +7200,12 @@ const CollegeDataForm: React.FC = () => {
     </div>
   );
 
-  // Step 5: Staff Information
+  // Step 7: Staff Information
   const renderStaffStep = () => (
     <div className="space-y-6">
-      <Card className="border-l-4 border-l-cyan-500 shadow-lg">
-        <CardHeader className="bg-gradient-to-r from-cyan-50 to-blue-50">
-          <CardTitle className="flex items-center gap-3 text-cyan-800">
+      <Card className="border-l-4 border-l-pink-500 shadow-lg">
+        <CardHeader className="bg-gradient-to-r from-pink-50 to-rose-50">
+          <CardTitle className="flex items-center gap-3 text-pink-800">
             <Users className="h-6 w-6" />
             Staff Information
           </CardTitle>
@@ -6583,13 +7213,13 @@ const CollegeDataForm: React.FC = () => {
         <CardContent className="p-6 space-y-6">
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h4 className="font-semibold text-cyan-700 flex items-center gap-2">
+              <h4 className="font-semibold text-pink-700 flex items-center gap-2">
                 <GraduationCap className="h-5 w-5" />
                 Academic Staff
               </h4>
               <Button 
                 onClick={(e) => {e.stopPropagation(); e.preventDefault(); addAcademicStaff()}}
-                className="bg-cyan-600 hover:bg-cyan-700 text-white"
+                className="bg-pink-600 hover:bg-pink-700 text-white"
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Add Academic Staff
@@ -6597,10 +7227,10 @@ const CollegeDataForm: React.FC = () => {
             </div>
             
             {formData.staff.academic.map((staff, index) => (
-              <Card key={index} className="border-2 border-cyan-200 bg-cyan-50/30">
+              <Card key={index} className="border-2 border-pink-200 bg-pink-50/30">
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between mb-4">
-                    <h5 className="font-medium text-cyan-700">Academic Staff #{index + 1}</h5>
+                    <h5 className="font-medium text-pink-700">Academic Staff #{index + 1}</h5>
                     <Button
                       onClick={(e) => {e.stopPropagation(); e.preventDefault(); removeAcademicStaff(index)}}
                       variant="outline"
@@ -6617,7 +7247,7 @@ const CollegeDataForm: React.FC = () => {
                         value={staff.name}
                         onChange={(e) => updateAcademicStaff(index, 'name', e.target.value)}
                         placeholder="Enter staff name"
-                        className="border-2 focus:border-cyan-500"
+                        className="border-2 focus:border-pink-500"
                       />
                     </div>
                     <div className="space-y-2">
@@ -6626,7 +7256,7 @@ const CollegeDataForm: React.FC = () => {
                         value={staff.designation}
                         onChange={(e) => updateAcademicStaff(index, 'designation', e.target.value)}
                         placeholder="Enter designation"
-                        className="border-2 focus:border-cyan-500"
+                        className="border-2 focus:border-pink-500"
                       />
                     </div>
                     <div className="space-y-2">
@@ -6635,7 +7265,7 @@ const CollegeDataForm: React.FC = () => {
                         value={staff.department}
                         onChange={(e) => updateAcademicStaff(index, 'department', e.target.value)}
                         placeholder="Enter department"
-                        className="border-2 focus:border-cyan-500"
+                        className="border-2 focus:border-pink-500"
                       />
                     </div>
                     <div className="space-y-2">
@@ -6644,7 +7274,7 @@ const CollegeDataForm: React.FC = () => {
                         value={staff.employmentType} 
                         onValueChange={(value) => updateAcademicStaff(index, 'employmentType', value)}
                       >
-                        <SelectTrigger className="border-2 focus:border-cyan-500">
+                        <SelectTrigger className="border-2 focus:border-pink-500">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -6664,12 +7294,12 @@ const CollegeDataForm: React.FC = () => {
     </div>
   );
 
-  // Step 6: Facilities & Technology
+  // Step 8: Facilities & Technology
   const renderFacilitiesStep = () => (
     <div className="space-y-6">
-      <Card className="border-l-4 border-l-indigo-500 shadow-lg">
-        <CardHeader className="bg-gradient-to-r from-indigo-50 to-purple-50">
-          <CardTitle className="flex items-center gap-3 text-indigo-800">
+      <Card className="border-l-4 border-l-teal-500 shadow-lg">
+        <CardHeader className="bg-gradient-to-r from-teal-50 to-cyan-50">
+          <CardTitle className="flex items-center gap-3 text-teal-800">
             <Computer className="h-6 w-6" />
             Educational Tools & Technology
           </CardTitle>
@@ -6687,7 +7317,7 @@ const CollegeDataForm: React.FC = () => {
                 value={formData.educationalTechnology.digitalClassrooms}
                 onChange={handleInputChange}
                 placeholder="Number of digital classrooms"
-                className="border-2 focus:border-indigo-500"
+                className="border-2 focus:border-teal-500"
               />
             </div>
             <div className="space-y-2">
@@ -6698,7 +7328,7 @@ const CollegeDataForm: React.FC = () => {
                 value={formData.educationalTechnology.computerLabs}
                 onChange={handleInputChange}
                 placeholder="Number of computer labs"
-                className="border-2 focus:border-indigo-500"
+                className="border-2 focus:border-teal-500"
               />
             </div>
             <div className="space-y-2">
@@ -6709,7 +7339,7 @@ const CollegeDataForm: React.FC = () => {
                 value={formData.educationalTechnology.computersAvailable}
                 onChange={handleInputChange}
                 placeholder="Total computers"
-                className="border-2 focus:border-indigo-500"
+                className="border-2 focus:border-teal-500"
               />
             </div>
           </div>
@@ -6717,7 +7347,7 @@ const CollegeDataForm: React.FC = () => {
           <Separator />
 
           <div className="space-y-4">
-            <h4 className="font-semibold text-indigo-700 flex items-center gap-2">
+            <h4 className="font-semibold text-teal-700 flex items-center gap-2">
               <Globe className="h-5 w-5" />
               Internet Availability
             </h4>
@@ -6751,7 +7381,7 @@ const CollegeDataForm: React.FC = () => {
                   value={formData.educationalTechnology.internetAvailability.speed}
                   onChange={handleInputChange}
                   placeholder="e.g., 100 Mbps"
-                  className="border-2 focus:border-indigo-500"
+                  className="border-2 focus:border-teal-500"
                 />
               </div>
               <div className="space-y-2">
@@ -6761,7 +7391,7 @@ const CollegeDataForm: React.FC = () => {
                   value={formData.educationalTechnology.internetAvailability.provider}
                   onChange={handleInputChange}
                   placeholder="Provider name"
-                  className="border-2 focus:border-indigo-500"
+                  className="border-2 focus:border-teal-500"
                 />
               </div>
             </div>
@@ -6770,7 +7400,7 @@ const CollegeDataForm: React.FC = () => {
           <Separator />
 
           <div className="space-y-4">
-            <h4 className="font-semibold text-indigo-700 flex items-center gap-2">
+            <h4 className="font-semibold text-teal-700 flex items-center gap-2">
               <FileText className="h-5 w-5" />
               Library Resources
             </h4>
@@ -6783,7 +7413,7 @@ const CollegeDataForm: React.FC = () => {
                   value={formData.educationalTechnology.libraryResources.physicalBooks}
                   onChange={handleInputChange}
                   placeholder="Number of books"
-                  className="border-2 focus:border-indigo-500"
+                  className="border-2 focus:border-teal-500"
                 />
               </div>
               <div className="space-y-2">
@@ -6794,7 +7424,7 @@ const CollegeDataForm: React.FC = () => {
                   value={formData.educationalTechnology.libraryResources.ebooks}
                   onChange={handleInputChange}
                   placeholder="Number of Books"
-                  className="border-2 focus:border-indigo-500"
+                  className="border-2 focus:border-teal-500"
                 />
               </div>
               <div className="space-y-2">
@@ -6805,7 +7435,7 @@ const CollegeDataForm: React.FC = () => {
                   value={formData.educationalTechnology.libraryResources.journals}
                   onChange={handleInputChange}
                   placeholder="Number of journals"
-                  className="border-2 focus:border-indigo-500"
+                  className="border-2 focus:border-teal-500"
                 />
               </div>
               <div className="flex items-center space-x-2">
@@ -6837,7 +7467,7 @@ const CollegeDataForm: React.FC = () => {
     </div>
   );
 
-  // Step 7: Project Planning
+  // Step 9: Project Planning
   const renderProjectPlanningStep = () => (
     <div className="space-y-6">
       <Card className="border-l-4 border-l-red-500 shadow-lg">
@@ -7071,7 +7701,7 @@ const CollegeDataForm: React.FC = () => {
     </div>
   );
 
-  // Step 8: Review & Submit
+  // Step 10: Review & Submit
   const renderReviewStep = () => (
     <div className="space-y-6">
       <Card className="border-l-4 border-l-emerald-500 shadow-lg">
@@ -7162,11 +7792,13 @@ const CollegeDataForm: React.FC = () => {
       case 0: return renderBasicInfoStep();
       case 1: return renderLocationStep();
       case 2: return renderInfrastructureStep();
-      case 3: return renderAcademicProgramsStep();
-      case 4: return renderStaffStep();
-      case 5: return renderFacilitiesStep();
-      case 6: return renderProjectPlanningStep();
-      case 7: return renderReviewStep();
+      case 3: return renderFutureLandUsePlanStep();
+      case 4: return renderWaterSanitationStep();
+      case 5: return renderAcademicProgramsStep();
+      case 6: return renderStaffStep();
+      case 7: return renderFacilitiesStep();
+      case 8: return renderProjectPlanningStep();
+      case 9: return renderReviewStep();
       default: return null;
     }
   };
@@ -7218,7 +7850,7 @@ const CollegeDataForm: React.FC = () => {
               <span className="text-sm font-medium text-gray-600">{Math.round(progressPercentage)}% Complete</span>
             </div>
             <Progress value={progressPercentage} className="h-3 mb-4" />
-            <div className="grid grid-cols-4 md:grid-cols-8 gap-2">
+            <div className="grid grid-cols-5 md:grid-cols-10 gap-2">
               {steps.map((step, index) => {
                 const StepIcon = step.icon;
                 const isActive = index === activeStep;

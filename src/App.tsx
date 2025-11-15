@@ -468,7 +468,7 @@ const App = () => {
     // const API_BASE_URL='https://feedbackbackend-4.onrender.com/api/progress';
 
     // const API_BASE_URL='https://feedbackbackend-4.onrender.com/api/progress';
-    const API_BASE_URL='http://202.70.90.11:81/api/progress'
+    const API_BASE_URL='http://localhost:4000/api/progress'
     // const API_BASE_URL='http://localhost:4000/api/progress'
 
   

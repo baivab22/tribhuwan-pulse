@@ -12,6 +12,7 @@ import { Plus, Minus, Save, FileText, Users, GraduationCap, BookOpen, Microscope
 import { toast } from 'sonner';
 import './facultyForm.component.css';
 import axios from 'axios';
+// import BackgroundRemover from '@/components/removeBg';
 
 // Define interfaces
 interface AcademicProgram {
@@ -313,7 +314,7 @@ const FacultyForm: React.FC = () => {
   const onSubmit = async (data: FacultyFormData) => {
     console.log("Form submitted", data);
     try {
-      const response = await axios.post('http://202.70.90.11:81/api/faculty-forms', data, {
+      const response = await axios.post('http://localhost:4000/api/faculty-forms', data, {
         headers: {
           'Content-Type': 'application/json',
         },
@@ -2134,6 +2135,12 @@ const FacultyForm: React.FC = () => {
                 <Save className="w-4 h-4 mr-2" />
                 Submit Faculty Report
               </Button>
+
+
+
+{/* <BackgroundRemover/> */}
+
+              
             </div>
           </form>
         </CardContent>
