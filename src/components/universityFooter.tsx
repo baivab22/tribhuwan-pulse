@@ -64,7 +64,7 @@ export const UniversityFooter = () => {
     { name: "Faculty of Education", url: "https://foe.tu.edu.np" },
     { name: "Faculty of Law", url: "https://fol.tu.edu.np" },
     { name: "Faculty of Management", url: "https://fom.tu.edu.np" },
-    { name: "Ayurveda Teaching Hospital, Kirtipur", url: "https://ath.tu.edu.np" }
+    // { name: "Ayurveda Teaching Hospital, Kirtipur", url: "https://ath.tu.edu.np" }
   ];
 
   const contactInfo = [

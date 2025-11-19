@@ -10,7 +10,7 @@ import PublicResolved from './pages/PublicResolved';
 import AdminDashboard from './pages/AdminDashboard';
 import './i18n';
 import { useTranslation } from 'react-i18next';
-import { getStoredUser, logout } from './lib/api';
+import { API_BASE, getStoredUser, logout } from './lib/api';
 import { useEffect, useState } from 'react';
 import SubmitPage from './pages/Submit';
 import { setLanguage } from './i18n';
@@ -468,14 +468,16 @@ const App = () => {
     // const API_BASE_URL='https://feedbackbackend-4.onrender.com/api/progress';
 
     // const API_BASE_URL='https://feedbackbackend-4.onrender.com/api/progress';
-    const API_BASE_URL='http://localhost:4000/api/progress'
     // const API_BASE_URL='http://localhost:4000/api/progress'
+    // const API_BASE_URL='http://localhost:4000/api/progress'
+
+     const API_BASE="http://202.70.90.11:81"
 
   
     const handleFormSubmit = async (data: ProgressReport) => {
     setIsSubmitting(true);
     try {
-      const response = await fetch(API_BASE_URL, {
+      const response = await fetch(API_BASE, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

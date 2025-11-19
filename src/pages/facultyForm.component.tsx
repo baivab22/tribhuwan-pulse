@@ -418,7 +418,7 @@ const FacultyForm: React.FC = () => {
                       <div className="space-y-2">
                         <Label htmlFor="instituteName" className="flex items-center gap-2">
                           <Building className="w-4 h-4" />
-                          Name of Institute/Faculty/Department/Unit
+                          Name of Institute/Faculty
                         </Label>
                         <Input
                           id="instituteName"
@@ -426,6 +426,35 @@ const FacultyForm: React.FC = () => {
                           placeholder="Enter institute name"
                           className="w-full"
                         />
+
+
+
+                              <Select
+                                    // value={enrollment.level}
+                                    onValueChange={(value) => updateStudentEnrollment(index, 'level', value)}
+                                  >
+                                    <SelectTrigger className="min-w-[120px]">
+                                      <SelectValue placeholder="Select Faculty/Institute" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="Institute of Medicine">Institute of Medicine</SelectItem>
+                                      <SelectItem value="Institute of Forestry">Institute of Forestry</SelectItem>
+                                      <SelectItem value="Institute of Agriculture and Animal Science">Institute of Agriculture and Animal Science</SelectItem>
+                                      <SelectItem value="Institute of Science and Technology">Institute of Science and Technology</SelectItem>
+                                      <SelectItem value="Institute of Engineering">Institute of Engineering</SelectItem>
+                                      <SelectItem value="Faculty of Humanities and Social Sciences">Institute of Science and Technology</SelectItem>
+                                      <SelectItem value="Institute of Science and Technology">Faculty of Humanities and Social Sciences</SelectItem>
+                                                                                                                                                                      <SelectItem value="Faculty of Education">Faculty of Education</SelectItem>
+                                                                                                                                                                                                                                    <SelectItem value="Faculty of Law">Faculty of Law</SelectItem>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                 <SelectItem value="Faculty of Management">Faculty of Management</SelectItem>
+                                                                                z                                                                                                                                                    
+                                    </SelectContent>
+                                  </Select>
+
+
+
+
+
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="reportingPeriod" className="flex items-center gap-2">
@@ -442,12 +471,12 @@ const FacultyForm: React.FC = () => {
                       <div className="space-y-2">
                         <Label htmlFor="headName" className="flex items-center gap-2">
                           <User className="w-4 h-4" />
-                          Head/Coordinator Name
+                          Dean Name
                         </Label>
                         <Input
                           id="headName"
                           {...register('headName')}
-                          placeholder="Enter head/coordinator name"
+                          placeholder="Enter Dean Name"
                           className="w-full"
                         />
                       </div>

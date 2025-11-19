@@ -137,7 +137,7 @@ export default function TUVision2030() {
         <div className="max-w-7xl mx-auto px-6 py-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             <div className="text-center">
-              <div className="text-3xl font-bold text-blue-600 mb-1">300K+</div>
+              <div className="text-3xl font-bold text-blue-600 mb-1">500K+</div>
               <div className="text-sm text-gray-600">Students</div>
             </div>
             <div className="text-center">

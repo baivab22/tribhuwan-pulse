@@ -16124,13 +16124,11 @@ const AdminForCollege = () => {
         <Dialog
           open={detailOpen}
           onClose={() => setDetailOpen(false)}
-      maxWidth="100vw"
+    //   maxWidth="100vw"
           fullWidth
           PaperProps={{
             sx: { borderRadius: 3, minHeight: '80vh', maxHeight: '100vh' }
           }}
-
-
           // style={{border:'20px solid red'}}
         >
           {selectedCollege && (

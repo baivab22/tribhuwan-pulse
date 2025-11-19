@@ -4102,6 +4102,8 @@ import {
 import { toast } from 'sonner';
 import axios from 'axios';
 import * as XLSX from 'xlsx';
+import { API_BASE } from '@/lib/api';
+// import { API_BASE } from '@/lib/api';
 
 interface AcademicProgram {
   level: string;
@@ -4246,28 +4248,31 @@ const AdminForFaculty: React.FC = () => {
     setFilteredData(filtered);
   }, [searchTerm, facultyData]);
 
-  const fetchFacultyData = async () => {
-    try {
-      setLoading(true);
-      const response = await axios.get('http://localhost:4000/api/faculty-forms', {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+const fetchFacultyData = async () => {
+  try {
+    setLoading(true);
 
-      if (response.data.success) {
-        setFacultyData(response.data.data || []);
-        setFilteredData(response.data.data || []);
-      } else {
-        throw new Error('Failed to fetch data');
-      }
-    } catch (error) {
-      toast.error('Error fetching faculty data');
-      console.error('Error:', error);
-    } finally {
-      setLoading(false);
+    const response = await axios.get(`${API_BASE}/api/faculty-forms`, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (response.data.success) {
+      const data = response.data.data || [];
+      setFacultyData(data);
+      setFilteredData(data);
+    } else {
+      throw new Error("Failed to fetch data");
     }
-  };
+  } catch (error) {
+    toast.error("Error fetching faculty data");
+    console.error("Error:", error);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   const exportStudentDataToExcel = (faculty: FacultyData) => {
     try {
