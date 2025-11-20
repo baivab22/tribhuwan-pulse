@@ -41,6 +41,7 @@ import ProgressForm from './pages/ProgressForm';
 import TUVision2030 from './pages/missionVision';
 import DigitalUniversity from './pages/digital';
 import FacultyForm from './pages/facultyForm.component';
+import EndowmentFundComponent from './components/endowmentFund.component';
 
 const queryClient = new QueryClient();
 
@@ -98,6 +99,7 @@ function Header() {
           { path: '/faculty-form', label: 'Faculty/Institute Form', icon: FileText },
               { path: '/mission-vision', label: 'Mission Vision', icon: FileText },
               { path: '/digitalization', label: 'Digitallization', icon: FileText },
+                            { path: '/donation', label: 'दानदातव्य कोष', icon: FileText },
 
               
 
@@ -521,6 +523,7 @@ const App = () => {
                        <Route path="/progress-form" element={   <ProgressForm onSubmit={handleFormSubmit} isLoading={isSubmitting} /> } />
                             <Route path="/mission-vision" element={<TUVision2030 /> } />
                             <Route path="/digitalization" element={<DigitalUniversity /> } />
+                            <Route path="/donation" element={<EndowmentFundComponent/> } />
 
                             
               <Route path="*" element={<NotFound />} />

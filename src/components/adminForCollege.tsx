@@ -16124,11 +16124,11 @@ const AdminForCollege = () => {
         <Dialog
           open={detailOpen}
           onClose={() => setDetailOpen(false)}
-    //   maxWidth="100vw"
-          fullWidth
-          PaperProps={{
-            sx: { borderRadius: 3, minHeight: '80vh', maxHeight: '100vh' }
-          }}
+      maxWidth="100vw"
+        //   fullWidth
+        //   PaperProps={{
+        //     sx: { borderRadius: 3, minHeight: '80vh', maxHeight: '100vh' }
+        //   }}
           // style={{border:'20px solid red'}}
         >
           {selectedCollege && (
@@ -17795,7 +17795,7 @@ const AdminForCollege = () => {
     <Dialog
       open={!!selectedMedia}
       onClose={() => setSelectedMedia(null)}
-      maxWidth="lg"
+    //   maxWidth="lg"
       fullWidth
       sx={{ '& .MuiDialog-paper': { bgcolor: 'transparent', boxShadow: 'none' } }}
     >
