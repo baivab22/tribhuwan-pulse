@@ -17,7 +17,7 @@
 // import FinancialDocumentsSection from './pdfViewer.component';
 
 // // const API_BASE_URL = 'https://feedbackbackend-4.onrender.com/api/progress';
-// const API_BASE_URL='http://localhost:4000/api/progress'
+// const API_BASE_URL='http://202.70.90.11:81/api/progress'
 
 // const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'];
 // const CHART_COLORS = {
@@ -2698,8 +2698,8 @@ import { X } from 'lucide-react';
 import FinancialDocumentsSection from './pdfViewer.component';
 
 // const API_BASE_URL = 'https://feedbackbackend-4.onrender.com/api/progress';
-// const API_BASE_URL='http://localhost:4000/api/progress'
-const API_BASE_URL="http://localhost:4000/api/progress"
+// const API_BASE_URL='http://202.70.90.11:81/api/progress'
+const API_BASE_URL="http://202.70.90.11:81/api/progress"
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'];
 const CHART_COLORS = {
@@ -5142,10 +5142,10 @@ const formatCurrency = (amount: number): string => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       <div className="max-w-[1600px] mx-auto p-8">
-        <div className="mb-8">
+        {/* <div className="mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-3">Campus Progress Monitoring Dashboard</h1>
           <p className="text-lg text-gray-600">Comprehensive institutional performance tracking and analysis</p>
-        </div>
+        </div> */}
 
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
           <div className="relative flex-1 max-w-md">

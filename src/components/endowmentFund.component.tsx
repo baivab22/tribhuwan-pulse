@@ -25,7 +25,7 @@ const PDF_CONTENT = [
   }
 ];
 
-const API_URL = 'http://localhost:4000/api/donater';
+const API_URL = 'http://202.70.90.11:81/api/donater';
 const PDF_URL = 'https://portal.tu.edu.np/downloads/2025_02_08_21_20_17.pdf';
 
 const EndowmentFundComponent = () => {

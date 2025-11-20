@@ -19,7 +19,7 @@ interface Donater {
       const CLOUDINARY_CLOUD_NAME = 'dpipulbgm';
       const CLOUDINARY_UPLOAD_PRESET = 'tu_reports';
 
-const API_URL = 'http://localhost:4000/api/donater';
+const API_URL = 'http://202.70.90.11:81/api/donater';
 const CLOUDINARY_UPLOAD_URL = 'https://api.cloudinary.com/v1_1/dpipulbgm/image/upload';
 // const CLOUDINARY_UPLOAD_PRESET = 'YOUR_UPLOAD_PRESET';
 

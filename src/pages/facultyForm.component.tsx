@@ -331,7 +331,7 @@ const FacultyForm: React.FC = () => {
   const onSubmit = async (data: FacultyFormData) => {
     console.log("Form submitted", data);
     try {
-      const response = await axios.post('http://localhost:4000/api/faculty-forms', data, {
+      const response = await axios.post('http://202.70.90.11:81/api/faculty-forms', data, {
         headers: {
           'Content-Type': 'application/json',
         },
