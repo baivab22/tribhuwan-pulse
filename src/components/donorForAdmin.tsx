@@ -654,7 +654,7 @@ const AdminForDonater: React.FC = () => {
                      <input type='text'
                      name='prizeType'
                 value={formData.prizeType}
-              onChange={(e) => handleInputChange}
+              onChange={ handleInputChange}
               style={{
                 padding: '14px 20px',
                 borderRadius: '10px',
