@@ -44,7 +44,7 @@ const AdminForDonater: React.FC = () => {
   const [formData, setFormData] = useState<Donater>({
     donaterName: '',
     prizeName: '',
-    prizeType: 'Other',
+    prizeType: '',
     relatedDepart: '',
     prizeAmount: 0,
     contractDate: '',
@@ -245,7 +245,8 @@ const AdminForDonater: React.FC = () => {
       contractDate: donater.contractDate.split('T')[0],
       photo: donater.photo,
       contactNumber: donater.contactNumber,
-      email: donater.email
+      email: donater.email,
+      prizeAmount: donater.prizeAmount
     });
     setImagePreview(donater.photo || '');
     setSelectedFile(null);
@@ -275,7 +276,7 @@ const AdminForDonater: React.FC = () => {
     setFormData({
       donaterName: '',
       prizeName: '',
-      prizeType: 'Other',
+      prizeType: '',
       relatedDepart: '',
       contractDate: '',
       photo: '',
@@ -302,7 +303,7 @@ const AdminForDonater: React.FC = () => {
     setCurrentPage(1);
   };
 
-  const prizeTypes = ['Trophy', 'Medal', 'Certificate', 'Cash', 'Scholarship', 'Other'];
+  // const prizeTypes = ['Trophy', 'Medal', 'Certificate', 'Cash', 'Scholarship', 'Other'];
 
   return (
     <div style={{ padding: '20px', maxWidth: '1400px', margin: '0 auto', fontFamily: 'Arial, sans-serif', backgroundColor: '#f8fafc' }}>
