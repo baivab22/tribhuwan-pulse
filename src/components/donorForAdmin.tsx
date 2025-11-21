@@ -652,8 +652,9 @@ const AdminForDonater: React.FC = () => {
                   Prize Type *
                 </label>
                      <input type='text'
-                value={filterPrizeType}
-              onChange={(e) => setFilterPrizeType(e.target.value)}
+                     name='prizeType'
+                value={formData.prizeType}
+              onChange={(e) => handleInputChange}
               style={{
                 padding: '14px 20px',
                 borderRadius: '10px',
