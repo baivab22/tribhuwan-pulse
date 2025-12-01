@@ -5420,7 +5420,7 @@ const AdminForDonor: React.FC = () => {
 
               <div style={{ gridColumn: '1 / -1' }}>
                 <label style={{ display: 'block', marginBottom: '10px', fontWeight: '600', color: '#4a5568', fontSize: '14px' }}>
-                  Purpose of Using Endowment Returns - क्ष्य तथा उद्देश्य
+                  Purpose of Using Endowment Returns - लक्ष्य तथा उद्देश्य
                 </label>
                 <textarea
                   name="purposeOfUsingEndowmentReturns"
