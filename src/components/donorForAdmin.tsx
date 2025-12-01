@@ -4972,6 +4972,8 @@ const AdminForDonor: React.FC = () => {
               <div>
                 <label style={{ display: 'block', marginBottom: '10px', fontWeight: '600', color: '#4a5568', fontSize: '14px' }}>
                   Donor Name *
+                  दाताको विवरण
+
                 </label>
                 <input
                   type="text"
@@ -5002,7 +5004,7 @@ const AdminForDonor: React.FC = () => {
               {/* Fund Official Name */}
               <div>
                 <label style={{ display: 'block', marginBottom: '10px', fontWeight: '600', color: '#4a5568', fontSize: '14px' }}>
-                  Fund Official Name *
+                  Fund Official Name - कोषको अधिकृत नाम* 
                 </label>
                 <input
                   type="text"
@@ -5033,7 +5035,7 @@ const AdminForDonor: React.FC = () => {
               {/* Nature of Endowment */}
               <div>
                 <label style={{ display: 'block', marginBottom: '10px', fontWeight: '600', color: '#4a5568', fontSize: '14px' }}>
-                  Nature of Endowment *
+                  Nature of Endowment -कोषको प्रकृति *
                 </label>
                 <input
                   type="text"
@@ -5089,7 +5091,7 @@ const AdminForDonor: React.FC = () => {
               {/* Principal Amount of Endowment */}
               <div>
                 <label style={{ display: 'block', marginBottom: '10px', fontWeight: '600', color: '#4a5568', fontSize: '14px' }}>
-                  Principal Amount of Endowment *
+                  Principal Amount of Endowment कोषको मूल रकम *
                 </label>
                 <input
                   type="number"
@@ -5120,7 +5122,7 @@ const AdminForDonor: React.FC = () => {
               {/* Agreement Date */}
               <div>
                 <label style={{ display: 'block', marginBottom: '10px', fontWeight: '600', color: '#4a5568', fontSize: '14px' }}>
-                  Agreement Date *
+                  Agreement Date -सम्झौताको मिति*
                 </label>
                 <input
                   type="date"
@@ -5150,7 +5152,7 @@ const AdminForDonor: React.FC = () => {
               {/* Person in Care Of */}
               <div>
                 <label style={{ display: 'block', marginBottom: '10px', fontWeight: '600', color: '#4a5568', fontSize: '14px' }}>
-                  Person in Care Of
+                  Person in Care Of-अभिभावकीय प्राप्त इच्छाअनुसार व्यक्तिको नाम
                 </label>
                 <input
                   type="text"
@@ -5175,7 +5177,7 @@ const AdminForDonor: React.FC = () => {
               {/* Donor Contact Number */}
               <div>
                 <label style={{ display: 'block', marginBottom: '10px', fontWeight: '600', color: '#4a5568', fontSize: '14px' }}>
-                  Donor Contact Number *
+                  Donor Contact Number -दाताको सम्पर्क नम्बर*
                 </label>
                 <input
                   type="tel"
@@ -5206,7 +5208,7 @@ const AdminForDonor: React.FC = () => {
               {/* Reporting Contact Number */}
               <div>
                 <label style={{ display: 'block', marginBottom: '10px', fontWeight: '600', color: '#4a5568', fontSize: '14px' }}>
-                  Reporting Contact Number
+                  Reporting Contact Number-सम्पर्क नम्बर
                 </label>
                 <input
                   type="tel"
@@ -5231,7 +5233,7 @@ const AdminForDonor: React.FC = () => {
               {/* Donor Email */}
               <div>
                 <label style={{ display: 'block', marginBottom: '10px', fontWeight: '600', color: '#4a5568', fontSize: '14px' }}>
-                  Donor Email *
+                  Donor Email -दाताको इमेल*
                 </label>
                 <input
                   type="email"
@@ -5262,7 +5264,7 @@ const AdminForDonor: React.FC = () => {
               {/* Amount of Endowment */}
               <div>
                 <label style={{ display: 'block', marginBottom: '10px', fontWeight: '600', color: '#4a5568', fontSize: '14px' }}>
-                  Amount of Endowment *
+                  Amount of Endowment-कोषमा योगदान रकम*
                 </label>
                 <input
                   type="number"
@@ -5293,7 +5295,7 @@ const AdminForDonor: React.FC = () => {
               {/* Funding Plan */}
               <div>
                 <label style={{ display: 'block', marginBottom: '10px', fontWeight: '600', color: '#4a5568', fontSize: '14px' }}>
-                  Funding Plan
+                  Funding Plan -कोषमा योगदान सम्बन्धी योजना
                 </label>
                 <input
                   type="text"
@@ -5343,7 +5345,7 @@ const AdminForDonor: React.FC = () => {
               {/* Installments of Endowment */}
               <div>
                 <label style={{ display: 'block', marginBottom: '10px', fontWeight: '600', color: '#4a5568', fontSize: '14px' }}>
-                  Installments of Endowment
+                  Installments of Endowment-कोषमा योगदान किस्ता
                 </label>
                 <input
                   type="text"
@@ -5418,7 +5420,7 @@ const AdminForDonor: React.FC = () => {
 
               <div style={{ gridColumn: '1 / -1' }}>
                 <label style={{ display: 'block', marginBottom: '10px', fontWeight: '600', color: '#4a5568', fontSize: '14px' }}>
-                  Purpose of Using Endowment Returns
+                  Purpose of Using Endowment Returns - क्ष्य तथा उद्देश्य
                 </label>
                 <textarea
                   name="purposeOfUsingEndowmentReturns"
