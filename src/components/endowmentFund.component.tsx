@@ -3315,7 +3315,7 @@ const EndowmentFundComponent = () => {
                   {/* Financial Information */}
                   <div className="bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 p-6 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700">
                     <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center">
-                      <DollarSign className="w-5 h-5 mr-2 text-green-500" />
+                      {/* <DollarSign className="w-5 h-5 mr-2 text-green-500" /> */}
                       आर्थिक विवरण
                     </h3>
                     
@@ -3657,13 +3657,13 @@ const EndowmentFundComponent = () => {
                         </td>
                         <td className="px-4 py-3 text-sm font-semibold text-green-600 dark:text-green-400">
                           <div className="flex items-center gap-1">
-                            <DollarSign className="w-3 h-3" />
+                            {/* <DollarSign className="w-3 h-3" /> */}
                             {donor.principalAmountOfEndowment ? formatCurrency(donor.principalAmountOfEndowment) : 'N/A'}
                           </div>
                         </td>
                         <td className="px-4 py-3 text-sm font-semibold text-blue-600 dark:text-blue-400">
                           <div className="flex items-center gap-1">
-                            <DollarSign className="w-3 h-3" />
+                            {/* <DollarSign className="w-3 h-3" /> */}
                             {donor.amountOfEndowment ? formatCurrency(donor.amountOfEndowment) : 'N/A'}
                           </div>
                         </td>
