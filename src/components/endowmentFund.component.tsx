@@ -3116,9 +3116,23 @@ const EndowmentFundComponent = () => {
     }).format(amount);
   };
 
+  // const formatDate = (dateString: string) => {
+  //   return new Date(dateString).toLocaleDateString('ne-NP');
+  // };
+
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('ne-NP');
-  };
+  const parts = new Intl.DateTimeFormat('ne-NP', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  }).formatToParts(new Date(dateString));
+
+  const year = parts.find(p => p.type === 'year')?.value;
+  const month = parts.find(p => p.type === 'month')?.value;
+  const day = parts.find(p => p.type === 'day')?.value;
+
+  return `${year}-${month}-${day}`;
+};
 
   const totalPages = Math.ceil(totalCount / itemsPerPage);
 
