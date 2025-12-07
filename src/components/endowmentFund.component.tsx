@@ -2913,8 +2913,7 @@ const PDF_CONTENT = [
 // const API_URL = 'http://202.70.90.11:81/api/donor';
 
 const API_URL = 'http://202.70.90.11:81/api/donater';
-const PDF_URL = 'https://res.cloudinary.com/dpipulbgm/image/upload/v1765094622/okayu_cpebge.pdf';
-
+const PDF_URL = 'https://res.cloudinary.com/dpipulbgm/image/upload/v1765094952/okayu_removed_kdhw0o.pdf';
 interface Donor {
   _id?: string;
   donorName: string;
