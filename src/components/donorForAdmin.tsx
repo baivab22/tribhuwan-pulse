@@ -5004,7 +5004,7 @@ const AdminForDonor: React.FC = () => {
               {/* Fund Official Name */}
               <div>
                 <label style={{ display: 'block', marginBottom: '10px', fontWeight: '600', color: '#4a5568', fontSize: '14px' }}>
-                  Fund Official Name - कोषको अधिकृत नाम* 
+                  Fund Official Name - कोषको आधिकारिक नाम* 
                 </label>
                 <input
                   type="text"

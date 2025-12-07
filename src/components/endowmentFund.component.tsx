@@ -2691,7 +2691,7 @@ const EndowmentFundComponent = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                    {donors?.slice()?.reverse()?.map((donor, index) => (
+                    {[donors?.at(-1), ...donors?.slice(0, -1)].map((donor, index) => (
                       <tr key={donor._id || index} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors group">
                         <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100 font-medium">
                           {(currentPage - 1) * itemsPerPage + index + 1}
