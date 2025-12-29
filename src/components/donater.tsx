@@ -13,7 +13,7 @@ interface Donater {
   email: string;
 }
 
-const API_URL = 'http://202.70.90.11:81/api/donaters';
+const API_URL = 'https://digitaldashboard.tu.edu.np/api/donaters';
 
 const DonatersPage: React.FC = () => {
   const [donaters, setDonaters] = useState<Donater[]>([]);

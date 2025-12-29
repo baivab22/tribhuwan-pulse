@@ -334,8 +334,8 @@
 //         limit: rowsPerPage,
 //         ...filters
 //       };
-//       // const response = await axios.get('http://202.70.90.11:81/api/collegeform', { params });
-//           const response = await axios.get('http://202.70.90.11:81/api/collegeform', { params });
+//       // const response = await axios.get('https://digitaldashboard.tu.edu.np/api/collegeform', { params });
+//           const response = await axios.get('https://digitaldashboard.tu.edu.np/api/collegeform', { params });
 //       if (response.data.success) {
 //         setColleges(response.data.data);
 //         setTotalCount(response.data.pagination.totalForms);
@@ -351,8 +351,8 @@
 //   const fetchCollegeDetails = async (id) => {
 //     setLoading(true);
 //     try {
-//       // const response = await axios.get(`http://202.70.90.11:81/api/collegeform/${id}`);
-//       const response = await axios.get(`http://202.70.90.11:81/api/collegeform/${id}`);
+//       // const response = await axios.get(`https://digitaldashboard.tu.edu.np/api/collegeform/${id}`);
+//       const response = await axios.get(`https://digitaldashboard.tu.edu.np/api/collegeform/${id}`);
 
 //       if (response.data.success) {
 //         setSelectedCollege(response.data.data);
@@ -4618,8 +4618,8 @@
 //         limit: rowsPerPage,
 //         ...filters
 //       };
-//       // const response = await axios.get('http://202.70.90.11:81/api/collegeform', { params });
-//           const response = await axios.get('http://202.70.90.11:81/api/collegeform', { params });
+//       // const response = await axios.get('https://digitaldashboard.tu.edu.np/api/collegeform', { params });
+//           const response = await axios.get('https://digitaldashboard.tu.edu.np/api/collegeform', { params });
 //       if (response.data.success) {
 //         setColleges(response.data.data);
 //         setTotalCount(response.data.pagination.totalForms);
@@ -4635,8 +4635,8 @@
 //   const fetchCollegeDetails = async (id) => {
 //     setLoading(true);
 //     try {
-//       // const response = await axios.get(`http://202.70.90.11:81/api/collegeform/${id}`);
-//       const response = await axios.get(`http://202.70.90.11:81/api/collegeform/${id}`);
+//       // const response = await axios.get(`https://digitaldashboard.tu.edu.np/api/collegeform/${id}`);
+//       const response = await axios.get(`https://digitaldashboard.tu.edu.np/api/collegeform/${id}`);
 
 //       if (response.data.success) {
 //         setSelectedCollege(response.data.data);
@@ -8624,7 +8624,7 @@
 //         limit: rowsPerPage,
 //         ...filters
 //       };
-//       const response = await axios.get('http://202.70.90.11:81/api/collegeform', { params });
+//       const response = await axios.get('https://digitaldashboard.tu.edu.np/api/collegeform', { params });
 
 //       if (response.data.success) {
 //         setColleges(response.data.data);
@@ -8641,7 +8641,7 @@
 //   const fetchCollegeDetails = async (id) => {
 //     setLoading(true);
 //     try {
-//       const response = await axios.get(`http://202.70.90.11:81/api/collegeform/${id}`);
+//       const response = await axios.get(`https://digitaldashboard.tu.edu.np/api/collegeform/${id}`);
 //       if (response.data.success) {
 //         setSelectedCollege(response.data.data);
 //         setDetailOpen(true);
@@ -13466,7 +13466,7 @@ const AdminForCollege = () => {
         limit: rowsPerPage,
         ...filters
       };
-      const response = await axios.get('http://202.70.90.11:81/api/collegeform', { params });
+      const response = await axios.get('https://digitaldashboard.tu.edu.np/api/collegeform', { params });
 
       if (response.data.success) {
         setColleges(response.data.data);
@@ -13483,7 +13483,7 @@ const AdminForCollege = () => {
   const fetchCollegeDetails = async (id) => {
     setLoading(true);
     try {
-      const response = await axios.get(`http://202.70.90.11:81/api/collegeform/${id}`);
+      const response = await axios.get(`https://digitaldashboard.tu.edu.np/api/collegeform/${id}`);
       if (response.data.success) {
         setSelectedCollege(response.data.data);
         setDetailOpen(true);

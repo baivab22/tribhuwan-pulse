@@ -169,7 +169,7 @@
 //   const fetchFacultyData = async () => {
 //     try {
 //       setLoading(true);
-//       const response = await axios.get('http://202.70.90.11:81/api/faculty-forms', {
+//       const response = await axios.get('https://digitaldashboard.tu.edu.np/api/faculty-forms', {
 //         headers: {
 //           'Content-Type': 'application/json',
 //         },
@@ -1633,7 +1633,7 @@
 //   const fetchFacultyData = async () => {
 //     try {
 //       setLoading(true);
-//       const response = await axios.get('http://202.70.90.11:81/api/faculty-forms', {
+//       const response = await axios.get('https://digitaldashboard.tu.edu.np/api/faculty-forms', {
 //         headers: {
 //           'Content-Type': 'application/json',
 //         },
@@ -2600,7 +2600,7 @@
 //   const fetchFacultyData = async () => {
 //     try {
 //       setLoading(true);
-//       const response = await axios.get('http://202.70.90.11:81/api/faculty-forms', {
+//       const response = await axios.get('https://digitaldashboard.tu.edu.np/api/faculty-forms', {
 //         headers: {
 //           'Content-Type': 'application/json',
 //         },

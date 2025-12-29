@@ -19,7 +19,7 @@
 //       const CLOUDINARY_CLOUD_NAME = 'dpipulbgm';
 //       const CLOUDINARY_UPLOAD_PRESET = 'tu_reports';
 
-// const API_URL = 'http://202.70.90.11:81/api/donater';
+// const API_URL = 'https://digitaldashboard.tu.edu.np/api/donater';
 // const CLOUDINARY_UPLOAD_URL = 'https://api.cloudinary.com/v1_1/dpipulbgm/image/upload';
 // // const CLOUDINARY_UPLOAD_PRESET = 'YOUR_UPLOAD_PRESET';
 
@@ -1324,7 +1324,7 @@
 // const CLOUDINARY_CLOUD_NAME = 'dpipulbgm';
 // const CLOUDINARY_UPLOAD_PRESET = 'tu_reports';
 
-// const API_URL = 'http://202.70.90.11:81/api/donater';
+// const API_URL = 'https://digitaldashboard.tu.edu.np/api/donater';
 // const CLOUDINARY_UPLOAD_URL = 'https://api.cloudinary.com/v1_1/dpipulbgm/image/upload';
 
 // const AdminForDonater: React.FC = () => {
@@ -2979,7 +2979,7 @@
 
 // const CLOUDINARY_CLOUD_NAME = 'dpipulbgm';
 // const CLOUDINARY_UPLOAD_PRESET = 'tu_reports';
-// const API_URL = 'http://202.70.90.11:81/api/donater';
+// const API_URL = 'https://digitaldashboard.tu.edu.np/api/donater';
 // const CLOUDINARY_UPLOAD_URL = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`;
 
 // const AdminForDonor: React.FC = () => {
@@ -4426,7 +4426,7 @@ interface Donor {
 
 const CLOUDINARY_CLOUD_NAME = 'dpipulbgm';
 const CLOUDINARY_UPLOAD_PRESET = 'tu_reports';
-const API_URL = 'http://202.70.90.11:81/api/donater';
+const API_URL = 'https://digitaldashboard.tu.edu.np/api/donater';
 const CLOUDINARY_UPLOAD_URL = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/upload`;
 
 const AdminForDonor: React.FC = () => {

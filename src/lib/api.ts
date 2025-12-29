@@ -700,12 +700,12 @@ export interface ProjectMonitoringResponse {
    Storage Helpers
 =========================== */
 // const API_BASE = import.meta.env.VITE_API_BASE || 'https://feedbackbackend-1.onrender.com';
-// const API_BASE = import.meta.env.VITE_API_BASE_LOCAL || 'http://202.70.90.11:81';
+// const API_BASE = import.meta.env.VITE_API_BASE_LOCAL || 'https://digitaldashboard.tu.edu.np';
 
 // const API_BASE='https://feedbackbackend-4.onrender.com'
 
-export const API_BASE="http://202.70.90.11:81"
-// const API_BASE="http://202.70.90.11:81"
+export const API_BASE="https://digitaldashboard.tu.edu.np"
+// const API_BASE="https://digitaldashboard.tu.edu.np"
 
 
 function getToken(): string | null {
