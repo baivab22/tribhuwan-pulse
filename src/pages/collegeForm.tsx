@@ -7803,22 +7803,7 @@ const CollegeDataForm: React.FC = () => {
     }
   };
 
-  const isStepValid = (step: number): boolean => {
-    switch (step) {
-      case 0:
-        return !!formData.collegeName && 
-               !!formData.campusType && 
-               !!formData.establishmentDate && 
-               !!formData.principalInfo.name;
-      case 1:
-        return !!formData.location.province && 
-               !!formData.location.district && 
-               !!formData.location.localLevel && 
-               !!formData.location.wardNo;
-      default:
-        return true;
-    }
-  };
+  // Removed validation - users can navigate freely between steps
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
@@ -7859,12 +7844,13 @@ const CollegeDataForm: React.FC = () => {
                 return (
                   <div
                     key={step.id}
-                    className={`flex flex-col items-center p-2 rounded-lg transition-all ${
+                    onClick={() => setActiveStep(index)}
+                    className={`flex flex-col items-center p-2 rounded-lg transition-all cursor-pointer hover:shadow-md ${
                       isActive 
                         ? 'bg-blue-100 border-2 border-blue-500' 
                         : isCompleted 
                         ? 'bg-green-100 border-2 border-green-500' 
-                        : 'bg-gray-100 border-2 border-gray-300'
+                        : 'bg-gray-100 border-2 border-gray-300 hover:bg-gray-200'
                     }`}
                   >
                     <StepIcon 
@@ -7967,7 +7953,6 @@ const CollegeDataForm: React.FC = () => {
                     <Button
                       type="button"
                       onClick={handleNext}
-                      disabled={!isStepValid(activeStep)}
                       className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2"
                     >
                       Next
