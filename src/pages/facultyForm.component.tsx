@@ -162,30 +162,42 @@ interface FacultyFormData {
   policyReforms: string;
 }
 
-const FacultyForm: React.FC = () => {
+interface FacultyFormProps {
+  initialData?: any;
+  isEditMode?: boolean;
+  onSuccess?: () => void;
+}
+
+const FacultyForm: React.FC<FacultyFormProps> = ({ initialData, isEditMode = false, onSuccess }) => {
   const [activeTab, setActiveTab] = useState('general');
-  const [academicPrograms, setAcademicPrograms] = useState<AcademicProgram[]>([
-    { level: '', programName: '', programType: '', specializationAreas: [''] }
-  ]);
-  const [newPrograms, setNewPrograms] = useState<string[]>(['']);
-  const [studentEnrollment, setStudentEnrollment] = useState<StudentEnrollment[]>([{
-    program: '', level: '', batch: '',
-    constituentExamAppearedM: 0, constituentExamAppearedF: 0, constituentExamAppearedForeign: 0, constituentExamAppearedT: 0,
-    constituentExamPassedM: 0, constituentExamPassedF: 0, constituentExamPassedForeign: 0, constituentExamPassedT: 0,
-    affiliatedExamAppearedM: 0, affiliatedExamAppearedF: 0, affiliatedExamAppearedForeign: 0, affiliatedExamAppearedT: 0,
-    affiliatedExamPassedM: 0, affiliatedExamPassedF: 0, affiliatedExamPassedForeign: 0, affiliatedExamPassedT: 0
-  }]);
-  const [graduates, setGraduates] = useState<Graduate[]>([{
-    program: '', semester: '', batch: '',
-    constituentExamAppearedM: 0, constituentExamAppearedF: 0, constituentExamAppearedForeign: 0, constituentExamAppearedT: 0,
-    constituentExamPassedM: 0, constituentExamPassedF: 0, constituentExamPassedForeign: 0, constituentExamPassedT: 0,
-    affiliatedExamAppearedM: 0, affiliatedExamAppearedF: 0, affiliatedExamAppearedForeign: 0, affiliatedExamAppearedT: 0,
-    affiliatedExamPassedM: 0, affiliatedExamPassedF: 0, affiliatedExamPassedForeign: 0, affiliatedExamPassedT: 0
-  }]);
-  const [collaborations, setCollaborations] = useState<Collaboration[]>([{ institutionName: '', objective: '' }]);
+  const [academicPrograms, setAcademicPrograms] = useState<AcademicProgram[]>(
+    initialData?.academicPrograms || [{ level: '', programName: '', programType: '', specializationAreas: [''] }]
+  );
+  const [newPrograms, setNewPrograms] = useState<string[]>(initialData?.newPrograms || ['']);
+  const [studentEnrollment, setStudentEnrollment] = useState<StudentEnrollment[]>(
+    initialData?.studentEnrollment || [{
+      program: '', level: '', batch: '',
+      constituentExamAppearedM: 0, constituentExamAppearedF: 0, constituentExamAppearedForeign: 0, constituentExamAppearedT: 0,
+      constituentExamPassedM: 0, constituentExamPassedF: 0, constituentExamPassedForeign: 0, constituentExamPassedT: 0,
+      affiliatedExamAppearedM: 0, affiliatedExamAppearedF: 0, affiliatedExamAppearedForeign: 0, affiliatedExamAppearedT: 0,
+      affiliatedExamPassedM: 0, affiliatedExamPassedF: 0, affiliatedExamPassedForeign: 0, affiliatedExamPassedT: 0
+    }]
+  );
+  const [graduates, setGraduates] = useState<Graduate[]>(
+    initialData?.graduates || [{
+      program: '', semester: '', batch: '',
+      constituentExamAppearedM: 0, constituentExamAppearedF: 0, constituentExamAppearedForeign: 0, constituentExamAppearedT: 0,
+      constituentExamPassedM: 0, constituentExamPassedF: 0, constituentExamPassedForeign: 0, constituentExamPassedT: 0,
+      affiliatedExamAppearedM: 0, affiliatedExamAppearedF: 0, affiliatedExamAppearedForeign: 0, affiliatedExamAppearedT: 0,
+      affiliatedExamPassedM: 0, affiliatedExamPassedF: 0, affiliatedExamPassedForeign: 0, affiliatedExamPassedT: 0
+    }]
+  );
+  const [collaborations, setCollaborations] = useState<Collaboration[]>(
+    initialData?.collaborations || [{ institutionName: '', objective: '' }]
+  );
 
   const { register, handleSubmit, setValue, watch } = useForm<FacultyFormData>({
-    defaultValues: {
+    defaultValues: initialData || {
       academicPrograms: academicPrograms,
       newPrograms: [''],
       studentEnrollment: studentEnrollment,
@@ -277,7 +289,7 @@ const FacultyForm: React.FC = () => {
         const maleValue = Number(newEnrollment[index][maleField]) || 0;
         const femaleValue = Number(newEnrollment[index][femaleField]) || 0;
         const foreignValue = Number(newEnrollment[index][foreignField]) || 0;
-        newEnrollment[index][totalField] = maleValue + femaleValue + foreignValue as any;
+        (newEnrollment[index] as any)[totalField] = maleValue + femaleValue + foreignValue;
       }
     }
 
@@ -312,7 +324,7 @@ const FacultyForm: React.FC = () => {
         const maleValue = Number(newGraduates[index][maleField]) || 0;
         const femaleValue = Number(newGraduates[index][femaleField]) || 0;
         const foreignValue = Number(newGraduates[index][foreignField]) || 0;
-        newGraduates[index][totalField] = maleValue + femaleValue + foreignValue as any;
+        (newGraduates[index] as any)[totalField] = maleValue + femaleValue + foreignValue;
       }
     }
 
@@ -331,14 +343,26 @@ const FacultyForm: React.FC = () => {
   const onSubmit = async (data: FacultyFormData) => {
     console.log("Form submitted", data);
     try {
-      const response = await axios.post('https://digitaldashboard.tu.edu.np/api/faculty-forms', data, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      let response;
+      if (isEditMode && initialData?._id) {
+        response = await axios.put(`https://digitaldashboard.tu.edu.np/api/faculty-forms/${initialData._id}`, data, {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+      } else {
+        response = await axios.post('https://digitaldashboard.tu.edu.np/api/faculty-forms', data, {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+      }
 
-      if (response.status === 201) {
-        toast.success('Faculty form submitted successfully!');
+      if (response.status === 201 || response.status === 200) {
+        toast.success(isEditMode ? 'Faculty form updated successfully!' : 'Faculty form submitted successfully!');
+        if (onSuccess) {
+          onSuccess();
+        }
       } else {
         throw new Error('Failed to submit form');
       }
