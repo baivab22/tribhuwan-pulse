@@ -4097,13 +4097,13 @@ import {
   BarChartIcon, GraduationCap, Cpu, Network, UserCheck, Mail, Phone,
   School, BookText, Users2, Building2, TargetIcon, Lightbulb,
   Shield, HeartHandshake, User, UserCog, Bookmark, Activity,
-  Clock, MapPin, Star, Zap, Target as TargetLucide
+  Clock, MapPin, Star, Zap, Target as TargetLucide, Edit, Pencil
 } from 'lucide-react';
 import { toast } from 'sonner';
 import axios from 'axios';
 import * as XLSX from 'xlsx';
 import { API_BASE } from '@/lib/api';
-// import { API_BASE } from '@/lib/api';
+import FacultyForm from './facultyForm.component';
 
 interface AcademicProgram {
   level: string;
@@ -4227,6 +4227,8 @@ interface FacultyData {
 const COLORS = ['#4f46e5', '#7c3aed', '#06b6d4', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
 
 const AdminForFaculty: React.FC = () => {
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingFacultyData, setEditingFacultyData] = useState<FacultyData | null>(null);
   const [facultyData, setFacultyData] = useState<FacultyData[]>([]);
   const [filteredData, setFilteredData] = useState<FacultyData[]>([]);
   const [selectedFaculty, setSelectedFaculty] = useState<FacultyData | null>(null);
@@ -4468,28 +4470,42 @@ const fetchFacultyData = async () => {
                               </Badge>
                             </TableCell>
                             <TableCell>
-                              <Dialog>
-                                <DialogTrigger asChild>
-                                  <Button 
-                                    variant="outline" 
-                                    size="sm" 
-                                    className="flex items-center gap-2"
-                                    onClick={() => setSelectedFaculty(faculty)}
-                                  >
-                                    <Eye className="w-4 h-4" />
-                                    View
-                                  </Button>
-                                </DialogTrigger>
-                                <DialogContent className="overflow-y-auto" style={{width:"90vw",maxWidth:'98vw',height:'98vh'}}>
-                                  <DialogHeader>
-                                    <DialogTitle>{faculty.instituteName}</DialogTitle>
-                                    <DialogDescription>
-                                      Comprehensive analytics for {faculty.reportingPeriod} • Submitted on {new Date(faculty.submissionDate).toLocaleDateString()}
-                                    </DialogDescription>
-                                  </DialogHeader>
-                                  {selectedFaculty && <FacultyDetailView faculty={selectedFaculty} onExportStudentData={exportStudentDataToExcel} />}
-                                </DialogContent>
-                              </Dialog>
+                              <div className="flex items-center gap-2">
+                                <Dialog>
+                                  <DialogTrigger asChild>
+                                    <Button 
+                                      variant="outline" 
+                                      size="sm" 
+                                      className="flex items-center gap-2"
+                                      onClick={() => setSelectedFaculty(faculty)}
+                                    >
+                                      <Eye className="w-4 h-4" />
+                                      View
+                                    </Button>
+                                  </DialogTrigger>
+                                  <DialogContent className="overflow-y-auto" style={{width:"90vw",maxWidth:'98vw',height:'98vh'}}>
+                                    <DialogHeader>
+                                      <DialogTitle>{faculty.instituteName}</DialogTitle>
+                                      <DialogDescription>
+                                        Comprehensive analytics for {faculty.reportingPeriod} • Submitted on {new Date(faculty.submissionDate).toLocaleDateString()}
+                                      </DialogDescription>
+                                    </DialogHeader>
+                                    {selectedFaculty && <FacultyDetailView faculty={selectedFaculty} onExportStudentData={exportStudentDataToExcel} />}
+                                  </DialogContent>
+                                </Dialog>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="flex items-center gap-2"
+                                  onClick={() => {
+                                    setEditingFacultyData(faculty);
+                                    setIsEditModalOpen(true);
+                                  }}
+                                >
+                                  <Pencil className="w-4 h-4" />
+                                  Edit
+                                </Button>
+                              </div>
                             </TableCell>
                           </TableRow>
                         );
@@ -4508,6 +4524,32 @@ const fetchFacultyData = async () => {
             </TabsContent>
           )}
         </Tabs>
+
+        {/* Edit Faculty Form Modal */}
+        <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+          <DialogContent className="flex flex-col max-h-[95vh]" style={{ width: '95vw', maxWidth: '95vw' }}>
+            <DialogHeader className="flex-shrink-0">
+              <DialogTitle>Edit Faculty Form</DialogTitle>
+              <DialogDescription>
+                Update the faculty information for {editingFacultyData?.instituteName}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex-1 overflow-y-auto pr-6">
+              {editingFacultyData && (
+                <FacultyForm 
+                  initialData={editingFacultyData}
+                  isEditMode={true}
+                  onSuccess={() => {
+                    setIsEditModalOpen(false);
+                    setEditingFacultyData(null);
+                    // Refresh the faculty data
+                    fetchFacultyData();
+                  }}
+                />
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
