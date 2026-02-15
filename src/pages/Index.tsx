@@ -120,9 +120,9 @@ export default function UniversityHomepage() {
   ];
 
   const stats = [
-      { icon: Building2, value: "64", label: "Constituent Colleges", color: "text-blue-600" },
-    { icon: Building2, value: "989+", label: "Affiliated Colleges", color: "text-blue-600" },
-    { icon: GraduationCap, value: "500,000+", label: "Active Students", color: "text-indigo-600" },
+      { icon: Building2, value: "63", label: "Constituent Colleges", color: "text-blue-600" },
+    { icon: Building2, value: "1053+", label: "Affiliated Colleges", color: "text-blue-600" },
+    { icon: GraduationCap, value: "560,000+", label: "Active Students", color: "text-indigo-600" },
     { icon: MessageSquare, value: "1,000+", label: "Feedbacks Processed", color: "text-purple-600" },
     { icon: FolderKanban, value: "500+", label: "Active Projects", color: "text-emerald-600" }
   ];
