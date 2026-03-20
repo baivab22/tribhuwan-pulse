@@ -27,7 +27,6 @@ import {
   Menu, 
   X, 
   Globe,
-  User,
   MessageSquare,
   ChevronDown,
   FileText
@@ -35,13 +34,15 @@ import {
 import CollegeDataForm from './pages/collegeForm';
 import { useIsMobile } from './hooks/use-mobile';
 import FeedbackPage from './pages/Feedback';
-// import {ProgressReportForm} from './pages/ProgressForm';
-import { ProgressReport } from './types';
 import ProgressForm from './pages/ProgressForm';
 import TUVision2030 from './pages/missionVision';
 import DigitalUniversity from './pages/digital';
 import FacultyForm from './pages/facultyForm.component';
 import EndowmentFundComponent from './components/endowmentFund.component';
+import CampusFormFillupPage from './pages/CampusFormFillupPage';
+import SurveyReportPage from './pages/SurveyReportPage';
+import AddSurveyReportPage from './pages/AddSurveyReportPage';
+import type { ProgressReport } from './types';
 
 const queryClient = new QueryClient();
 
@@ -49,8 +50,8 @@ function Header() {
   const { t, i18n } = useTranslation();
   const [user, setUser] = useState(getStoredUser());
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [feedbackMenuOpen, setFeedbackMenuOpen] = useState(false);
+  const [campusFormMenuOpen, setCampusFormMenuOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -62,6 +63,8 @@ function Header() {
 
   useEffect(() => {
     setIsMobileMenuOpen(false);
+    setCampusFormMenuOpen(false);
+    setFeedbackMenuOpen(false);
   }, [location.pathname]);
 
   useEffect(() => {
@@ -81,39 +84,30 @@ function Header() {
     setUser(null);
     navigate('/');
     setIsMobileMenuOpen(false);
-    setUserMenuOpen(false);
   }
-
-
-
-   const [isSubmitting, setIsSubmitting] = useState(false);
-
-
 
   const mainNavigationItems = [
     { path: '/', label: t('nav.home'), icon: Home },
-
     { path: '/admin', label: t('nav.admin'), icon: Settings },
-    { path: '/college-form', label: 'Campus Form', icon: FileText },
-        { path: '/progress-form', label: 'Progress Form', icon: FileText },
-          { path: '/faculty-form', label: 'Faculty/Institute Form', icon: FileText },
-              { path: '/mission-vision', label: 'Mission Vision', icon: FileText },
-              { path: '/digitalization', label: 'Digitallization', icon: FileText },
-                            { path: '/donation', label: 'दानदातव्य कोष', icon: FileText },
+    { path: '/progress-form', label: 'Progress Form', icon: FileText },
+    { path: '/faculty-form', label: 'Faculty/Institute Form', icon: FileText },
+    { path: '/mission-vision', label: 'Mission Vision', icon: FileText },
+    { path: '/digitalization', label: 'Digitallization', icon: FileText },
+    { path: '/donation', label: 'दानदातव्य कोष', icon: FileText },
+  ];
 
-              
-
+  const campusFormItems = [
+    { path: '/campus-form-fillup', label: 'Campus Form Fillup', icon: FileText },
+    { path: '/add-survey-report', label: 'Add Survey Report', icon: FileText },
   ];
 
   const feedbackItems = [
     { path: '/submit', label: 'Submit a Feedback', icon: Send },
     { path: '/feedback-status', label: 'Track Feedback', icon: MessageSquare },
-        { path: '/public', label: 'Public Transparency', icon: Eye },
-
-        
+    { path: '/public', label: 'Public Transparency', icon: Eye },
   ];
 
-  const isActivePath = (path) => {
+  const isActivePath = (path: string) => {
     return location.pathname === path;
   };
 
@@ -237,22 +231,68 @@ function Header() {
                       variant="ghost"
                       className={`
                         flex items-center gap-2 px-5 py-2.5 text-sm font-medium transition-all duration-200 rounded-lg relative
-                        ${isActive 
-                          ? 'bg-white text-black hover:bg-white' 
-                          : 
-                          'text-white'
+                        ${isActive
+                          ? 'bg-white text-black hover:bg-white'
+                          : 'text-white'
                         }
                       `}
                     >
                       <IconComponent className="w-4 h-4" />
                       {item.label}
-                      {/* {isActive && (
-                        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-12 h-1 bg-indigo-700 rounded-t-full" />
-                      )} */}
                     </Button>
                   </Link>
                 );
               })}
+
+              {/* Campus Form Dropdown */}
+              <div className="relative">
+                <Button
+                  variant="ghost"
+                  onClick={() => setCampusFormMenuOpen(!campusFormMenuOpen)}
+                  className={`
+                    flex items-center gap-2 px-5 py-2.5 text-sm font-medium rounded-lg transition-all duration-200
+                    ${campusFormItems.some((item) => isActivePath(item.path))
+                      ? 'bg-white/20 text-white'
+                      : 'text-white hover:bg-white/10'
+                    }
+                  `}
+                >
+                  <FileText className="w-4 h-4" />
+                  Campus Form
+                  <ChevronDown className={`w-3 h-3 ml-1 transition-transform duration-200 ${campusFormMenuOpen ? 'rotate-180' : ''}`} />
+                </Button>
+
+                {campusFormMenuOpen && (
+                  <>
+                    <div
+                      className="fixed inset-0 z-10"
+                      onClick={() => setCampusFormMenuOpen(false)}
+                    />
+                    <div className="absolute left-0 mt-2 w-56 bg-white rounded-xl shadow-2xl border border-gray-200 py-2 z-20">
+                      {campusFormItems.map((item) => (
+                        <Link
+                          key={item.path}
+                          to={item.path}
+                          onClick={() => setCampusFormMenuOpen(false)}
+                        >
+                          <button
+                            className={`
+                              w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors duration-150
+                              ${isActivePath(item.path)
+                                ? 'bg-indigo-100 text-indigo-600 font-medium'
+                                : 'text-gray-700 hover:bg-indigo-50 hover:text-indigo-600'
+                              }
+                            `}
+                          >
+                            <item.icon className="w-4 h-4" />
+                            {item.label}
+                          </button>
+                        </Link>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
 
               {/* Feedback Dropdown */}
               <div className="relative">
@@ -273,9 +313,6 @@ function Header() {
                       onClick={() => setFeedbackMenuOpen(false)}
                     />
                     <div className="absolute left-0 mt-2 w-56 bg-white rounded-xl shadow-2xl border border-gray-200 py-2 z-20">
-                      {/* <div className="px-3 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                        Feedback Options
-                      </div> */}
                       <div className="border-t border-gray-100 my-1" />
                       {feedbackItems.map((item) => {
                         const IconComponent = item.icon;
@@ -344,6 +381,43 @@ function Header() {
                 );
               })}
 
+              {/* Campus Form Section */}
+              <div className="pt-4 pb-2">
+                <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider px-4 mb-2">
+                  Campus Form
+                </div>
+              </div>
+
+              {campusFormItems.map((item, index) => {
+                const IconComponent = item.icon;
+                const delayIndex = mainNavigationItems.length + index;
+                const isActive = isActivePath(item.path);
+                return (
+                  <Link key={item.path} to={item.path}>
+                    <div
+                      className={`
+                        transform transition-all duration-300 ease-out
+                        ${isMobileMenuOpen ? 'translate-x-0 opacity-100' : 'translate-x-8 opacity-0'}
+                      `}
+                      style={{ transitionDelay: isMobileMenuOpen ? `${delayIndex * 60}ms` : '0ms' }}
+                    >
+                      <div className={`
+                        w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200
+                        ${isActive ? 'bg-indigo-600 text-white shadow-lg' : 'text-gray-700 hover:bg-gray-100'}
+                      `}>
+                        <div className={`
+                          w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-200
+                          ${isActive ? 'bg-white/20' : 'bg-gray-100 text-gray-600'}
+                        `}>
+                          <IconComponent className="w-5 h-5" />
+                        </div>
+                        <span className="text-base font-medium">{item.label}</span>
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })}
+
               {/* Feedback Section */}
               <div className="pt-4 pb-2">
                 <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider px-4 mb-2">
@@ -355,7 +429,7 @@ function Header() {
               
               {feedbackItems.map((item, index) => {
                 const IconComponent = item.icon;
-                const delayIndex = mainNavigationItems.length + index;
+                const delayIndex = mainNavigationItems.length + campusFormItems.length + index;
                 return (
                   <Link key={item.path} to={item.path}>
                     <div
@@ -390,16 +464,16 @@ function Header() {
                     ${isMobileMenuOpen ? 'translate-x-0 opacity-100' : 'translate-x-8 opacity-0'}
                   `}
                   style={{ 
-                    transitionDelay: isMobileMenuOpen ? `${(mainNavigationItems.length + feedbackItems.length) * 60}ms` : '0ms' 
+                    transitionDelay: isMobileMenuOpen ? `${(mainNavigationItems.length + campusFormItems.length + feedbackItems.length) * 60}ms` : '0ms' 
                   }}
                 >
                   <div className="mb-3 px-4 py-3 bg-indigo-50 rounded-xl">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-indigo-600 text-white flex items-center justify-center font-semibold text-lg">
-                        {user.username?.charAt(0).toUpperCase()}
+                        {(user.name || '').charAt(0).toUpperCase()}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="font-semibold text-gray-900 truncate">{user.username}</div>
+                        <div className="font-semibold text-gray-900 truncate">{user.name}</div>
                         <div className="text-xs text-gray-500 truncate">{user.email}</div>
                       </div>
                     </div>
@@ -423,7 +497,7 @@ function Header() {
                       ${isMobileMenuOpen ? 'translate-x-0 opacity-100' : 'translate-x-8 opacity-0'}
                     `}
                     style={{ 
-                      transitionDelay: isMobileMenuOpen ? `${(mainNavigationItems.length + feedbackItems.length) * 60}ms` : '0ms' 
+                      transitionDelay: isMobileMenuOpen ? `${(mainNavigationItems.length + campusFormItems.length + feedbackItems.length) * 60}ms` : '0ms' 
                     }}
                   >
                     <div className="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-gray-700 hover:bg-gray-100">
@@ -445,7 +519,7 @@ function Header() {
                 ${isMobileMenuOpen ? 'scale-100 opacity-100' : 'scale-0 opacity-0'}
               `}
               style={{ 
-                transitionDelay: isMobileMenuOpen ? `${(mainNavigationItems.length + feedbackItems.length + 1) * 60}ms` : '0ms' 
+                transitionDelay: isMobileMenuOpen ? `${(mainNavigationItems.length + campusFormItems.length + feedbackItems.length + 1) * 60}ms` : '0ms' 
               }}
             />
           </div>
@@ -463,27 +537,12 @@ function Header() {
 }
 
 const App = () => {
-    const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-
-    // const API_BASE_URL = 'https://digitaldashboard.tu.edu.np/api/progress';
-    // const API_BASE_URL='https://feedbackbackend-4.onrender.com/api/progress';
-
-    // const API_BASE_URL='https://feedbackbackend-4.onrender.com/api/progress';
-    // const API_BASE_URL='https://digitaldashboard.tu.edu.np/api/progress'
-    // const API_BASE_URL='https://digitaldashboard.tu.edu.np/api/progress'
-
-     const API_BASE="https://digitaldashboard.tu.edu.np"
-
-     
-
-
-
-  
     const handleFormSubmit = async (data: ProgressReport) => {
     setIsSubmitting(true);
     try {
-      const response = await fetch(API_BASE, {
+      const response = await fetch(`${API_BASE}/api/progress`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -492,9 +551,7 @@ const App = () => {
       });
 
       if (response.ok) {
-        const result = await response.json();
         toast.success('Progress report submitted successfully!');
-        // setActiveTab('dashboard');
       } else {
         const error = await response.json();
         toast.error(error.message || 'Failed to submit report');
@@ -523,13 +580,15 @@ const App = () => {
               <Route path="/register" element={<RegisterPage />} />
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/college-form" element={<CollegeDataForm />} />
-                <Route path="/faculty-form" element={<FacultyForm/>} />
-                       <Route path="/progress-form" element={   <ProgressForm onSubmit={handleFormSubmit} isLoading={isSubmitting} /> } />
-                            <Route path="/mission-vision" element={<TUVision2030 /> } />
-                            <Route path="/digitalization" element={<DigitalUniversity /> } />
-                            <Route path="/donation" element={<EndowmentFundComponent/> } />
+              <Route path="/campus-form-fillup" element={<CampusFormFillupPage />} />
+              <Route path="/survey-report" element={<SurveyReportPage />} />
+              <Route path="/add-survey-report" element={<AddSurveyReportPage />} />
+              <Route path="/faculty-form" element={<FacultyForm />} />
+              <Route path="/progress-form" element={<ProgressForm onSubmit={handleFormSubmit} isLoading={isSubmitting} />} />
+              <Route path="/mission-vision" element={<TUVision2030 />} />
+              <Route path="/digitalization" element={<DigitalUniversity />} />
+              <Route path="/donation" element={<EndowmentFundComponent />} />
 
-                            
               <Route path="*" element={<NotFound />} />
             </Routes>
           </main>

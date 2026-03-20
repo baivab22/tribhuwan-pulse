@@ -64,3 +64,49 @@ export interface AnalyticsData {
   budgetUtilization: number;
   collegePerformance: CollegeSummary[];
 }
+
+export interface SurveyReport {
+  _id?: string;
+  collegeName: string;
+  reportYear: string;
+  description?: string;
+  pdfFile?: {
+    filename: string;
+    path: string;
+    originalName: string;
+    size: number;
+    uploadDate: string;
+  };
+  uploadedBy?: {
+    _id: string;
+    name: string;
+    email: string;
+  };
+  status: 'pending' | 'approved' | 'rejected';
+  remarks?: string;
+  viewCount: number;
+  college?: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CollegeFormData {
+  _id?: string;
+  collegeName: string;
+  campusType: string;
+  establishmentDate: string;
+  location?: {
+    province: string;
+    district: string;
+    localLevel: string;
+  };
+  principalInfo?: {
+    name: string;
+    email?: string;
+    contactNumber?: string;
+  };
+  formStatus: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
