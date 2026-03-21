@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
 import {
   Dialog,
   DialogContent,
@@ -29,6 +30,16 @@ import {
   AlertCircle,
   Eye,
   Pencil,
+  Search,
+  FilterX,
+  Plus,
+  RefreshCw,
+  Download,
+  ArrowUpDown,
+  Calendar,
+  Building2,
+  FileText,
+  Users,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { API_BASE } from '@/lib/api';
@@ -36,6 +47,8 @@ import type { SurveyReport } from '@/types';
 import SurveyReportForm from './surveyReportForm';
 
 type DialogAction = 'view' | 'approve' | 'reject' | 'edit';
+type SortField = 'createdAt' | 'reportYear' | 'collegeName' | 'viewCount';
+type SortDirection = 'asc' | 'desc';
 
 interface AdminSurveyReportsProps {
   showCreateForm?: boolean;
@@ -49,6 +62,8 @@ export const AdminSurveyReports: React.FC<AdminSurveyReportsProps> = ({
   const [selectedReport, setSelectedReport] = useState<SurveyReport | null>(null);
   const [showDialog, setShowDialog] = useState(false);
   const [dialogAction, setDialogAction] = useState<DialogAction>('view');
+  const [deleteTarget, setDeleteTarget] = useState<SurveyReport | null>(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [remarks, setRemarks] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editForm, setEditForm] = useState({
@@ -66,10 +81,23 @@ export const AdminSurveyReports: React.FC<AdminSurveyReportsProps> = ({
     rejectedReports: 0,
     totalViews: 0,
   });
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
+  const [yearFilter, setYearFilter] = useState<'all' | string>('all');
+  const [sortField, setSortField] = useState<SortField>('createdAt');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+  const [showCreatePanel, setShowCreatePanel] = useState(showCreateForm);
 
   const getAuthHeaders = useCallback(() => ({
     Authorization: `Bearer ${localStorage.getItem('token')}`,
   }), []);
+
+  const getErrorMessage = (error: unknown, fallback: string) => {
+    if (axios.isAxiosError(error)) {
+      return error.response?.data?.message || fallback;
+    }
+    return fallback;
+  };
 
   const fetchReports = useCallback(async () => {
     setIsLoading(true);
@@ -128,6 +156,11 @@ export const AdminSurveyReports: React.FC<AdminSurveyReportsProps> = ({
     setShowDialog(true);
   };
 
+  const openDeleteDialog = (report: SurveyReport) => {
+    setDeleteTarget(report);
+    setShowDeleteDialog(true);
+  };
+
   const handleApprove = async () => {
     if (!selectedReport?._id) return;
     setIsSubmitting(true);
@@ -143,9 +176,9 @@ export const AdminSurveyReports: React.FC<AdminSurveyReportsProps> = ({
         setShowDialog(false);
         await refreshData();
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error approving report:', error);
-      toast.error('Failed to approve report');
+      toast.error(getErrorMessage(error, 'Failed to approve report'));
     } finally {
       setIsSubmitting(false);
     }
@@ -153,6 +186,10 @@ export const AdminSurveyReports: React.FC<AdminSurveyReportsProps> = ({
 
   const handleReject = async () => {
     if (!selectedReport?._id) return;
+    if (!remarks.trim()) {
+      toast.error('Remarks are required when rejecting a report');
+      return;
+    }
     setIsSubmitting(true);
     try {
       const response = await axios.put(
@@ -166,9 +203,9 @@ export const AdminSurveyReports: React.FC<AdminSurveyReportsProps> = ({
         setShowDialog(false);
         await refreshData();
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error rejecting report:', error);
-      toast.error('Failed to reject report');
+      toast.error(getErrorMessage(error, 'Failed to reject report'));
     } finally {
       setIsSubmitting(false);
     }
@@ -176,6 +213,11 @@ export const AdminSurveyReports: React.FC<AdminSurveyReportsProps> = ({
 
   const handleUpdate = async () => {
     if (!selectedReport?._id) return;
+    if (!editForm.collegeName.trim() || !editForm.reportYear.trim()) {
+      toast.error('College name and report year are required');
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const formData = new FormData();
@@ -204,28 +246,60 @@ export const AdminSurveyReports: React.FC<AdminSurveyReportsProps> = ({
         setShowDialog(false);
         await refreshData();
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error updating report:', error);
-      toast.error('Failed to update report');
+      toast.error(getErrorMessage(error, 'Failed to update report'));
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleDelete = async (reportId: string) => {
-    if (!confirm('Are you sure you want to delete this report?')) return;
+  const handleDelete = async () => {
+    if (!deleteTarget?._id) return;
+
+    setIsSubmitting(true);
     try {
-      const response = await axios.delete(`${API_BASE}/api/survey-reports/${reportId}`, {
+      const response = await axios.delete(`${API_BASE}/api/survey-reports/${deleteTarget._id}`, {
         headers: getAuthHeaders(),
       });
 
       if (response.data.success) {
         toast.success('Report deleted successfully');
+        setShowDeleteDialog(false);
+        setDeleteTarget(null);
         await refreshData();
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error deleting report:', error);
-      toast.error('Failed to delete report');
+      toast.error(getErrorMessage(error, 'Failed to delete report'));
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDownload = async (report: SurveyReport) => {
+    if (!report._id) {
+      toast.error('Missing report id');
+      return;
+    }
+
+    try {
+      const response = await axios.get(`${API_BASE}/api/survey-reports/${report._id}/download`, {
+        responseType: 'blob',
+      });
+
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', report.pdfFile?.originalName || `${report.collegeName}-${report.reportYear}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode?.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      toast.success('PDF downloaded successfully');
+    } catch (error: unknown) {
+      console.error('Error downloading report PDF:', error);
+      toast.error(getErrorMessage(error, 'Failed to download report PDF'));
     }
   };
 
@@ -242,30 +316,202 @@ export const AdminSurveyReports: React.FC<AdminSurveyReportsProps> = ({
     }
   };
 
+  const availableYears = useMemo(() => {
+    return Array.from(new Set(reports.map((report) => report.reportYear))).sort((a, b) => b.localeCompare(a));
+  }, [reports]);
+
+  const filteredAndSortedReports = useMemo(() => {
+    const filtered = reports.filter((report) => {
+      const matchesSearch =
+        report.collegeName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (report.uploadedBy?.name || '').toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesStatus = statusFilter === 'all' || report.status === statusFilter;
+      const matchesYear = yearFilter === 'all' || report.reportYear === yearFilter;
+
+      return matchesSearch && matchesStatus && matchesYear;
+    });
+
+    return filtered.sort((a, b) => {
+      const direction = sortDirection === 'asc' ? 1 : -1;
+
+      if (sortField === 'createdAt') {
+        return (new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()) * direction;
+      }
+
+      if (sortField === 'viewCount') {
+        return ((a.viewCount || 0) - (b.viewCount || 0)) * direction;
+      }
+
+      if (sortField === 'reportYear') {
+        return a.reportYear.localeCompare(b.reportYear, undefined, { numeric: true }) * direction;
+      }
+
+      return a.collegeName.localeCompare(b.collegeName) * direction;
+    });
+  }, [reports, searchQuery, sortDirection, sortField, statusFilter, yearFilter]);
+
   return (
     <div className="w-full space-y-6 p-4">
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">Survey Report Management</h1>
-        <p className="text-gray-600 mt-2">
+      <div className="rounded-2xl border border-cyan-100 bg-gradient-to-r from-cyan-50 via-white to-orange-50 p-5 shadow-sm">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Campus Survey Report Management</h1>
+            <p className="mt-2 text-gray-600">
           {showCreateForm
             ? 'Create, review, edit, and manage survey reports'
             : 'Review, edit, and manage survey reports'}
-        </p>
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              variant="outline"
+              onClick={refreshData}
+              disabled={isLoading}
+              className="gap-2"
+            >
+              <RefreshCw className="h-4 w-4" /> Refresh
+            </Button>
+            {showCreateForm && (
+              <Button onClick={() => setShowCreatePanel((prev) => !prev)} className="gap-2 bg-cyan-700 hover:bg-cyan-800">
+                <Plus className="h-4 w-4" /> {showCreatePanel ? 'Hide Create Form' : 'Add Survey Report'}
+              </Button>
+            )}
+          </div>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-        <Card><CardContent className="p-6"><p className="text-sm text-gray-600">Total</p><p className="text-3xl font-bold">{stats.totalReports}</p></CardContent></Card>
-        <Card><CardContent className="p-6"><p className="text-sm text-gray-600">Pending</p><p className="text-3xl font-bold text-yellow-600">{stats.pendingReports}</p></CardContent></Card>
-        <Card><CardContent className="p-6"><p className="text-sm text-gray-600">Approved</p><p className="text-3xl font-bold text-green-600">{stats.approvedReports}</p></CardContent></Card>
-        <Card><CardContent className="p-6"><p className="text-sm text-gray-600">Rejected</p><p className="text-3xl font-bold text-red-600">{stats.rejectedReports}</p></CardContent></Card>
-        <Card><CardContent className="p-6"><p className="text-sm text-gray-600">Views</p><p className="text-3xl font-bold">{stats.totalViews}</p></CardContent></Card>
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-5">
+        <Card>
+          <CardContent className="flex items-center justify-between p-5">
+            <div><p className="text-sm text-gray-600">Total</p><p className="text-3xl font-bold">{stats.totalReports}</p></div>
+            <FileText className="h-8 w-8 text-cyan-700" />
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="flex items-center justify-between p-5">
+            <div><p className="text-sm text-gray-600">Pending</p><p className="text-3xl font-bold text-yellow-600">{stats.pendingReports}</p></div>
+            <AlertCircle className="h-8 w-8 text-yellow-600" />
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="flex items-center justify-between p-5">
+            <div><p className="text-sm text-gray-600">Approved</p><p className="text-3xl font-bold text-green-600">{stats.approvedReports}</p></div>
+            <CheckCircle className="h-8 w-8 text-green-600" />
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="flex items-center justify-between p-5">
+            <div><p className="text-sm text-gray-600">Rejected</p><p className="text-3xl font-bold text-red-600">{stats.rejectedReports}</p></div>
+            <XCircle className="h-8 w-8 text-red-600" />
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="flex items-center justify-between p-5">
+            <div><p className="text-sm text-gray-600">Views</p><p className="text-3xl font-bold">{stats.totalViews}</p></div>
+            <Users className="h-8 w-8 text-gray-700" />
+          </CardContent>
+        </Card>
       </div>
 
-      {showCreateForm ? (
+      {showCreateForm && showCreatePanel ? (
         <div>
           <SurveyReportForm onSuccess={refreshData} />
         </div>
       ) : null}
+
+      <Card className="border-cyan-100">
+        <CardHeader>
+          <CardTitle className="text-lg">Search & Filters</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-5">
+            <div className="md:col-span-2">
+              <Label htmlFor="survey-search" className="mb-2 block">Search</Label>
+              <div className="relative">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                <Input
+                  id="survey-search"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search by college or uploader"
+                  className="pl-10"
+                />
+              </div>
+            </div>
+            <div>
+              <Label className="mb-2 block">Status</Label>
+              <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as 'all' | 'pending' | 'approved' | 'rejected')}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="approved">Approved</SelectItem>
+                  <SelectItem value="rejected">Rejected</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label className="mb-2 block">Year</Label>
+              <Select value={yearFilter} onValueChange={(value) => setYearFilter(value)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Years</SelectItem>
+                  {availableYears.map((year) => (
+                    <SelectItem key={year} value={year}>
+                      {year}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label className="mb-2 block">Sort</Label>
+              <Select value={sortField} onValueChange={(value) => setSortField(value as SortField)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="createdAt">Created Date</SelectItem>
+                  <SelectItem value="reportYear">Report Year</SelectItem>
+                  <SelectItem value="collegeName">College Name</SelectItem>
+                  <SelectItem value="viewCount">View Count</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="mt-4 flex items-center justify-between">
+            <p className="text-sm text-gray-600">
+              Showing <span className="font-semibold text-gray-900">{filteredAndSortedReports.length}</span> of <span className="font-semibold text-gray-900">{reports.length}</span> reports
+            </p>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                className="gap-2"
+                onClick={() => setSortDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'))}
+              >
+                <ArrowUpDown className="h-4 w-4" /> {sortDirection === 'asc' ? 'Ascending' : 'Descending'}
+              </Button>
+              <Button
+                variant="outline"
+                className="gap-2"
+                onClick={() => {
+                  setSearchQuery('');
+                  setStatusFilter('all');
+                  setYearFilter('all');
+                  setSortField('createdAt');
+                  setSortDirection('desc');
+                }}
+              >
+                <FilterX className="h-4 w-4" /> Reset
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>
@@ -276,40 +522,62 @@ export const AdminSurveyReports: React.FC<AdminSurveyReportsProps> = ({
             <div className="flex justify-center items-center py-8">
               <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
             </div>
-          ) : reports.length === 0 ? (
+          ) : filteredAndSortedReports.length === 0 ? (
             <Alert className="border-yellow-200 bg-yellow-50">
               <AlertCircle className="h-4 w-4 text-yellow-600" />
-              <AlertDescription className="text-yellow-800">No survey reports found</AlertDescription>
+              <AlertDescription className="text-yellow-800">
+                No survey reports found for current filters
+              </AlertDescription>
             </Alert>
           ) : (
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto rounded-xl border border-gray-100">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b">
+                  <tr className="border-b bg-gray-50">
                     <th className="text-left px-4 py-2 text-sm font-semibold text-gray-700">College</th>
                     <th className="text-left px-4 py-2 text-sm font-semibold text-gray-700">Year</th>
                     <th className="text-left px-4 py-2 text-sm font-semibold text-gray-700">Status</th>
                     <th className="text-left px-4 py-2 text-sm font-semibold text-gray-700">Uploaded By</th>
+                    <th className="text-left px-4 py-2 text-sm font-semibold text-gray-700">Created</th>
                     <th className="text-left px-4 py-2 text-sm font-semibold text-gray-700">Views</th>
                     <th className="text-right px-4 py-2 text-sm font-semibold text-gray-700">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {reports.map((report) => (
+                  {filteredAndSortedReports.map((report) => (
                     <tr key={report._id} className="border-b hover:bg-gray-50">
-                      <td className="px-4 py-3 text-sm">{report.collegeName}</td>
+                      <td className="px-4 py-3 text-sm font-medium">{report.collegeName}</td>
                       <td className="px-4 py-3 text-sm">{report.reportYear}</td>
                       <td className="px-4 py-3 text-sm">
-                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(report.status)}`}>
+                        <Badge className={`rounded-full border-0 px-3 py-1 text-xs font-semibold ${getStatusColor(report.status)}`}>
                           {report.status.charAt(0).toUpperCase() + report.status.slice(1)}
-                        </span>
+                        </Badge>
                       </td>
                       <td className="px-4 py-3 text-sm">{report.uploadedBy?.name || 'N/A'}</td>
+                      <td className="px-4 py-3 text-sm">
+                        <span className="inline-flex items-center gap-1 text-gray-600">
+                          <Calendar className="h-3.5 w-3.5" />
+                          {new Date(report.createdAt).toLocaleDateString()}
+                        </span>
+                      </td>
                       <td className="px-4 py-3 text-sm">{report.viewCount}</td>
                       <td className="px-4 py-3 text-right text-sm">
                         <div className="flex gap-2 justify-end">
                           <Button variant="outline" size="sm" className="h-8 w-8 p-0" onClick={() => openDialog(report, 'view')}>
                             <Eye className="w-4 h-4" />
+                          </Button>
+                          {report._id ? (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-8 w-8 p-0"
+                              onClick={() => window.open(`${API_BASE}/api/survey-reports/${report._id}/pdf`, '_blank')}
+                            >
+                              <Building2 className="w-4 h-4" />
+                            </Button>
+                          ) : null}
+                          <Button variant="outline" size="sm" className="h-8 w-8 p-0" onClick={() => handleDownload(report)}>
+                            <Download className="w-4 h-4" />
                           </Button>
                           <Button variant="outline" size="sm" className="h-8 w-8 p-0" onClick={() => openDialog(report, 'edit')}>
                             <Pencil className="w-4 h-4" />
@@ -326,7 +594,7 @@ export const AdminSurveyReports: React.FC<AdminSurveyReportsProps> = ({
                             </>
                           )}
 
-                          <Button size="sm" variant="destructive" className="h-8 w-8 p-0" onClick={() => report._id && handleDelete(report._id)}>
+                          <Button size="sm" variant="destructive" className="h-8 w-8 p-0" onClick={() => openDeleteDialog(report)}>
                             <Trash2 className="w-4 h-4" />
                           </Button>
                         </div>
@@ -387,6 +655,9 @@ export const AdminSurveyReports: React.FC<AdminSurveyReportsProps> = ({
                 onChange={(e) => setRemarks(e.target.value)}
                 rows={4}
               />
+              {dialogAction === 'reject' && !remarks.trim() ? (
+                <p className="text-xs text-red-600">Remarks are required before rejecting.</p>
+              ) : null}
             </div>
           )}
 
@@ -469,7 +740,7 @@ export const AdminSurveyReports: React.FC<AdminSurveyReportsProps> = ({
               </Button>
             )}
             {dialogAction === 'reject' && (
-              <Button variant="destructive" onClick={handleReject} disabled={isSubmitting}>
+              <Button variant="destructive" onClick={handleReject} disabled={isSubmitting || !remarks.trim()}>
                 {isSubmitting ? 'Rejecting...' : 'Reject'}
               </Button>
             )}
@@ -478,6 +749,29 @@ export const AdminSurveyReports: React.FC<AdminSurveyReportsProps> = ({
                 {isSubmitting ? 'Updating...' : 'Update'}
               </Button>
             )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Survey Report</DialogTitle>
+            <DialogDescription>
+              This action cannot be undone. The selected report will be removed from active records.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="rounded-lg border border-red-100 bg-red-50 p-3 text-sm text-red-800">
+            <p className="font-semibold">{deleteTarget?.collegeName || 'Unknown campus'}</p>
+            <p>Report Year: {deleteTarget?.reportYear || 'N/A'}</p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDeleteDialog(false)} disabled={isSubmitting}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleDelete} disabled={isSubmitting}>
+              {isSubmitting ? 'Deleting...' : 'Delete Report'}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
