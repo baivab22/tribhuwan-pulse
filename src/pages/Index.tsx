@@ -152,10 +152,6 @@ export default function UniversityHomepage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="w-[90vw] mx-auto pt-4">
-        <h1 className="text-2xl font-bold text-gray-900">hello</h1>
-      </div>
-
       {/* Hero Slider Section */}
       <div className="relative h-[600px] overflow-hidden bg-gray-900">
         {slides.map((slide, index) => (
