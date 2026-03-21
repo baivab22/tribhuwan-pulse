@@ -13,13 +13,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import {
   Loader2,
   Search,
   Download,
@@ -47,8 +40,6 @@ export const SurveyReportList: React.FC<SurveyReportListProps> = ({
   const [selectedStatus, setSelectedStatus] = useState('all');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [selectedReport, setSelectedReport] = useState<SurveyReport | null>(null);
-  const [showViewer, setShowViewer] = useState(false);
   const itemsPerPage = 10;
 
   const fetchReports = useCallback(async () => {
@@ -81,8 +72,16 @@ export const SurveyReportList: React.FC<SurveyReportListProps> = ({
   }, [fetchReports]);
 
   const handleViewPDF = (report: SurveyReport) => {
-    setSelectedReport(report);
-    setShowViewer(true);
+    if (!report._id) {
+      toast.error('Report id is missing');
+      return;
+    }
+
+    const pdfUrl = `${API_BASE}/api/survey-reports/${report._id}/pdf`;
+    const newTab = window.open(pdfUrl, '_blank', 'noopener,noreferrer');
+    if (!newTab) {
+      toast.error('Please allow pop-ups to open PDF in a new tab');
+    }
   };
 
   const handleDownloadPDF = async (report: SurveyReport) => {
@@ -122,10 +121,10 @@ export const SurveyReportList: React.FC<SurveyReportListProps> = ({
   const years = Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - i);
 
   return (
-    <div className="w-full space-y-6 p-4">
+    <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-2 space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Survey Reports</h1>
-        <p className="text-gray-600 mt-2">
+        <h1 className="text-2xl font-bold tracking-tight text-gray-900">Survey Reports</h1>
+        <p className="text-base text-gray-600 mt-2">
           {adminMode
             ? 'Manage and review survey reports from all institutions'
             : 'View survey reports from various institutions'}
@@ -141,7 +140,7 @@ export const SurveyReportList: React.FC<SurveyReportListProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
             {/* Search */}
             <div className="space-y-2">
-              <Label htmlFor="search" className="text-sm font-semibold">
+              <Label htmlFor="search" className="text-base font-semibold">
                 Search
               </Label>
               <div className="relative">
@@ -154,21 +153,21 @@ export const SurveyReportList: React.FC<SurveyReportListProps> = ({
                     setSearchQuery(e.target.value);
                     setPage(1);
                   }}
-                  className="pl-10"
+                  className="pl-10 h-11 text-base"
                 />
               </div>
             </div>
 
             {/* Year Filter */}
             <div className="space-y-2">
-              <Label htmlFor="year" className="text-sm font-semibold">
+              <Label htmlFor="year" className="text-base font-semibold">
                 Report Year
               </Label>
               <Select value={selectedYear} onValueChange={(value) => {
                 setSelectedYear(value);
                 setPage(1);
               }}>
-                <SelectTrigger id="year">
+                <SelectTrigger id="year" className="h-11 text-base">
                   <SelectValue placeholder="All Years" />
                 </SelectTrigger>
                 <SelectContent>
@@ -185,14 +184,14 @@ export const SurveyReportList: React.FC<SurveyReportListProps> = ({
             {/* Status Filter */}
             {adminMode && (
               <div className="space-y-2">
-                <Label htmlFor="status" className="text-sm font-semibold">
+                <Label htmlFor="status" className="text-base font-semibold">
                   Status
                 </Label>
                 <Select value={selectedStatus} onValueChange={(value) => {
                   setSelectedStatus(value);
                   setPage(1);
                 }}>
-                  <SelectTrigger id="status">
+                  <SelectTrigger id="status" className="h-11 text-base">
                     <SelectValue placeholder="All Statuses" />
                   </SelectTrigger>
                   <SelectContent>
@@ -215,7 +214,7 @@ export const SurveyReportList: React.FC<SurveyReportListProps> = ({
                   setSelectedStatus('all');
                   setPage(1);
                 }}
-                className="w-full"
+                className="w-full h-11 text-base"
               >
                 Reset
               </Button>
@@ -240,17 +239,17 @@ export const SurveyReportList: React.FC<SurveyReportListProps> = ({
         ) : (
           <>
             {reports.map((report) => (
-              <Card key={report._id} className="hover:shadow-lg transition-shadow">
+              <Card key={report._id} className="hover:shadow-lg transition-shadow border-gray-200">
                 <CardContent className="p-4">
                   <div className="flex flex-col md:flex-row items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start gap-3 mb-3">
                         <FileText className="w-5 h-5 text-indigo-600 flex-shrink-0 mt-1" />
                         <div className="flex-1">
-                          <h3 className="text-lg font-semibold text-gray-900">
+                          <h3 className="text-xl font-semibold text-gray-900">
                             {report.collegeName}
                           </h3>
-                          <div className="flex flex-wrap items-center gap-3 mt-2 text-sm text-gray-600">
+                          <div className="flex flex-wrap items-center gap-3 mt-2 text-base text-gray-600">
                             <span className="flex items-center gap-1">
                               <Calendar className="w-4 h-4" />
                               {report.reportYear}
@@ -267,7 +266,7 @@ export const SurveyReportList: React.FC<SurveyReportListProps> = ({
                       </div>
 
                       {report.description && (
-                        <p className="text-sm text-gray-600 mb-3 italic">
+                        <p className="text-base text-gray-600 mb-3 italic">
                           &quot;{report.description}&quot;
                         </p>
                       )}
@@ -294,7 +293,7 @@ export const SurveyReportList: React.FC<SurveyReportListProps> = ({
                         className="flex-1 md:flex-none flex items-center gap-2"
                       >
                         <Eye className="w-4 h-4" />
-                        <span className="hidden sm:inline">View</span>
+                        <span className="hidden sm:inline">View Full Screen</span>
                       </Button>
                       <Button
                         variant="outline"
@@ -351,53 +350,6 @@ export const SurveyReportList: React.FC<SurveyReportListProps> = ({
           </>
         )}
       </div>
-
-      {/* PDF Viewer Dialog */}
-      <Dialog open={showViewer} onOpenChange={setShowViewer}>
-        <DialogContent className="max-w-4xl max-h-[90vh]">
-          <DialogHeader>
-            <DialogTitle>{selectedReport?.collegeName} - {selectedReport?.reportYear}</DialogTitle>
-            <DialogDescription>
-              Survey Report - Uploaded by {selectedReport?.uploadedBy?.name}
-            </DialogDescription>
-          </DialogHeader>
-
-          {selectedReport?.pdfFile ? (
-            <div className="w-full h-[600px] border rounded-lg overflow-hidden bg-gray-100">
-              <iframe
-                src={`${API_BASE}/api/survey-reports/${selectedReport._id}/pdf`}
-                width="100%"
-                height="100%"
-                title="PDF Viewer"
-              />
-            </div>
-          ) : (
-            <Alert className="border-yellow-200 bg-yellow-50">
-              <AlertCircle className="h-4 w-4 text-yellow-600" />
-              <AlertDescription className="text-yellow-800">
-                No PDF file available for this report
-              </AlertDescription>
-            </Alert>
-          )}
-
-          <div className="flex gap-2">
-            <Button
-              onClick={() => selectedReport && handleDownloadPDF(selectedReport)}
-              className="flex-1 flex items-center gap-2"
-            >
-              <Download className="w-4 h-4" />
-              Download PDF
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => setShowViewer(false)}
-              className="flex-1"
-            >
-              Close
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };

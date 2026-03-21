@@ -28,6 +28,13 @@ export const SurveyReportForm: React.FC<SurveyReportFormProps> = ({ onSuccess })
   const [uploadProgress, setUploadProgress] = useState(0);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  const openPdfInNewTab = (url: string) => {
+    const newTab = window.open(url, '_blank', 'noopener,noreferrer');
+    if (!newTab) {
+      toast.error('Please allow pop-ups to open PDF in a new tab');
+    }
+  };
+
   useEffect(() => {
     return () => {
       if (pdfObjectUrl) {
@@ -139,15 +146,15 @@ export const SurveyReportForm: React.FC<SurveyReportFormProps> = ({ onSuccess })
   const years = Array.from({ length: 10 }, (_, i) => currentYear - i);
 
   return (
-    <div className="w-full max-w-2xl mx-auto p-4">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+    <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
+      <Card className="border-indigo-100 shadow-sm">
+        <CardHeader className="pb-4">
+          <CardTitle className="flex items-center gap-2 text-2xl font-bold tracking-tight">
             <FileText className="w-5 h-5 text-indigo-600" />
             Add Survey Report
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-1">
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Success Alert */}
             {uploadProgress === 100 && (
@@ -161,7 +168,7 @@ export const SurveyReportForm: React.FC<SurveyReportFormProps> = ({ onSuccess })
 
             {/* College Name */}
             <div className="space-y-2">
-              <Label htmlFor="collegeName" className="text-sm font-semibold">
+              <Label htmlFor="collegeName" className="text-base font-semibold text-gray-800">
                 College Name <span className="text-red-500">*</span>
               </Label>
               <Input
@@ -172,7 +179,7 @@ export const SurveyReportForm: React.FC<SurveyReportFormProps> = ({ onSuccess })
                   setFormData({ ...formData, collegeName: e.target.value });
                   setErrors({ ...errors, collegeName: '' });
                 }}
-                className={errors.collegeName ? 'border-red-500' : ''}
+                className={`h-12 text-base ${errors.collegeName ? 'border-red-500' : ''}`}
               />
               {errors.collegeName && (
                 <p className="text-sm text-red-500 flex items-center gap-1">
@@ -183,7 +190,7 @@ export const SurveyReportForm: React.FC<SurveyReportFormProps> = ({ onSuccess })
 
             {/* Report Year */}
             <div className="space-y-2">
-              <Label htmlFor="reportYear" className="text-sm font-semibold">
+              <Label htmlFor="reportYear" className="text-base font-semibold text-gray-800">
                 Report Year <span className="text-red-500">*</span>
               </Label>
               <select
@@ -193,7 +200,7 @@ export const SurveyReportForm: React.FC<SurveyReportFormProps> = ({ onSuccess })
                   setFormData({ ...formData, reportYear: e.target.value });
                   setErrors({ ...errors, reportYear: '' });
                 }}
-                className={`w-full px-3 py-2 border rounded-lg transition-colors ${
+                className={`w-full h-12 px-3 border rounded-lg text-base transition-colors ${
                   errors.reportYear ? 'border-red-500' : 'border-gray-300'
                 } focus:outline-none focus:ring-2 focus:ring-indigo-500`}
               >
@@ -212,7 +219,7 @@ export const SurveyReportForm: React.FC<SurveyReportFormProps> = ({ onSuccess })
 
             {/* Description */}
             <div className="space-y-2">
-              <Label htmlFor="description" className="text-sm font-semibold">
+              <Label htmlFor="description" className="text-base font-semibold text-gray-800">
                 Description (Optional)
               </Label>
               <Textarea
@@ -221,12 +228,13 @@ export const SurveyReportForm: React.FC<SurveyReportFormProps> = ({ onSuccess })
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 rows={4}
+                className="text-base"
               />
             </div>
 
             {/* PDF File Upload */}
             <div className="space-y-2">
-              <Label className="text-sm font-semibold">
+              <Label className="text-base font-semibold text-gray-800">
                 Upload PDF Report <span className="text-red-500">*</span>
               </Label>
               <div className="relative">
@@ -238,7 +246,7 @@ export const SurveyReportForm: React.FC<SurveyReportFormProps> = ({ onSuccess })
                   disabled={isLoading}
                 />
                 <div
-                  className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+                  className={`border-2 border-dashed rounded-xl p-10 text-center transition-colors ${
                     pdfFile
                       ? 'border-green-300 bg-green-50'
                       : 'border-gray-300 bg-gray-50 hover:border-indigo-400'
@@ -249,8 +257,8 @@ export const SurveyReportForm: React.FC<SurveyReportFormProps> = ({ onSuccess })
                       <>
                         <FileText className="w-12 h-12 text-green-600" />
                         <div>
-                          <p className="text-sm font-medium text-gray-800">{pdfPreview}</p>
-                          <p className="text-xs text-gray-500">
+                          <p className="text-base font-semibold text-gray-800">{pdfPreview}</p>
+                          <p className="text-sm text-gray-500">
                             {(pdfFile.size / 1024 / 1024).toFixed(2)} MB
                           </p>
                           <button
@@ -263,7 +271,7 @@ export const SurveyReportForm: React.FC<SurveyReportFormProps> = ({ onSuccess })
                               }
                               setPdfObjectUrl('');
                             }}
-                            className="mt-2 text-xs text-red-600 hover:text-red-800 flex items-center gap-1 justify-center"
+                            className="mt-2 text-sm text-red-600 hover:text-red-800 flex items-center gap-1 justify-center"
                           >
                             <X className="w-3 h-3" /> Remove
                           </button>
@@ -273,8 +281,8 @@ export const SurveyReportForm: React.FC<SurveyReportFormProps> = ({ onSuccess })
                       <>
                         <Upload className="w-12 h-12 text-gray-400" />
                         <div>
-                          <p className="text-sm font-medium text-gray-700">Drag and drop your PDF here</p>
-                          <p className="text-xs text-gray-500">or click to browse</p>
+                          <p className="text-base font-medium text-gray-700">Drag and drop your PDF here</p>
+                          <p className="text-sm text-gray-500">or click to browse</p>
                         </div>
                       </>
                     )}
@@ -282,9 +290,18 @@ export const SurveyReportForm: React.FC<SurveyReportFormProps> = ({ onSuccess })
                 </div>
               </div>
               {pdfObjectUrl && (
-                <div className="space-y-2 mt-3">
-                  <Label className="text-sm font-semibold">PDF Preview</Label>
-                  <div className="w-full h-[360px] border rounded-lg overflow-hidden bg-gray-100">
+                <div className="space-y-3 mt-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                    <Label className="text-base font-semibold text-gray-800">PDF Preview</Label>
+                    <Button
+                      type="button"
+                      onClick={() => openPdfInNewTab(pdfObjectUrl)}
+                      className="bg-indigo-600 hover:bg-indigo-700"
+                    >
+                      Open Full Screen in New Tab
+                    </Button>
+                  </div>
+                  <div className="w-full h-[520px] border rounded-xl overflow-hidden bg-gray-100">
                     <iframe
                       title="Survey PDF Preview"
                       src={pdfObjectUrl}
@@ -316,7 +333,7 @@ export const SurveyReportForm: React.FC<SurveyReportFormProps> = ({ onSuccess })
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="flex-1 bg-indigo-600 hover:bg-indigo-700"
+                className="flex-1 h-12 text-base bg-indigo-600 hover:bg-indigo-700"
               >
                 {isLoading ? 'Uploading...' : 'Submit Report'}
               </Button>
@@ -338,6 +355,7 @@ export const SurveyReportForm: React.FC<SurveyReportFormProps> = ({ onSuccess })
                   setErrors({});
                 }}
                 disabled={isLoading}
+                className="h-12 px-6 text-base"
               >
                 Reset
               </Button>

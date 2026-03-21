@@ -37,7 +37,13 @@ import SurveyReportForm from './surveyReportForm';
 
 type DialogAction = 'view' | 'approve' | 'reject' | 'edit';
 
-export const AdminSurveyReports: React.FC = () => {
+interface AdminSurveyReportsProps {
+  showCreateForm?: boolean;
+}
+
+export const AdminSurveyReports: React.FC<AdminSurveyReportsProps> = ({
+  showCreateForm = true,
+}) => {
   const [reports, setReports] = useState<SurveyReport[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedReport, setSelectedReport] = useState<SurveyReport | null>(null);
@@ -240,7 +246,11 @@ export const AdminSurveyReports: React.FC = () => {
     <div className="w-full space-y-6 p-4">
       <div>
         <h1 className="text-3xl font-bold text-gray-900">Survey Report Management</h1>
-        <p className="text-gray-600 mt-2">Create, review, edit, and manage survey reports</p>
+        <p className="text-gray-600 mt-2">
+          {showCreateForm
+            ? 'Create, review, edit, and manage survey reports'
+            : 'Review, edit, and manage survey reports'}
+        </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
@@ -251,9 +261,11 @@ export const AdminSurveyReports: React.FC = () => {
         <Card><CardContent className="p-6"><p className="text-sm text-gray-600">Views</p><p className="text-3xl font-bold">{stats.totalViews}</p></CardContent></Card>
       </div>
 
-      <div>
-        <SurveyReportForm onSuccess={refreshData} />
-      </div>
+      {showCreateForm ? (
+        <div>
+          <SurveyReportForm onSuccess={refreshData} />
+        </div>
+      ) : null}
 
       <Card>
         <CardHeader>
@@ -271,50 +283,50 @@ export const AdminSurveyReports: React.FC = () => {
             </Alert>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full">
+              <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b">
-                    <th className="text-left px-4 py-2 font-semibold text-gray-700">College</th>
-                    <th className="text-left px-4 py-2 font-semibold text-gray-700">Year</th>
-                    <th className="text-left px-4 py-2 font-semibold text-gray-700">Status</th>
-                    <th className="text-left px-4 py-2 font-semibold text-gray-700">Uploaded By</th>
-                    <th className="text-left px-4 py-2 font-semibold text-gray-700">Views</th>
-                    <th className="text-right px-4 py-2 font-semibold text-gray-700">Actions</th>
+                    <th className="text-left px-4 py-2 text-sm font-semibold text-gray-700">College</th>
+                    <th className="text-left px-4 py-2 text-sm font-semibold text-gray-700">Year</th>
+                    <th className="text-left px-4 py-2 text-sm font-semibold text-gray-700">Status</th>
+                    <th className="text-left px-4 py-2 text-sm font-semibold text-gray-700">Uploaded By</th>
+                    <th className="text-left px-4 py-2 text-sm font-semibold text-gray-700">Views</th>
+                    <th className="text-right px-4 py-2 text-sm font-semibold text-gray-700">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {reports.map((report) => (
                     <tr key={report._id} className="border-b hover:bg-gray-50">
-                      <td className="px-4 py-3">{report.collegeName}</td>
-                      <td className="px-4 py-3">{report.reportYear}</td>
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-3 text-sm">{report.collegeName}</td>
+                      <td className="px-4 py-3 text-sm">{report.reportYear}</td>
+                      <td className="px-4 py-3 text-sm">
                         <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(report.status)}`}>
                           {report.status.charAt(0).toUpperCase() + report.status.slice(1)}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-sm">{report.uploadedBy?.name || 'N/A'}</td>
-                      <td className="px-4 py-3">{report.viewCount}</td>
-                      <td className="px-4 py-3 text-right">
+                      <td className="px-4 py-3 text-sm">{report.viewCount}</td>
+                      <td className="px-4 py-3 text-right text-sm">
                         <div className="flex gap-2 justify-end">
-                          <Button variant="outline" size="sm" onClick={() => openDialog(report, 'view')}>
+                          <Button variant="outline" size="sm" className="h-8 w-8 p-0" onClick={() => openDialog(report, 'view')}>
                             <Eye className="w-4 h-4" />
                           </Button>
-                          <Button variant="outline" size="sm" onClick={() => openDialog(report, 'edit')}>
+                          <Button variant="outline" size="sm" className="h-8 w-8 p-0" onClick={() => openDialog(report, 'edit')}>
                             <Pencil className="w-4 h-4" />
                           </Button>
 
                           {report.status === 'pending' && (
                             <>
-                              <Button size="sm" className="bg-green-600 hover:bg-green-700" onClick={() => openDialog(report, 'approve')}>
+                              <Button size="sm" className="h-8 w-8 p-0 bg-green-600 hover:bg-green-700" onClick={() => openDialog(report, 'approve')}>
                                 <CheckCircle className="w-4 h-4" />
                               </Button>
-                              <Button size="sm" variant="destructive" onClick={() => openDialog(report, 'reject')}>
+                              <Button size="sm" variant="destructive" className="h-8 w-8 p-0" onClick={() => openDialog(report, 'reject')}>
                                 <XCircle className="w-4 h-4" />
                               </Button>
                             </>
                           )}
 
-                          <Button size="sm" variant="destructive" onClick={() => report._id && handleDelete(report._id)}>
+                          <Button size="sm" variant="destructive" className="h-8 w-8 p-0" onClick={() => report._id && handleDelete(report._id)}>
                             <Trash2 className="w-4 h-4" />
                           </Button>
                         </div>

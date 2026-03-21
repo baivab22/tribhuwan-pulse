@@ -68,6 +68,7 @@ import AdminForCollege from '@/components/adminForCollege';
 import AdminForFaculty from './AdminForFaculty';
 import AdminForDonater from '@/components/donorForAdmin';
 import AdminSurveyReports from '@/components/adminSurveyReports';
+import SurveyReportForm from '@/components/surveyReportForm';
 
 const categories: Category[] = ['academic', 'administrative', 'infrastructure', 'other'];
 const statuses: Status[] = ['Received', 'In Process', 'Resolved'];
@@ -452,7 +453,7 @@ export default function AdminDashboard() {
       <Tabs defaultValue="manage">
         <div className="flex justify-between items-center mb-4"
         >
-          <TabsList className="grid w-full grid-cols-8"
+          <TabsList className="grid w-full grid-cols-9"
           
           >
             <TabsTrigger value="manage">{t('admin.suggestionList')}</TabsTrigger>
@@ -461,6 +462,7 @@ export default function AdminDashboard() {
             <TabsTrigger value="progress">Progress</TabsTrigger>
             <TabsTrigger value="college">Campus Form</TabsTrigger>
             <TabsTrigger value="surveyReports">Survey Reports</TabsTrigger>
+            <TabsTrigger value="surveyForm">Survey Form</TabsTrigger>
                      <TabsTrigger value="faculty">Institute/Faculty Form</TabsTrigger>
                            <TabsTrigger value="doner">दानदातव्य कोष</TabsTrigger>
           </TabsList>
@@ -1237,8 +1239,12 @@ export default function AdminDashboard() {
           </TabsContent> 
 
                      <TabsContent value='surveyReports' className="mt-4">
-                   <AdminSurveyReports/>
+                   <AdminSurveyReports showCreateForm={false} />
                    </TabsContent> 
+
+                 <TabsContent value='surveyForm' className="mt-4">
+          <SurveyReportForm />
+          </TabsContent>
 
                  <TabsContent value='faculty' className="mt-4">
           <AdminForFaculty/>

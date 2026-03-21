@@ -80,10 +80,10 @@ export const CampusFormFillup: React.FC<CampusFormFillupProps> = ({ onNavigateTo
   };
 
   return (
-    <div className="w-full space-y-6 p-4">
+    <div className="w-full max-w-7xl mx-auto space-y-6 p-4 sm:p-6 lg:p-8">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Campus Form Database</h1>
-        <p className="text-gray-600 mt-2">Browse and manage existing campus form submissions</p>
+        <h1 className="text-4xl font-bold tracking-tight text-gray-900">Campus Form Database</h1>
+        <p className="text-base text-gray-600 mt-2">Browse and manage existing campus form submissions</p>
       </div>
 
       {/* Filters */}
@@ -95,7 +95,7 @@ export const CampusFormFillup: React.FC<CampusFormFillupProps> = ({ onNavigateTo
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Search */}
             <div className="space-y-2">
-              <Label htmlFor="search" className="text-sm font-semibold">
+              <Label htmlFor="search" className="text-base font-semibold">
                 Search College
               </Label>
               <div className="relative">
@@ -108,21 +108,21 @@ export const CampusFormFillup: React.FC<CampusFormFillupProps> = ({ onNavigateTo
                     setSearchQuery(e.target.value);
                     setPage(1);
                   }}
-                  className="pl-10"
+                  className="pl-10 h-11 text-base"
                 />
               </div>
             </div>
 
             {/* Status Filter */}
             <div className="space-y-2">
-              <Label htmlFor="status" className="text-sm font-semibold">
+              <Label htmlFor="status" className="text-base font-semibold">
                 Form Status
               </Label>
               <Select value={selectedStatus} onValueChange={(value) => {
                 setSelectedStatus(value);
                 setPage(1);
               }}>
-                <SelectTrigger id="status">
+                <SelectTrigger id="status" className="h-11 text-base">
                   <SelectValue placeholder="All Statuses" />
                 </SelectTrigger>
                 <SelectContent>
@@ -137,14 +137,14 @@ export const CampusFormFillup: React.FC<CampusFormFillupProps> = ({ onNavigateTo
 
             {/* District Filter */}
             <div className="space-y-2">
-              <Label htmlFor="district" className="text-sm font-semibold">
+              <Label htmlFor="district" className="text-base font-semibold">
                 District
               </Label>
               <Select value={selectedDistrict} onValueChange={(value) => {
                 setSelectedDistrict(value);
                 setPage(1);
               }}>
-                <SelectTrigger id="district">
+                <SelectTrigger id="district" className="h-11 text-base">
                   <SelectValue placeholder="All Districts" />
                 </SelectTrigger>
                 <SelectContent>
@@ -168,7 +168,7 @@ export const CampusFormFillup: React.FC<CampusFormFillupProps> = ({ onNavigateTo
                   setSelectedDistrict('all');
                   setPage(1);
                 }}
-                className="w-full"
+                className="w-full h-11 text-base"
               >
                 Reset Filters
               </Button>
@@ -193,18 +193,18 @@ export const CampusFormFillup: React.FC<CampusFormFillupProps> = ({ onNavigateTo
         ) : (
           <>
             {filteredForms.map((form) => (
-              <Card key={form._id} className="hover:shadow-lg transition-shadow">
+              <Card key={form._id} className="hover:shadow-lg transition-shadow border-gray-200">
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
                         <Building2 className="w-5 h-5 text-indigo-600" />
-                        <h3 className="text-lg font-semibold text-gray-900">
+                        <h3 className="text-xl font-semibold text-gray-900">
                           {form.collegeName}
                         </h3>
                       </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3 text-sm">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3 text-base">
                         <div className="text-gray-600">
                           <span className="font-medium">Campus Type:</span> {form.campusType || 'N/A'}
                         </div>
@@ -234,7 +234,7 @@ export const CampusFormFillup: React.FC<CampusFormFillupProps> = ({ onNavigateTo
                     <Button
                       variant="outline"
                       onClick={() => onNavigateToForm?.(form._id || '')}
-                      className="flex items-center gap-2"
+                      className="flex items-center gap-2 h-11 px-5 text-base"
                     >
                       View <ChevronRight className="w-4 h-4" />
                     </Button>

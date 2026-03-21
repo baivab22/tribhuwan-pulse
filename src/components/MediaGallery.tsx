@@ -13,6 +13,7 @@ interface MediaGalleryProps {
   media: BuildingMedia | undefined;
   onAddMedia: (type: 'image' | 'video', url: string, caption: string, duration?: string, thumbnail?: string) => void;
   onDeleteMedia: (type: 'images' | 'videos', index: number) => void;
+
 }
 
 export const MediaGallery: React.FC<MediaGalleryProps> = ({
