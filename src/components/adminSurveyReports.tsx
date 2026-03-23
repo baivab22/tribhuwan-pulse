@@ -322,9 +322,7 @@ export const AdminSurveyReports: React.FC<AdminSurveyReportsProps> = ({
 
   const filteredAndSortedReports = useMemo(() => {
     const filtered = reports.filter((report) => {
-      const matchesSearch =
-        report.collegeName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (report.uploadedBy?.name || '').toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesSearch = report.collegeName.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesStatus = statusFilter === 'all' || report.status === statusFilter;
       const matchesYear = yearFilter === 'all' || report.reportYear === yearFilter;
 
@@ -433,7 +431,7 @@ export const AdminSurveyReports: React.FC<AdminSurveyReportsProps> = ({
                   id="survey-search"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search by college or uploader"
+                  placeholder="Search by college"
                   className="pl-10"
                 />
               </div>
@@ -537,7 +535,6 @@ export const AdminSurveyReports: React.FC<AdminSurveyReportsProps> = ({
                     <th className="text-left px-4 py-2 text-sm font-semibold text-gray-700">College</th>
                     <th className="text-left px-4 py-2 text-sm font-semibold text-gray-700">Year</th>
                     <th className="text-left px-4 py-2 text-sm font-semibold text-gray-700">Status</th>
-                    <th className="text-left px-4 py-2 text-sm font-semibold text-gray-700">Uploaded By</th>
                     <th className="text-left px-4 py-2 text-sm font-semibold text-gray-700">Created</th>
                     <th className="text-left px-4 py-2 text-sm font-semibold text-gray-700">Views</th>
                     <th className="text-right px-4 py-2 text-sm font-semibold text-gray-700">Actions</th>
@@ -553,7 +550,6 @@ export const AdminSurveyReports: React.FC<AdminSurveyReportsProps> = ({
                           {report.status.charAt(0).toUpperCase() + report.status.slice(1)}
                         </Badge>
                       </td>
-                      <td className="px-4 py-3 text-sm">{report.uploadedBy?.name || 'N/A'}</td>
                       <td className="px-4 py-3 text-sm">
                         <span className="inline-flex items-center gap-1 text-gray-600">
                           <Calendar className="h-3.5 w-3.5" />
@@ -627,10 +623,6 @@ export const AdminSurveyReports: React.FC<AdminSurveyReportsProps> = ({
               <div>
                 <Label className="text-sm font-semibold">Description</Label>
                 <p className="text-gray-600 mt-1">{selectedReport.description || 'No description provided'}</p>
-              </div>
-              <div>
-                <Label className="text-sm font-semibold">Uploaded By</Label>
-                <p className="text-gray-600 mt-1">{selectedReport.uploadedBy?.name || 'Unknown'}</p>
               </div>
               {selectedReport.pdfFile && (
                 <Button

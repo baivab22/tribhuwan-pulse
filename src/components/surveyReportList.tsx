@@ -108,9 +108,7 @@ export const SurveyReportList: React.FC<SurveyReportListProps> = ({
 
   const filteredAndSortedReports = useMemo(() => {
     const filtered = reports.filter((report) => {
-      const matchesSearch =
-        report.collegeName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (report.uploadedBy?.name || '').toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesSearch = report.collegeName.toLowerCase().includes(searchQuery.toLowerCase());
 
       const matchesYear = selectedYear === 'all' || report.reportYear === selectedYear;
       return matchesSearch && matchesYear;
@@ -165,7 +163,7 @@ export const SurveyReportList: React.FC<SurveyReportListProps> = ({
                   id="survey-search"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search by college or uploader"
+                  placeholder="Search by college"
                   className="pl-10"
                 />
               </div>
@@ -263,7 +261,6 @@ export const SurveyReportList: React.FC<SurveyReportListProps> = ({
                   <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">College</th>
                   <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">Year</th>
                   <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">Status</th>
-                  <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">Uploaded By</th>
                   <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">Created</th>
                   <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">Views</th>
                   <th className="px-4 py-2 text-right text-sm font-semibold text-gray-700">Actions</th>
@@ -283,7 +280,6 @@ export const SurveyReportList: React.FC<SurveyReportListProps> = ({
                         {report.status.charAt(0).toUpperCase() + report.status.slice(1)}
                       </Badge>
                     </td>
-                    <td className="px-4 py-3 text-sm">{report.uploadedBy?.name || 'N/A'}</td>
                     <td className="px-4 py-3 text-sm">
                       <span className="inline-flex items-center gap-1 text-gray-600">
                         <Calendar className="h-3.5 w-3.5" />
@@ -327,10 +323,6 @@ export const SurveyReportList: React.FC<SurveyReportListProps> = ({
               <div>
                 <Label className="text-sm font-semibold">Description</Label>
                 <p className="mt-1 text-gray-600">{selectedReport.description || 'No description provided'}</p>
-              </div>
-              <div>
-                <Label className="text-sm font-semibold">Uploaded By</Label>
-                <p className="mt-1 text-gray-600">{selectedReport.uploadedBy?.name || 'Unknown'}</p>
               </div>
               <div>
                 <Label className="text-sm font-semibold">Status</Label>
