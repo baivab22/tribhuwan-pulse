@@ -16,6 +16,7 @@ import SubmitPage from './pages/Submit';
 import { setLanguage } from './i18n';
 import RegisterPage from './pages/Register';
 import UniversityFooter from './components/universityFooter';
+import AddSurveyReportPage from './pages/AddSurveyReportPage';
 import { toast } from 'sonner';
 import { 
   Home, 
@@ -96,8 +97,10 @@ function Header() {
   ];
 
   const campusFormItems = [
-    { path: '/campus-form-fillup', label: 'Campus Form Fillup', icon: FileText },
-    { path: '/survey-report', label: 'Campus Survey List', icon: FileText },
+  
+    { path: '/survey-report', label: 'Rapid Structural Assessment Reports', icon: FileText },
+    { path: '/admin-survey-report-form', label: 'Assessment form', icon: FileText },
+      { path: '/campus-form-fillup', label: 'Campus Form Fillup', icon: FileText },
   ];
 
   const feedbackItems = [
@@ -146,7 +149,7 @@ function Header() {
           <div
             className={`${
               isMobile ? 'text-base' : 'text-xl'
-            } font-bold text-center`}
+            } font-bold`}
           >
             Tribhuvan University
           </div>
@@ -156,16 +159,16 @@ function Header() {
               isMobile ? 'text-sm' : 'text-lg'
             } font-semibold  text-indigo-800`}
           >
-            Planning Directorate
+            Digital dashboard-Planning Directorate
           </div>
           {/* Line 3 */}
-          <div
+          {/* <div
             className={`${
               isMobile ? 'text-xs' : 'text-sm'
             }  text-gray-600`}
           >
             Kirtipur, Kathmandu, Nepal
-          </div>
+          </div> */}
         </div>
       </Link>
 
@@ -228,7 +231,7 @@ function Header() {
 
       {/* Horizontal Navigation Bar - Desktop Only */}
       <nav className="hidden lg:block bg-gradient-to-r from-indigo-600 to-indigo-700 shadow-lg sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6">
           <div className="flex items-center justify-between h-14">
             <div className="flex items-center space-x-1">
               {mainItemsBeforeCampus.map((item) => {
@@ -267,7 +270,7 @@ function Header() {
                   `}
                 >
                   <FileText className="w-4 h-4" />
-                  Campus Form
+                  Campus Information
                   <ChevronDown className={`w-3 h-3 ml-1 transition-transform duration-200 ${campusFormMenuOpen ? 'rotate-180' : ''}`} />
                 </Button>
 
@@ -277,7 +280,7 @@ function Header() {
                       className="fixed inset-0 z-10"
                       onClick={() => setCampusFormMenuOpen(false)}
                     />
-                    <div className="absolute left-0 mt-2 w-56 bg-white rounded-xl shadow-2xl border border-gray-200 py-2 z-20">
+                    <div className="absolute left-0 mt-2 min-w-max bg-white rounded-xl shadow-2xl border border-gray-200 py-2 z-20">
                       {campusFormItems.map((item) => (
                         <Link
                           key={item.path}
@@ -294,7 +297,7 @@ function Header() {
                             `}
                           >
                             <item.icon className="w-4 h-4" />
-                            {item.label}
+                            <span className="whitespace-nowrap">{item.label}</span>
                           </button>
                         </Link>
                       ))}
@@ -349,7 +352,7 @@ function Header() {
                       className="fixed inset-0 z-10" 
                       onClick={() => setFeedbackMenuOpen(false)}
                     />
-                    <div className="absolute left-0 mt-2 w-56 bg-white rounded-xl shadow-2xl border border-gray-200 py-2 z-20">
+                    <div className="absolute left-0 mt-2 min-w-max bg-white rounded-xl shadow-2xl border border-gray-200 py-2 z-20">
                       <div className="border-t border-gray-100 my-1" />
                       {feedbackItems.map((item) => {
                         const IconComponent = item.icon;
@@ -421,7 +424,7 @@ function Header() {
               {/* Campus Form Section */}
               <div className="pt-4 pb-2">
                 <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider px-4 mb-2">
-                  Campus Form
+                  Campus Information
                 </div>
               </div>
 
@@ -655,6 +658,8 @@ const App = () => {
               <Route path="/mission-vision" element={<TUVision2030 />} />
               <Route path="/digitalization" element={<DigitalUniversity />} />
               <Route path="/donation" element={<EndowmentFundComponent />} />
+
+              <Route path="/admin-survey-report-form" element={<AddSurveyReportPage />} />
 
               <Route path="*" element={<NotFound />} />
             </Routes>
