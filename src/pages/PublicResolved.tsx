@@ -1,3 +1,4 @@
+import { useScrollToTop } from '@/hooks/useScrollToTop';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -24,6 +25,7 @@ const statusColors: Record<Status, string> = {
 };
 
 export default function PublicSuggestionsPage() {
+  useScrollToTop();
   const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);

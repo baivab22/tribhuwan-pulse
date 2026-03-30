@@ -11,7 +11,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import './i18n';
 import { useTranslation } from 'react-i18next';
 import { API_BASE, getStoredUser, logout } from './lib/api';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import SubmitPage from './pages/Submit';
 import { setLanguage } from './i18n';
 import RegisterPage from './pages/Register';
@@ -41,6 +41,7 @@ import DigitalUniversity from './pages/digital';
 import FacultyForm from './pages/facultyForm.component';
 import EndowmentFundComponent from './components/endowmentFund.component';
 import CampusFormFillupPage from './pages/CampusFormFillupPage';
+const CampusListPage = React.lazy(() => import('./pages/CampusListPage'));
 import SurveyReportPage from './pages/SurveyReportPage';
 import type { ProgressReport } from './types';
 
@@ -100,7 +101,8 @@ function Header() {
   
     { path: '/survey-report', label: 'Rapid Structural Assessment Reports', icon: FileText },
     { path: '/admin-survey-report-form', label: 'Assessment form', icon: FileText },
-      { path: '/campus-form-fillup', label: 'Campus Form Fillup', icon: FileText },
+    { path: '/campus-form-fillup', label: 'Campus Form Fillup', icon: FileText },
+    { path: '/campus-list', label: 'Campus List', icon: FileText },
   ];
 
   const feedbackItems = [
@@ -652,6 +654,7 @@ const App = () => {
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/college-form" element={<CollegeDataForm />} />
               <Route path="/campus-form-fillup" element={<CampusFormFillupPage />} />
+              <Route path="/campus-list" element={<React.Suspense fallback={<div>Loading...</div>}><CampusListPage /></React.Suspense>} />
               <Route path="/survey-report" element={<SurveyReportPage />} />
               <Route path="/faculty-form" element={<FacultyForm />} />
               <Route path="/progress-form" element={<ProgressForm onSubmit={handleFormSubmit} isLoading={isSubmitting} />} />

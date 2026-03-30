@@ -1,7 +1,9 @@
+import { useScrollToTop } from '@/hooks/useScrollToTop';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 
 export default function NotFound() {
+  useScrollToTop();
   const navigate = useNavigate();
   return (
     <div className="flex flex-col items-center justify-center h-[60vh] gap-4">

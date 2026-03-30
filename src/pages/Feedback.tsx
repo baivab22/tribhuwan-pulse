@@ -1,3 +1,4 @@
+import { useScrollToTop } from '@/hooks/useScrollToTop';
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -48,6 +49,7 @@ import EnhancedTrackingCard from '@/components/SearchSuggest';
 import SuggestionCard from '@/components/suggestionCard';
 
 export default function FeedbackPage() {
+  useScrollToTop();
   const { t } = useTranslation();
   const [trackId, setTrackId] = useState('');
   const [loading, setLoading] = useState(false);

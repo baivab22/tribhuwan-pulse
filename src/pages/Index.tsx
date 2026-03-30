@@ -1,3 +1,5 @@
+import { useScrollToTop } from '@/hooks/useScrollToTop';
+export { default as CampusListPage } from './CampusListPage';
 import React, { useState, useEffect } from 'react';
 import { 
   Home, 
@@ -24,6 +26,7 @@ import { goals, visionPoints } from './missionVision';
 import SummaryDashboard from '@/components/digitalShort.component';
 
 export default function UniversityHomepage() {
+  useScrollToTop();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [autoPlay, setAutoPlay] = useState(true);
 

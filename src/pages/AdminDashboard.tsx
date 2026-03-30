@@ -1,3 +1,4 @@
+import { useScrollToTop } from '@/hooks/useScrollToTop';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -80,6 +81,7 @@ const statusColors: Record<Status, string> = {
 };
 
 export default function AdminDashboard() {
+  useScrollToTop();
   const { t } = useTranslation();
   const [user, setUser] = useState(getStoredUser());
   const [email, setEmail] = useState('');

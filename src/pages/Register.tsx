@@ -1,3 +1,4 @@
+import { useScrollToTop } from '@/hooks/useScrollToTop';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -21,6 +22,7 @@ const roleColors = {
 };
 
 export default function RegisterPage() {
+  useScrollToTop();
   const { t } = useTranslation();
   const navigate = useNavigate();
 

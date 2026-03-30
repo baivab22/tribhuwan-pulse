@@ -1,3 +1,4 @@
+import { useScrollToTop } from '@/hooks/useScrollToTop';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -266,6 +267,7 @@ const CameraCapture = ({ onCapture, className = '' }: {
 };
 
 export default function SubmitPage() {
+  useScrollToTop();
   const [category, setCategory] = useState('academic');
   const [description, setDescription] = useState('');
   const [assignedToDepartment, setAssignedToDepartment] = useState('none');

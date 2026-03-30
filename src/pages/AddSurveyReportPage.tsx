@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import { useScrollToTop } from '@/hooks/useScrollToTop';
+import React, {  } from 'react';
 import { SurveyReportForm } from '@/components/surveyReportForm';
-import SurveyReportList from '@/components/surveyReportList';
+// import SurveyReportList from '@/components/surveyReportList';
 
 export const AddSurveyReportPage: React.FC = () => {
-
+useScrollToTop();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50/30 py-8">
@@ -15,3 +16,4 @@ export const AddSurveyReportPage: React.FC = () => {
 };
 
 export default AddSurveyReportPage;
+

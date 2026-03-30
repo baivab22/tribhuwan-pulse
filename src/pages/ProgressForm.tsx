@@ -1,3 +1,4 @@
+import { useScrollToTop } from '@/hooks/useScrollToTop';
 // import React, { useState } from 'react';
 // import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 // import { Button } from '@/components/ui/button';
@@ -1972,6 +1973,7 @@ const tuPrograms = {
 const academicLevels = ["Bachelor", "Master", "MPhil", "PhD", "Post Graduate Diploma"] as const;
 
 export default function ProgressForm({ onSubmit, initialData, isLoading = false }: ProgressFormProps) {
+  useScrollToTop();
   const [activeTab, setActiveTab] = useState<(typeof tabOrder)[number]>('basic');
   const [formData, setFormData] = useState<Partial<ProgressReport>>(
     initialData || {

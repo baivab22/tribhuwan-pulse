@@ -1,3 +1,4 @@
+import { useScrollToTop } from '@/hooks/useScrollToTop';
 import React, { useState } from 'react';
 import { Target, Eye, Lightbulb, TrendingUp, Globe, BookOpen, Users, Award, GraduationCap, Building2, Sparkles } from 'lucide-react';
 
@@ -44,6 +45,7 @@ import { Target, Eye, Lightbulb, TrendingUp, Globe, BookOpen, Users, Award, Grad
   ];
 
 export default function TUVision2030() {
+  useScrollToTop();
   const [activeTab, setActiveTab] = useState('vision');
 
 

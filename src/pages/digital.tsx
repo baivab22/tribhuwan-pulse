@@ -1,3 +1,4 @@
+import { useScrollToTop } from '@/hooks/useScrollToTop';
 import React, { useState } from 'react';
 import { 
   Wifi, Server, BookOpen, Users, Shield, BarChart3, 
@@ -7,6 +8,7 @@ import {
 } from 'lucide-react';
 
 export default function DigitalUniversity() {
+  useScrollToTop();
   const [activeComponent, setActiveComponent] = useState('overview');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 

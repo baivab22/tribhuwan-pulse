@@ -1,3 +1,4 @@
+import { useScrollToTop } from '@/hooks/useScrollToTop';
 
 // import React, { useState, useEffect } from 'react';
 // import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -4227,6 +4228,7 @@ interface FacultyData {
 const COLORS = ['#4f46e5', '#7c3aed', '#06b6d4', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
 
 const AdminForFaculty: React.FC = () => {
+  useScrollToTop();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingFacultyData, setEditingFacultyData] = useState<FacultyData | null>(null);
   const [facultyData, setFacultyData] = useState<FacultyData[]>([]);
