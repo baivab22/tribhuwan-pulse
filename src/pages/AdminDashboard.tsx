@@ -69,6 +69,8 @@ import AdminForCollege from '@/components/adminForCollege';
 import AdminForFaculty from './AdminForFaculty';
 import AdminForDonater from '@/components/donorForAdmin';
 import AdminSurveyReports from '@/components/adminSurveyReports';
+import CampusList from './CampusListPage';
+import AdminEvents from '@/components/adminEvents';
 
 const categories: Category[] = ['academic', 'administrative', 'infrastructure', 'other'];
 const statuses: Status[] = ['Received', 'In Process', 'Resolved'];
@@ -454,7 +456,7 @@ export default function AdminDashboard() {
       <Tabs defaultValue="manage">
         <div className="flex justify-between items-center mb-4"
         >
-          <TabsList className="grid w-full grid-cols-8"
+          <TabsList className="grid w-full grid-cols-10"
           
           >
             <TabsTrigger value="manage">{t('admin.suggestionList')}</TabsTrigger>
@@ -462,6 +464,8 @@ export default function AdminDashboard() {
             <TabsTrigger value="analytics">{t('admin.analytics')}</TabsTrigger>
             <TabsTrigger value="progress">Progress</TabsTrigger>
             <TabsTrigger value="college">Campus Form</TabsTrigger>
+            <TabsTrigger value="campusList">Campus List</TabsTrigger>
+            <TabsTrigger value="events">Events</TabsTrigger>
             <TabsTrigger value="surveyReports">Survey Reports</TabsTrigger>
                      <TabsTrigger value="faculty">Institute/Faculty Form</TabsTrigger>
                            <TabsTrigger value="doner">दानदातव्य कोष</TabsTrigger>
@@ -1237,6 +1241,14 @@ export default function AdminDashboard() {
                   <TabsContent value='college' className="mt-4">
           <AdminForCollege/>
           </TabsContent> 
+
+                    <TabsContent value='campusList' className="mt-4">
+                  <CampusList/>
+                  </TabsContent> 
+
+                      <TabsContent value='events' className="mt-4">
+                    <AdminEvents/>
+                    </TabsContent> 
 
                      <TabsContent value='surveyReports' className="mt-4">
                    <AdminSurveyReports showCreateForm />

@@ -43,6 +43,8 @@ import EndowmentFundComponent from './components/endowmentFund.component';
 import CampusFormFillupPage from './pages/CampusFormFillupPage';
 const CampusListPage = React.lazy(() => import('./pages/CampusListPage'));
 import SurveyReportPage from './pages/SurveyReportPage';
+import EventsPage from './pages/EventsPage';
+import EventDetailsPage from './pages/EventDetailsPage';
 import type { ProgressReport } from './types';
 
 const queryClient = new QueryClient();
@@ -89,6 +91,7 @@ function Header() {
 
   const mainNavigationItems = [
     { path: '/', label: t('nav.home'), icon: Home },
+    { path: '/events', label: 'Events', icon: FileText },
     { path: '/admin', label: t('nav.admin'), icon: Settings },
     { path: '/progress-form', label: 'Progress Form', icon: FileText },
     { path: '/faculty-form', label: 'Faculty/Institute Form', icon: FileText },
@@ -655,6 +658,8 @@ const App = () => {
               <Route path="/college-form" element={<CollegeDataForm />} />
               <Route path="/campus-form-fillup" element={<CampusFormFillupPage />} />
               <Route path="/campus-list" element={<React.Suspense fallback={<div>Loading...</div>}><CampusListPage /></React.Suspense>} />
+              <Route path="/events" element={<EventsPage />} />
+              <Route path="/events/:id" element={<EventDetailsPage />} />
               <Route path="/survey-report" element={<SurveyReportPage />} />
               <Route path="/faculty-form" element={<FacultyForm />} />
               <Route path="/progress-form" element={<ProgressForm onSubmit={handleFormSubmit} isLoading={isSubmitting} />} />

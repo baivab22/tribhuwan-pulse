@@ -49,6 +49,69 @@ export interface Department {
   updatedAt: string;
 }
 
+export interface EventItem {
+  _id: string;
+  title: string;
+  shortDescription?: string;
+  description: string;
+  eventDate: string;
+  location?: string;
+  category?: string;
+  images: string[];
+  status: 'draft' | 'published';
+  isFeatured: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CollegeFormRecord {
+  _id: string;
+  collegeName: string;
+  campusType: string;
+  establishmentDate: string;
+  formStatus: string;
+  principalInfo?: {
+    name?: string;
+    contactNumber?: string;
+    email?: string;
+  };
+  contactInfo?: {
+    officialPhone?: string;
+    officialEmail?: string;
+    website?: string;
+  };
+  location: {
+    province: string;
+    district: string;
+    localLevel: string;
+    wardNo: number;
+  };
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface CollegeFormPayload {
+  collegeName: string;
+  campusType: string;
+  establishmentDate: string;
+  principalInfo: {
+    name: string;
+    contactNumber?: string;
+    email?: string;
+  };
+  contactInfo?: {
+    officialPhone?: string;
+    officialEmail?: string;
+    website?: string;
+  };
+  location: {
+    province: string;
+    district: string;
+    localLevel: string;
+    wardNo: number;
+  };
+}
+
 /* ===========================
    Campus Performance & Monitoring Types
 =========================== */
@@ -704,8 +767,10 @@ export interface ProjectMonitoringResponse {
 
 // const API_BASE='https://feedbackbackend-4.onrender.com'
 
-export const API_BASE="https://digitaldashboard.tu.edu.np"
-// const API_BASE="https://digitaldashboard.tu.edu.np"
+export const API_BASE =
+  import.meta.env.VITE_API_BASE ||
+  import.meta.env.VITE_API_BASE_LOCAL ||
+  'http://localhost:4000';
 
 
 function getToken(): string | null {
@@ -959,6 +1024,79 @@ export async function adminSummary() {
 }
 
 /* ===========================
+   Event Services
+=========================== */
+
+export async function listEvents(params: {
+  page?: number;
+  limit?: number;
+  q?: string;
+} = {}) {
+  const { data } = await api.get<{
+    success: boolean;
+    page: number;
+    limit: number;
+    total: number;
+    events: EventItem[];
+  }>('/api/events', { params });
+  return data;
+}
+
+export async function getEventById(id: string) {
+  const { data } = await api.get<{
+    success: boolean;
+    event: EventItem;
+  }>(`/api/events/${id}`);
+  return data;
+}
+
+export async function listAdminEvents(params: {
+  page?: number;
+  limit?: number;
+  q?: string;
+  status?: 'draft' | 'published';
+} = {}) {
+  const { data } = await api.get<{
+    success: boolean;
+    page: number;
+    limit: number;
+    total: number;
+    events: EventItem[];
+  }>('/api/admin/events', { params });
+  return data;
+}
+
+export async function createEvent(formData: FormData) {
+  const { data } = await api.post<{
+    success: boolean;
+    message: string;
+    event: EventItem;
+  }>('/api/admin/events', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return data;
+}
+
+export async function updateEvent(id: string, formData: FormData) {
+  const { data } = await api.put<{
+    success: boolean;
+    message: string;
+    event: EventItem;
+  }>(`/api/admin/events/${id}`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return data;
+}
+
+export async function deleteEvent(id: string) {
+  const { data } = await api.delete<{
+    success: boolean;
+    message: string;
+  }>(`/api/admin/events/${id}`);
+  return data;
+}
+
+/* ===========================
    Campus Performance & Monitoring Services
 =========================== */
 
@@ -1067,6 +1205,59 @@ export async function getProjectMonitoring(params?: {
   overdue?: string;
 }): Promise<ProjectMonitoringResponse> {
   const { data } = await api.get<ProjectMonitoringResponse>('/api/colleges/projects/monitoring', { params });
+  return data;
+}
+
+/* ===========================
+   Campus Form CRUD (Admin)
+=========================== */
+
+export async function adminListCollegeForms(params: {
+  page?: number;
+  limit?: number;
+  district?: string;
+  province?: string;
+  campusType?: string;
+  formStatus?: string;
+  search?: string;
+}) {
+  const { data } = await api.get<{
+    success: boolean;
+    data: CollegeFormRecord[];
+    pagination: {
+      currentPage: number;
+      totalPages: number;
+      totalForms: number;
+      hasNext: boolean;
+      hasPrev: boolean;
+    };
+  }>('/api/collegeform', { params });
+  return data;
+}
+
+export async function adminGetCollegeForm(id: string) {
+  const { data } = await api.get<{ success: boolean; data: CollegeFormRecord }>(`/api/collegeform/${id}`);
+  return data;
+}
+
+export async function adminCreateCollegeForm(payload: CollegeFormPayload) {
+  const { data } = await api.post<{ success: boolean; data: CollegeFormRecord; message: string }>(
+    '/api/collegeform',
+    payload
+  );
+  return data;
+}
+
+export async function adminUpdateCollegeForm(id: string, payload: Partial<CollegeFormPayload>) {
+  const { data } = await api.put<{ success: boolean; data: CollegeFormRecord; message: string }>(
+    `/api/collegeform/${id}`,
+    payload
+  );
+  return data;
+}
+
+export async function adminDeleteCollegeForm(id: string) {
+  const { data } = await api.delete<{ success: boolean; message: string }>(`/api/collegeform/${id}`);
   return data;
 }
 
