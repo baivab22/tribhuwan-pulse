@@ -762,15 +762,11 @@ export interface ProjectMonitoringResponse {
 /* ===========================
    Storage Helpers
 =========================== */
-// const API_BASE = import.meta.env.VITE_API_BASE || 'https://feedbackbackend-1.onrender.com';
-// const API_BASE = import.meta.env.VITE_API_BASE_LOCAL || 'https://digitaldashboard.tu.edu.np';
+// Production: https://digitaldashboard.tu.edu.np/api-backend
+// Local Dev: http://localhost:4000
+// Fallback: will only use localhost if env vars not set
 
-// const API_BASE='https://feedbackbackend-4.onrender.com'
-
-export const API_BASE =
-  import.meta.env.VITE_API_BASE ||
-  import.meta.env.VITE_API_BASE_LOCAL ||
-  'http://localhost:4000';
+export const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:4000';
 
 
 function getToken(): string | null {
