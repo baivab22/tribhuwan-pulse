@@ -102,6 +102,29 @@ export interface CollegeFormRecord {
   updatedAt?: string;
 }
 
+export interface CampusListItem {
+  _id: string;
+  SN: number;
+  campusname: string;
+  localAddress?: string;
+  District: string;
+  fullAddress?: string;
+  principlename?: string;
+  contactNumber?: string;
+  emailAddress?: string;
+}
+
+export interface CampusListPayload {
+  SN?: number;
+  campusname: string;
+  localAddress?: string;
+  District: string;
+  fullAddress?: string;
+  principlename?: string;
+  contactNumber?: string;
+  emailAddress?: string;
+}
+
 export interface CollegeFormPayload {
   collegeName: string;
   campusType: string;
@@ -1271,6 +1294,122 @@ export async function adminUpdateCollegeForm(id: string, payload: Partial<Colleg
 export async function adminDeleteCollegeForm(id: string) {
   const { data } = await api.delete<{ success: boolean; message: string }>(`/api/collegeform/${id}`);
   return data;
+}
+
+export async function listCampusRecords(params: {
+  page?: number;
+  limit?: number;
+  district?: string;
+  search?: string;
+}) {
+  const response = await api.get<{
+    success: boolean;
+    page: number;
+    limit: number;
+    total: number;
+    data: CampusListItem[];
+    pagination: {
+      currentPage: number;
+      totalPages: number;
+      total: number;
+      hasNext: boolean;
+      hasPrev: boolean;
+    };
+  }>('/api/campus-list', { params }).catch(async (firstError) => {
+    const fallbackPaths = ['/api/campuslist', '/api/campuses'];
+
+    for (const fallbackPath of fallbackPaths) {
+      try {
+        return await api.get<{
+          success: boolean;
+          page: number;
+          limit: number;
+          total: number;
+          data: CampusListItem[];
+          pagination: {
+            currentPage: number;
+            totalPages: number;
+            total: number;
+            hasNext: boolean;
+            hasPrev: boolean;
+          };
+        }>(fallbackPath, { params });
+      } catch {
+        // try next fallback
+      }
+    }
+
+    throw firstError;
+  });
+
+  return {
+    success: response.data.success,
+    page: response.data.page,
+    limit: response.data.limit,
+    total: response.data.total,
+    campuses: response.data.data,
+    pagination: response.data.pagination,
+  };
+}
+
+export async function adminGetCampusRecord(id: string) {
+  const routes = [`/api/campus-list/${id}`, `/api/campuslist/${id}`, `/api/campuses/${id}`];
+
+  for (const route of routes) {
+    try {
+      const { data } = await api.get<{ success: boolean; data: CampusListItem }>(route);
+      return data;
+    } catch {
+      // try next route
+    }
+  }
+
+  throw new Error('Failed to fetch campus record');
+}
+
+export async function adminCreateCampusRecord(payload: CampusListPayload) {
+  const routes = ['/api/campus-list', '/api/campuslist', '/api/campuses'];
+
+  for (const route of routes) {
+    try {
+      const { data } = await api.post<{ success: boolean; message: string; data: CampusListItem }>(route, payload);
+      return data;
+    } catch {
+      // try next route
+    }
+  }
+
+  throw new Error('Failed to create campus record');
+}
+
+export async function adminUpdateCampusRecord(id: string, payload: Partial<CampusListPayload>) {
+  const routes = [`/api/campus-list/${id}`, `/api/campuslist/${id}`, `/api/campuses/${id}`];
+
+  for (const route of routes) {
+    try {
+      const { data } = await api.put<{ success: boolean; message: string; data: CampusListItem }>(route, payload);
+      return data;
+    } catch {
+      // try next route
+    }
+  }
+
+  throw new Error('Failed to update campus record');
+}
+
+export async function adminDeleteCampusRecord(id: string) {
+  const routes = [`/api/campus-list/${id}`, `/api/campuslist/${id}`, `/api/campuses/${id}`];
+
+  for (const route of routes) {
+    try {
+      const { data } = await api.delete<{ success: boolean; message: string }>(route);
+      return data;
+    } catch {
+      // try next route
+    }
+  }
+
+  throw new Error('Failed to delete campus record');
 }
 
 /* ===========================

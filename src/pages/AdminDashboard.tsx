@@ -66,10 +66,10 @@ import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import AdminDashboardForProgress from '@/components/adminDashboardforProgress';
 import AdminForCollege from '@/components/adminForCollege';
+import AdminCampusList from '@/components/adminCampusList';
 import AdminForFaculty from './AdminForFaculty';
 import AdminForDonater from '@/components/donorForAdmin';
 import AdminSurveyReports from '@/components/adminSurveyReports';
-import CampusList from './CampusListPage';
 import AdminEvents from '@/components/adminEvents';
 
 const categories: Category[] = ['academic', 'administrative', 'infrastructure', 'other'];
@@ -1243,7 +1243,7 @@ export default function AdminDashboard() {
           </TabsContent> 
 
                     <TabsContent value='campusList' className="mt-4">
-                  <CampusList/>
+                  <AdminCampusList/>
                   </TabsContent> 
 
                       <TabsContent value='events' className="mt-4">

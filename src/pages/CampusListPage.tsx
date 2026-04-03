@@ -1,79 +1,96 @@
 import { useScrollToTop } from '@/hooks/useScrollToTop';
-import React, { useState, useMemo } from 'react';
-import campusList from '../data/campusList.json';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Eye } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import provinces from '../data/provinces.json';
 import districts from '../data/districts.json';
+import { listCampusRecords, CampusListItem } from '@/lib/api';
 
-interface Campus {
-  SN: number;
-  campusname: string;
-  localAddress?: string;
-  District: string;
-  fullAddress?: string;
-  principlename?: string;
-  contactNumber?: number;
-  emailAddress?: string;
-}
+type ProvinceOptionSource = {
+  province_id: number;
+  name: string;
+};
+
+type DistrictOptionSource = {
+  province_id: number;
+  name: string;
+};
 
 const ITEMS_PER_PAGE = 15;
 
 const CampusList: React.FC = () => {
   useScrollToTop();
-  const [selectedCampus, setSelectedCampus] = useState<Campus | null>(null);
+  const [selectedCampus, setSelectedCampus] = useState<CampusListItem | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [province, setProvince] = useState<string>('all');
   const [district, setDistrict] = useState<string>('all');
   const [search, setSearch] = useState<string>('');
   const [page, setPage] = useState<number>(1);
+  const [allCampuses, setAllCampuses] = useState<CampusListItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string>('');
 
-  // Simulate loading for skeleton
-  React.useEffect(() => {
+  useEffect(() => {
     setLoading(true);
-    const timeout = setTimeout(() => setLoading(false), 700);
-    return () => clearTimeout(timeout);
-  }, [district, page]);
+    setError('');
+
+    const loadCampuses = async () => {
+      try {
+        const response = await listCampusRecords({
+          page: 1,
+          limit: 10000,
+        });
+
+        setAllCampuses(response.campuses);
+      } catch {
+        setAllCampuses([]);
+        setError('Unable to load campus list right now.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadCampuses();
+  }, []);
 
   // Province options
   const provinceOptions = useMemo(() => {
+    const provinceData = provinces as ProvinceOptionSource[];
     return [
       { value: 'all', label: 'All Provinces' },
-      ...provinces.map((p: any) => ({ value: p.province_id.toString(), label: p.name }))
+      ...provinceData.map((p) => ({ value: p.province_id.toString(), label: p.name }))
     ];
   }, []);
 
   // District options filtered by selected province
   const districtOptions = useMemo(() => {
-    let filtered = districts;
+    const districtData = districts as DistrictOptionSource[];
+    let filtered = districtData;
     if (province !== 'all') {
-      filtered = districts.filter((d: any) => d.province_id.toString() === province);
+      filtered = districtData.filter((d) => d.province_id.toString() === province);
     }
-    const opts = filtered.map((d: any) => ({ value: d.name, label: d.name }));
+    const opts = filtered.map((d) => ({ value: d.name, label: d.name }));
     return [{ value: 'all', label: 'All Districts' }, ...opts];
   }, [province]);
 
-  // Filtered and paginated data
   const filtered = useMemo(() => {
-    return campusList.filter((c: any) => {
-      // Find district object for this campus
-      const districtObj = districts.find((d: any) => d.name === c.District);
+    return allCampuses.filter((c) => {
+      const districtObj = (districts as DistrictOptionSource[]).find((d) => d.name === c.District);
       const campusProvinceId = districtObj ? districtObj.province_id.toString() : null;
       const provinceMatch = province === 'all' || campusProvinceId === province;
       const districtMatch = district === 'all' || c.District === district;
       const searchMatch = search.trim() === '' || (c.campusname || '').toLowerCase().includes(search.trim().toLowerCase());
       return provinceMatch && districtMatch && searchMatch;
     });
-  }, [province, district, search]);
-  const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
+  }, [allCampuses, district, province, search]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
   const paginated = filtered.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
 
-  const handleView = (campus: Campus) => {
+  const handleView = (campus: CampusListItem) => {
     setSelectedCampus(campus);
     setDialogOpen(true);
   };
@@ -86,6 +103,11 @@ const CampusList: React.FC = () => {
   const handleProvinceChange = (value: string) => {
     setProvince(value);
     setDistrict('all'); // Reset district when province changes
+    setPage(1);
+  };
+
+  const handleSearchChange = (value: string) => {
+    setSearch(value);
     setPage(1);
   };
 
@@ -125,10 +147,7 @@ const CampusList: React.FC = () => {
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400"
             placeholder="Search by campus name..."
             value={search}
-            onChange={e => {
-              setSearch(e.target.value);
-              setPage(1);
-            }}
+            onChange={e => handleSearchChange(e.target.value)}
           />
         </div>
       </div>
@@ -155,15 +174,21 @@ const CampusList: React.FC = () => {
                     </td>
                   </tr>
                 ))
+              : error
+              ? (
+                <tr>
+                  <td colSpan={7} className="text-center py-8 text-red-500">{error}</td>
+                </tr>
+              )
               : paginated.length === 0
               ? (
                 <tr>
                   <td colSpan={7} className="text-center py-8 text-gray-500">No campuses found.</td>
                 </tr>
               )
-              : paginated.map((campus: any, idx: number) => (
-                  <tr key={campus.SN} className="hover:bg-indigo-50 transition">
-                    <td className="px-4 py-3 text-sm text-gray-600">{(page - 1) * ITEMS_PER_PAGE + idx + 1}</td>
+              : paginated.map((campus, idx: number) => (
+                  <tr key={campus._id} className="hover:bg-indigo-50 transition">
+                    <td className="px-4 py-3 text-sm text-gray-600">{campus.SN || (page - 1) * ITEMS_PER_PAGE + idx + 1}</td>
                     <td className="px-4 py-3 text-sm font-medium text-gray-900">{campus.campusname || '-'}</td>
                     <td className="px-4 py-3 text-sm text-gray-700">{campus.District || '-'}</td>
                     <td className="px-4 py-3 text-sm text-gray-700">{campus.fullAddress || '-'}</td>
