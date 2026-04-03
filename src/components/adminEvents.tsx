@@ -24,6 +24,10 @@ type FormState = {
   isFeatured: boolean;
 };
 
+const CLOUDINARY_CLOUD_NAME = 'dpipulbgm';
+const CLOUDINARY_UPLOAD_PRESET = 'tu_reports';
+const CLOUDINARY_UPLOAD_URL = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`;
+
 const initialForm: FormState = {
   title: '',
   shortDescription: '',
@@ -136,6 +140,28 @@ const AdminEvents = () => {
     setRemovedImages((prev) => [...prev, url]);
   };
 
+  const uploadImageToCloudinary = async (file: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+
+    const response = await fetch(CLOUDINARY_UPLOAD_URL, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to upload ${file.name}`);
+    }
+
+    const result = await response.json();
+    if (!result.secure_url) {
+      throw new Error(`Cloudinary did not return a secure URL for ${file.name}`);
+    }
+
+    return result.secure_url as string;
+  };
+
   const onSave = async () => {
     const validationMessage = validateForm();
     if (validationMessage) {
@@ -143,24 +169,23 @@ const AdminEvents = () => {
       return;
     }
 
-    const payload = new FormData();
-    payload.append('title', form.title.trim());
-    payload.append('shortDescription', form.shortDescription.trim());
-    payload.append('description', form.description.trim());
-    payload.append('eventDate', form.eventDate);
-    payload.append('location', form.location.trim());
-    payload.append('category', form.category.trim());
-    payload.append('status', form.status);
-    payload.append('isFeatured', String(form.isFeatured));
-
-    newImages.forEach((file) => payload.append('images', file));
-
-    if (mode === 'edit') {
-      payload.append('removedImages', JSON.stringify(removedImages));
-    }
-
     setSaving(true);
     try {
+      const uploadedImageUrls = await Promise.all(newImages.map((file) => uploadImageToCloudinary(file)));
+
+      const retainedImages = existingImages.filter((img) => !removedImages.includes(img));
+      const payload = {
+        title: form.title.trim(),
+        shortDescription: form.shortDescription.trim(),
+        description: form.description.trim(),
+        eventDate: form.eventDate,
+        location: form.location.trim(),
+        category: form.category.trim(),
+        status: form.status,
+        isFeatured: form.isFeatured,
+        images: mode === 'edit' ? [...retainedImages, ...uploadedImageUrls] : uploadedImageUrls,
+      };
+
       if (mode === 'create') {
         await createEvent(payload);
         toast.success('Event created successfully');

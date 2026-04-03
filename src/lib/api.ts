@@ -64,6 +64,18 @@ export interface EventItem {
   updatedAt: string;
 }
 
+export interface EventPayload {
+  title: string;
+  shortDescription?: string;
+  description: string;
+  eventDate: string;
+  location?: string;
+  category?: string;
+  status?: 'draft' | 'published';
+  isFeatured?: boolean;
+  images?: string[];
+}
+
 export interface CollegeFormRecord {
   _id: string;
   collegeName: string;
@@ -1062,25 +1074,29 @@ export async function listAdminEvents(params: {
   return data;
 }
 
-export async function createEvent(formData: FormData) {
+export async function createEvent(payload: FormData | EventPayload) {
+  const config = payload instanceof FormData
+    ? { headers: { 'Content-Type': 'multipart/form-data' } }
+    : undefined;
+
   const { data } = await api.post<{
     success: boolean;
     message: string;
     event: EventItem;
-  }>('/api/admin/events', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  });
+  }>('/api/admin/events', payload, config);
   return data;
 }
 
-export async function updateEvent(id: string, formData: FormData) {
+export async function updateEvent(id: string, payload: FormData | EventPayload) {
+  const config = payload instanceof FormData
+    ? { headers: { 'Content-Type': 'multipart/form-data' } }
+    : undefined;
+
   const { data } = await api.put<{
     success: boolean;
     message: string;
     event: EventItem;
-  }>(`/api/admin/events/${id}`, formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  });
+  }>(`/api/admin/events/${id}`, payload, config);
   return data;
 }
 
