@@ -1,3 +1,45 @@
+export interface Program {
+  institution: string;
+  level: string;
+  programName: string;
+  totalStudents: number;
+  maleStudents: number;
+  femaleStudents: number;
+  scholarshipStudents: number;
+  isScholarshipRuleApplied: boolean;
+  newAdmissions: number;
+  graduatedStudents: number;
+  passPercentage: number;
+  approvalLetterPath: string | null;
+  approvalLetterFilename: string | null;
+  cloudinaryPublicId?: string | null;
+}
+
+export interface FinancialCategoryStatus {
+  annualBudget: number;
+  actualExpenditure: number;
+  revenueGenerated: number;
+  sources: string[];
+}
+
+export interface FinancialAttachments {
+  auditedFinancialStatements: string | null;
+  auditedFinancialStatementsFilename: string | null;
+  budgetCopy: string | null;
+  budgetCopyFilename: string | null;
+}
+
+export interface FinancialStatus {
+  salaries: FinancialCategoryStatus;
+  capital: FinancialCategoryStatus;
+  operational: FinancialCategoryStatus;
+  research: FinancialCategoryStatus;
+  totalAnnualBudget: number;
+  totalActualExpenditure: number;
+  totalRevenueGenerated: number;
+  attachments: FinancialAttachments;
+}
+
 export interface ProgressReport {
   id?: string;
   collegeId: string;
@@ -42,6 +84,8 @@ export interface ProgressReport {
   headName: string;
   principalName: string;
   submittedBy: string;
+  programs?: Program[];
+  financialStatus?: FinancialStatus;
   
   createdAt?: string;
   updatedAt?: string;

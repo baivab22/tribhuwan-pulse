@@ -280,14 +280,26 @@ const AdminCampusList = () => {
                       <td className="p-3">{row.principlename || '-'}</td>
                       <td className="p-3">{row.contactNumber || '-'}</td>
                       <td className="p-3">
-                        <div className="flex gap-2">
-                          <Button size="sm" variant="outline" onClick={() => openEdit(row._id)} disabled={saving}>
-                            <Edit className="mr-1 h-4 w-4" />
-                            Edit
+                        <div className="flex items-center gap-2">
+                          <Button
+                            size="icon"
+                            variant="outline"
+                            onClick={() => openEdit(row._id)}
+                            disabled={saving}
+                            aria-label={`Edit ${row.campusname}`}
+                            title="Edit"
+                          >
+                            <Edit className="h-4 w-4" />
                           </Button>
-                          <Button size="sm" variant="destructive" onClick={() => onDelete(row._id)} disabled={saving}>
-                            <Trash2 className="mr-1 h-4 w-4" />
-                            Delete
+                          <Button
+                            size="icon"
+                            variant="destructive"
+                            onClick={() => onDelete(row._id)}
+                            disabled={saving}
+                            aria-label={`Delete ${row.campusname}`}
+                            title="Delete"
+                          >
+                            <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
                       </td>

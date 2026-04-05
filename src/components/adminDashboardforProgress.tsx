@@ -2690,6 +2690,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 import { Download, Search, Eye, TrendingUp, Users, DollarSign, Building, BookOpen, AlertTriangle, CheckCircle, FileText, GraduationCap, FlaskConical, Wifi, Library, School, PieChart as PieChartIcon, Activity, Target, Award, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import { toast } from 'sonner';
 import { ProgressReport, AnalyticsData } from '@/types';
+import { API_BASE } from '@/lib/api';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
@@ -2697,9 +2698,7 @@ import autoTable from 'jspdf-autotable';
 import { X } from 'lucide-react';
 import FinancialDocumentsSection from './pdfViewer.component';
 
-// const API_BASE_URL = 'https://feedbackbackend-4.onrender.com/api/progress';
-// const API_BASE_URL='https://digitaldashboard.tu.edu.np/api/progress'
-const API_BASE_URL="https://digitaldashboard.tu.edu.np/api/progress"
+const API_BASE_URL = `${API_BASE}/api/progress`;
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'];
 const CHART_COLORS = {
