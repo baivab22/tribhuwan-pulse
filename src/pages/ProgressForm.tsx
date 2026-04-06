@@ -1,5 +1,5 @@
 import { useScrollToTop } from '@/hooks/useScrollToTop';
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -493,8 +493,15 @@ export default function ProgressForm({ onSubmit, initialData, isLoading = false 
       ? initialData.programs
       : [createEmptyProgram()]
   );
+  const formContainerRef = useRef<HTMLDivElement | null>(null);
   const [uploadingFiles, setUploadingFiles] = useState<{ [key: number]: boolean }>({});
   const [uploadingFinancialFiles, setUploadingFinancialFiles] = useState<{ [key: string]: boolean }>({});
+
+  const scrollNearTop = () => {
+    const rectTop = formContainerRef.current?.getBoundingClientRect().top ?? 0;
+    const targetTop = Math.max(0, window.scrollY + rectTop - window.innerHeight * 0.2);
+    window.scrollTo({ top: targetTop, behavior: 'smooth' });
+  };
 
   const handleInputChange = (field: keyof ProgressReport, value: string | number) => {
     setFormData(prev => ({
@@ -938,6 +945,9 @@ export default function ProgressForm({ onSubmit, initialData, isLoading = false 
     const currentIndex = tabOrder.indexOf(activeTab);
     if (currentIndex < tabOrder.length - 1) {
       setActiveTab(tabOrder[currentIndex + 1]);
+      window.requestAnimationFrame(() => {
+        window.requestAnimationFrame(scrollNearTop);
+      });
     }
   };
 
@@ -948,10 +958,20 @@ export default function ProgressForm({ onSubmit, initialData, isLoading = false 
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
+  const handleSubmit = () => {
+
+    console.log("is last tab value")
+    if (!isLastTab) {
+      toast.error('Please complete the Declaration step before submitting.');
+      return;
+    }
+
     if (!validateCurrentTab()) return;
+
+    if (!formData.headName?.trim() || !formData.principalName?.trim() || !formData.submittedBy?.trim()) {
+      toast.error('Please fill Head Name, Campus Chief/Principal, and Submitted By before submitting.');
+      return;
+    }
     
     const submitData = {
       ...formData,
@@ -996,7 +1016,7 @@ export default function ProgressForm({ onSubmit, initialData, isLoading = false 
     { value: 'declaration', label: 'Declaration', icon: BadgeCheck }
   ] as const;
   return (
-    <div className="mx-auto w-full max-w-[1400px] px-3 py-4 text-slate-900 sm:px-6 lg:px-10">
+    <div ref={formContainerRef} className="mx-auto w-full max-w-[1400px] px-3 py-4 text-slate-900 sm:px-6 lg:px-10">
       <Card className="mb-6 overflow-hidden border-blue-100 shadow-lg shadow-blue-100/40">
         <CardHeader className="relative bg-gradient-to-r from-slate-50 via-blue-50 to-cyan-50">
           <div className="absolute -right-20 -top-20 h-44 w-44 rounded-full bg-blue-200/30 blur-2xl" />
@@ -1019,7 +1039,7 @@ export default function ProgressForm({ onSubmit, initialData, isLoading = false 
       </Card>
 
       <form
-        onSubmit={handleSubmit}
+        onSubmit={(e) => e.preventDefault()}
         className="space-y-1 [&_label]:mb-2 [&_label]:block [&_label]:text-sm [&_label]:font-semibold [&_label]:text-slate-800 [&_input]:border-2 [&_input]:border-slate-400 [&_input]:bg-white [&_input]:text-[15px] [&_input]:font-medium [&_input]:text-slate-900 [&_input]:placeholder:text-slate-500 [&_input]:focus-visible:border-blue-600 [&_input]:focus-visible:ring-2 [&_input]:focus-visible:ring-blue-200 [&_textarea]:border-2 [&_textarea]:border-slate-400 [&_textarea]:bg-white [&_textarea]:text-[15px] [&_textarea]:font-medium [&_textarea]:text-slate-900 [&_textarea]:placeholder:text-slate-500 [&_textarea]:focus-visible:border-blue-600 [&_textarea]:focus-visible:ring-2 [&_textarea]:focus-visible:ring-blue-200 [&_button[role=combobox]]:border-2 [&_button[role=combobox]]:border-slate-400 [&_button[role=combobox]]:bg-white [&_button[role=combobox]]:text-[15px] [&_button[role=combobox]]:font-medium [&_button[role=combobox]]:text-slate-900 [&_button[role=combobox]]:focus:ring-2 [&_button[role=combobox]]:focus:ring-blue-200"
       >
         <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as typeof activeTab)} className="space-y-6">
@@ -2122,7 +2142,7 @@ export default function ProgressForm({ onSubmit, initialData, isLoading = false 
                 <ChevronRight className="ml-1 h-4 w-4" />
               </Button>
             ) : (
-              <Button type="submit" disabled={isLoading} className="bg-green-600 hover:bg-green-700">
+              <Button type="button" onClick={handleSubmit} disabled={isLoading} className="bg-green-600 hover:bg-green-700">
                 <Send className="mr-1 h-4 w-4" />
                 {isLoading ? 'Submitting...' : 'Submit Report'}
               </Button>
