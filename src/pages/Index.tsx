@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import DirectorMessage from '@/components/directorMessage';
 import WelcomeDirectorate from '@/components/welcomeDirectorate';
+import OrganizationTreeSection from '@/components/organizationTreeSection';
 import { goals, visionPoints } from './missionVision';
 import SummaryDashboard from '@/components/digitalShort.component';
 
@@ -330,6 +331,8 @@ export default function UniversityHomepage() {
       </div>
 
       {/* Vision Section */}
+
+      <OrganizationTreeSection />
 
     </div>
   );
