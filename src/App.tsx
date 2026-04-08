@@ -236,9 +236,9 @@ function Header() {
 
       {/* Horizontal Navigation Bar - Desktop Only */}
       <nav className="hidden lg:block bg-gradient-to-r from-indigo-600 to-indigo-700 shadow-lg sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6">
-          <div className="flex items-center justify-between h-14">
-            <div className="flex items-center space-x-1">
+        <div className="mx-auto w-[96vw] max-w-[1600px] px-3 sm:px-4 lg:px-6">
+          <div className="flex items-center justify-start gap-1 h-14">
+            <div className="flex items-center gap-1">
               {mainItemsBeforeCampus.map((item) => {
                 const IconComponent = item.icon;
                 const isActive = isActivePath(item.path);
@@ -247,7 +247,7 @@ function Header() {
                     <Button
                       variant="ghost"
                       className={`
-                        flex items-center gap-2 px-5 py-2.5 text-sm font-medium transition-all duration-200 rounded-lg relative
+                        flex items-center gap-2 px-3.5 py-2 text-[13px] font-medium transition-all duration-200 rounded-lg relative whitespace-nowrap
                         ${isActive
                           ? 'bg-white text-black hover:bg-white'
                           : 'text-white'
@@ -267,7 +267,7 @@ function Header() {
                   variant="ghost"
                   onClick={() => setCampusFormMenuOpen(!campusFormMenuOpen)}
                   className={`
-                    flex items-center gap-2 px-5 py-2.5 text-sm font-medium rounded-lg transition-all duration-200
+                    flex items-center gap-2 px-3.5 py-2 text-[13px] font-medium rounded-lg transition-all duration-200 whitespace-nowrap
                     ${campusFormItems.some((item) => isActivePath(item.path))
                       ? 'bg-white/20 text-white hover:bg-white hover:text-black'
                       : 'text-white hover:bg-white hover:text-black'
@@ -319,7 +319,7 @@ function Header() {
                     <Button
                       variant="ghost"
                       className={`
-                        flex items-center gap-2 px-5 py-2.5 text-sm font-medium transition-all duration-200 rounded-lg relative
+                        flex items-center gap-2 px-3.5 py-2 text-[13px] font-medium transition-all duration-200 rounded-lg relative whitespace-nowrap
                         ${isActive
                           ? 'bg-white text-black hover:bg-white'
                           : 'text-white'
@@ -339,7 +339,7 @@ function Header() {
                   variant="ghost"
                   onClick={() => setFeedbackMenuOpen(!feedbackMenuOpen)}
                   className={`
-                    flex items-center gap-2 px-5 py-2.5 text-sm font-medium rounded-lg transition-all duration-200
+                    flex items-center gap-2 px-3.5 py-2 text-[13px] font-medium rounded-lg transition-all duration-200 whitespace-nowrap
                     ${feedbackItems.some((item) => isActivePath(item.path))
                       ? 'bg-white/20 text-white hover:bg-white hover:text-black'
                       : 'text-white hover:bg-white hover:text-black'

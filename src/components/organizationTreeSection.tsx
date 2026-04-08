@@ -1,67 +1,106 @@
-import React from 'react';
-import { Users2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { Mail, Users2 } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 
 type OrgPerson = {
   name: string;
   role: string;
+  email?: string;
   accent?: string;
+  details?: string;
 };
 
-function OrgCard({ name, role, accent = 'from-slate-600 to-blue-700' }: OrgPerson) {
-  const initials = name
+function getInitials(name: string) {
+  return name
     .split(' ')
     .filter(Boolean)
     .slice(0, 2)
     .map((part) => part[0])
     .join('')
     .toUpperCase();
+}
+
+function OrgCard({ name, role, email, accent = 'from-slate-600 to-blue-700' }: OrgPerson) {
+  const initials = getInitials(name);
 
   return (
     <div className="org-card group relative w-full max-w-[290px] overflow-hidden rounded-2xl border border-slate-200/90 bg-white/95 shadow-[0_10px_26px_-16px_rgba(15,23,42,0.35)] transition-all duration-300 hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-[0_18px_34px_-18px_rgba(15,23,42,0.45)]">
       <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${accent}`} />
-      <div className="flex min-h-[102px] items-start gap-3 p-4 pt-5">
+      <div className="flex min-h-[120px] items-start gap-3 p-4 pt-5">
         <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${accent} text-sm font-bold text-white shadow-sm`}>
           {initials}
         </div>
         <div className="min-w-0 flex-1">
           <h4 className="text-base font-semibold text-slate-900 sm:text-[1.05rem]">{name}</h4>
           <p className="mt-0.5 line-clamp-3 text-sm leading-5 text-slate-500">{role}</p>
+          {email && <p className="mt-2 truncate text-xs text-slate-400">📧 {email}</p>}
         </div>
       </div>
     </div>
   );
 }
 
+type OrgCardTriggerProps = {
+  person: OrgPerson;
+  onOpen: (person: OrgPerson) => void;
+};
+
+function OrgCardTrigger({ person, onOpen }: OrgCardTriggerProps) {
+  return (
+    <button
+      type="button"
+      className="org-trigger w-full rounded-2xl text-left outline-none transition-transform duration-300 focus-visible:scale-[1.01] focus-visible:ring-2 focus-visible:ring-blue-300"
+      aria-haspopup="dialog"
+      aria-label={`View details for ${person.name}`}
+      onClick={() => onOpen(person)}
+    >
+      <OrgCard {...person} />
+    </button>
+  );
+}
+
 export default function OrganizationTreeSection() {
+  const [selectedPerson, setSelectedPerson] = useState<OrgPerson | null>(null);
+  const [detailOpen, setDetailOpen] = useState(false);
+
+  const openPersonDetails = (person: OrgPerson) => {
+    setSelectedPerson(person);
+    setDetailOpen(true);
+  };
+
   const director: OrgPerson = {
     name: 'Dr. Laxmi Kanta Sharma',
-    role: 'Director',
+    role: 'Planning Director',
+    email: 'director.planning@tu.edu.np',
+    details: 'Leads directorate-level planning, coordination, and institutional development initiatives.',
     accent: 'from-slate-700 to-blue-800',
   };
 
   const leadership: OrgPerson[] = [
-    { name: 'Sodasi Ojha Regmi', role: 'Deputy Administrator', accent: 'from-blue-700 to-slate-700' },
-    { name: 'Dr. Prakasah Gautam', role: 'NHEP Coordinator', accent: 'from-slate-700 to-blue-700' },
-    { name: 'Balkrishna Subedi', role: 'IT Expert', accent: 'from-blue-700 to-cyan-700' },
-    { name: 'Sujin Tripathi', role: 'Structural Engineering Expert', accent: 'from-sky-700 to-blue-700' },
+    { name: 'Sodasi Ojha Regmi', role: 'Deputy Administrator', email: 'Sodasiojha@tu.edu.np', details: 'Supports administration, coordination, and operational follow-through.', accent: 'from-blue-700 to-slate-700' },
+    { name: 'Dr. Prakasah Gautam', role: 'NHEP Coordinator', email: 'prakash.gautam@tu.edu.np', details: 'Coordinates NHEP-related planning and execution activities.', accent: 'from-slate-700 to-blue-700' },
+    { name: 'Bal krishna Subedi', role: 'IT Expert', email: 'balkrishna.subedi@tu.edu.np', details: 'Supports digital systems, technical coordination, and IT services.', accent: 'from-blue-700 to-cyan-700' },
+    { name: 'Sujan Tripathi', role: 'Structural Engineering Expert', email: 'sujan.tripathi@tu.edu.np', details: 'Provides structural engineering guidance and review support.', accent: 'from-sky-700 to-blue-700' },
   ];
 
   const sectionLead: OrgPerson = {
-    name: 'Shobita Ghimire',
+    name: 'Shova Ghimire',
     role: 'Section Officer',
+    email: 'shova.ghimire@tu.edu.np',
+    details: 'Manages section workflows, coordination, and administrative processing.',
     accent: 'from-slate-700 to-blue-700',
   };
 
   const assistants: OrgPerson[] = [
-    { name: 'Gita Gautam', role: 'Head Office Assistant' },
-    { name: 'Mahendra Kr. Napit', role: 'Assistant Computer Operator' },
-    { name: 'Sajita Shrestha', role: 'Technical Head Assistant' },
-    { name: 'Surendra Bahadur Acharya', role: 'Head Office Assistant' },
+    { name: 'Gita Gautam Paudel', role: 'Head Office Assistant', email: 'gita.gautam@tu.edu.np', details: 'Assists in office coordination and administrative support.' },
+    { name: 'Mahendra Kumar Napit', role: 'Assistant Computer Operator', email: 'mahendra.napit@tu.edu.np', details: 'Handles computer operations and digital support tasks.' },
+    { name: 'Sajita Shrestha', role: 'Head Technical Assistant', email: 'sajita.shrestha@tu.edu.np', details: 'Supports technical work, records, and office coordination.' },
+    { name: 'Surendra Bahadur Acharya', role: 'Head Office Assistant', email: 'surendra.acharya@tu.edu.np', details: 'Provides clerical support and day-to-day office assistance.' },
   ];
 
   const helpers: OrgPerson[] = [
-    { name: 'Saraswoti Bista', role: 'Office Helper', accent: 'from-sky-700 to-blue-700' },
-    { name: 'Nirmala K.C.', role: 'Office Helper', accent: 'from-blue-700 to-slate-700' },
+    { name: 'Saraswoti Bista', role: 'Office Helper', email: 'saraswati.bista@tu.edu.np', details: 'Supports daily office operations and workspace upkeep.', accent: 'from-sky-700 to-blue-700' },
+    { name: 'Nirmala K.C.', role: 'Office Helper', email: 'nirmala.kc@tu.edu.np', details: 'Assists with routine office support and coordination tasks.', accent: 'from-blue-700 to-slate-700' },
   ];
 
   const levelTagClass =
@@ -88,7 +127,7 @@ export default function OrganizationTreeSection() {
             <div className="mx-auto min-w-[1240px]">
               <div className="flex flex-col items-center">
                 <div className="org-node org-node-main">
-                  <OrgCard {...director} />
+                  <OrgCardTrigger person={director} onOpen={openPersonDetails} />
                 </div>
 
                 <div className="org-line h-10 w-[2px] bg-slate-300" />
@@ -99,7 +138,7 @@ export default function OrganizationTreeSection() {
                     {leadership.map((person, index) => (
                       <div key={person.name} className="org-node flex flex-col items-center" style={{ animationDelay: `${index * 90}ms` }}>
                         <div className="org-line mb-5 h-8 w-[2px] bg-slate-300" />
-                        <OrgCard {...person} />
+                        <OrgCardTrigger person={person} onOpen={openPersonDetails} />
                       </div>
                     ))}
                   </div>
@@ -107,7 +146,7 @@ export default function OrganizationTreeSection() {
 
                 <div className="org-line h-9 w-[2px] bg-slate-300" />
                 <div className="org-node org-node-main">
-                  <OrgCard {...sectionLead} />
+                  <OrgCardTrigger person={sectionLead} onOpen={openPersonDetails} />
                 </div>
 
                 <div className="org-line h-10 w-[2px] bg-slate-300" />
@@ -118,7 +157,7 @@ export default function OrganizationTreeSection() {
                     {assistants.map((person, index) => (
                       <div key={person.name} className="org-node flex flex-col items-center" style={{ animationDelay: `${index * 90}ms` }}>
                         <div className="org-line mb-5 h-8 w-[2px] bg-slate-300" />
-                        <OrgCard {...person} />
+                        <OrgCardTrigger person={person} onOpen={openPersonDetails} />
                       </div>
                     ))}
                   </div>
@@ -132,7 +171,7 @@ export default function OrganizationTreeSection() {
                     {helpers.map((person, index) => (
                       <div key={person.name} className="org-node flex flex-col items-center" style={{ animationDelay: `${index * 90}ms` }}>
                         <div className="org-line mb-5 h-8 w-[2px] bg-slate-300" />
-                        <OrgCard {...person} />
+                        <OrgCardTrigger person={person} onOpen={openPersonDetails} />
                       </div>
                     ))}
                   </div>
@@ -146,16 +185,16 @@ export default function OrganizationTreeSection() {
               <div className="flex flex-col items-center gap-3">
                 <span className={levelTagClass}>Leadership</span>
                 <div className="org-node org-node-main">
-                  <OrgCard {...director} />
+                  <OrgCardTrigger person={director} onOpen={openPersonDetails} />
                 </div>
               </div>
 
               <div>
                 <span className={levelTagClass}>Core Team</span>
-                <div className="grid grid-cols-1 place-items-center gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="grid grid-cols-1 place-items-center gap-5">
                   {leadership.map((person, index) => (
                     <div key={person.name} className="org-node" style={{ animationDelay: `${index * 90}ms` }}>
-                      <OrgCard {...person} />
+                      <OrgCardTrigger person={person} onOpen={openPersonDetails} />
                     </div>
                   ))}
                 </div>
@@ -164,16 +203,16 @@ export default function OrganizationTreeSection() {
               <div className="flex flex-col items-center gap-3">
                 <span className={levelTagClass}>Section Office</span>
                 <div className="org-node org-node-main">
-                  <OrgCard {...sectionLead} />
+                  <OrgCardTrigger person={sectionLead} onOpen={openPersonDetails} />
                 </div>
               </div>
 
               <div>
                 <span className={levelTagClass}>Assistants</span>
-                <div className="grid grid-cols-1 place-items-center gap-5 sm:grid-cols-2">
+                <div className="grid grid-cols-1 place-items-center gap-5">
                   {assistants.map((person, index) => (
                     <div key={person.name} className="org-node" style={{ animationDelay: `${index * 90}ms` }}>
-                      <OrgCard {...person} />
+                      <OrgCardTrigger person={person} onOpen={openPersonDetails} />
                     </div>
                   ))}
                 </div>
@@ -181,10 +220,10 @@ export default function OrganizationTreeSection() {
 
               <div>
                 <span className={levelTagClass}>Office Helpers</span>
-                <div className="grid grid-cols-1 place-items-center gap-5 sm:grid-cols-2">
+                <div className="grid grid-cols-1 place-items-center gap-5">
                   {helpers.map((person, index) => (
                     <div key={person.name} className="org-node" style={{ animationDelay: `${index * 90}ms` }}>
-                      <OrgCard {...person} />
+                      <OrgCardTrigger person={person} onOpen={openPersonDetails} />
                     </div>
                   ))}
                 </div>
@@ -193,6 +232,74 @@ export default function OrganizationTreeSection() {
           </div>
         </div>
       </div>
+
+      <Dialog
+        open={detailOpen && !!selectedPerson}
+        onOpenChange={(open) => {
+          setDetailOpen(open);
+          if (!open) {
+            setSelectedPerson(null);
+          }
+        }}
+      >
+        <DialogContent
+          className="sm:max-w-4xl border-0 bg-transparent p-0 shadow-none [&>button]:text-white"
+        >
+          {selectedPerson && (
+            <div className="overflow-hidden rounded-[28px] border border-white/10 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 text-white shadow-[0_30px_80px_-30px_rgba(15,23,42,0.9)]">
+              <div className={`h-2 bg-gradient-to-r ${selectedPerson.accent ?? 'from-slate-600 to-blue-700'}`} />
+              <div className="grid gap-0 md:grid-cols-[1.1fr_0.9fr]">
+                <div className="relative p-6 sm:p-8">
+                  <div className="absolute inset-x-0 top-0 h-full bg-[radial-gradient(circle_at_top_right,_rgba(59,130,246,0.18),_transparent_42%)]" />
+                  <div className="relative flex flex-col gap-6">
+                    <DialogHeader className="space-y-3 text-left">
+                      <div className={`inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br ${selectedPerson.accent ?? 'from-slate-600 to-blue-700'} text-xl font-bold text-white shadow-lg`}>
+                        {getInitials(selectedPerson.name)}
+                      </div>
+                      <div>
+                        <DialogTitle className="text-2xl font-semibold text-white sm:text-3xl">{selectedPerson.name}</DialogTitle>
+                        <DialogDescription className="mt-2 text-sm text-slate-300 sm:text-base">
+                          {selectedPerson.role}
+                        </DialogDescription>
+                      </div>
+                    </DialogHeader>
+
+                    {selectedPerson.details && (
+                      <p className="max-w-2xl text-sm leading-6 text-slate-300 sm:text-[15px]">
+                        {selectedPerson.details}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="border-t border-white/10 bg-white/5 p-6 sm:p-8 md:border-l md:border-t-0">
+                  <div className="space-y-4">
+                    <div className="rounded-2xl border border-white/10 bg-white/10 p-4 backdrop-blur-sm">
+                      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Contact</p>
+                      <div className="mt-3 flex items-start gap-3">
+                        <div className="mt-0.5 rounded-xl bg-blue-500/20 p-2 text-blue-200">
+                          <Mail className="h-4 w-4" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium text-white">Email</p>
+                          <a className="mt-1 block break-all text-sm text-slate-300 transition hover:text-white" href={`mailto:${selectedPerson.email ?? ''}`}>
+                            {selectedPerson.email ?? 'Not available'}
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="rounded-2xl border border-white/10 bg-white/10 p-4 backdrop-blur-sm">
+                      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Designation</p>
+                      <p className="mt-2 text-sm leading-6 text-slate-200">{selectedPerson.role}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       <style>{`
         .org-section .org-title,
@@ -233,6 +340,11 @@ export default function OrganizationTreeSection() {
 
         .org-section .org-card:hover {
           transform: translateY(-2px);
+        }
+
+        .org-section .org-trigger:focus-visible .org-card {
+          border-color: rgb(147 197 253);
+          box-shadow: 0 18px 34px -18px rgba(15, 23, 42, 0.45), 0 0 0 2px rgba(96, 165, 250, 0.3);
         }
 
         @keyframes org-fade-up {
