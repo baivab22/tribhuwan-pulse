@@ -8,6 +8,7 @@ type OrgPerson = {
   email?: string;
   accent?: string;
   details?: string;
+  image?: string;
 };
 
 function getInitials(name: string) {
@@ -20,16 +21,67 @@ function getInitials(name: string) {
     .toUpperCase();
 }
 
+function normalizeName(value: string) {
+  return value.toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+
+const PUBLIC_PROFILE_IMAGES = [
+  'balkrishna.jpeg',
+  'gita gautam.jpeg',
+  'laxmi kant.jpeg',
+  'mahendra kr napit.jpeg',
+  'prakash gautam.jpeg',
+  'sajitashrestha.jpeg',
+  'sodashi regmi ojha.jpeg',
+  'sujan.jpeg',
+  'surendra bdr acharya.jpeg',
+] as const;
+
+const imageLookup = new Map(
+  PUBLIC_PROFILE_IMAGES.map((fileName) => {
+    const stem = fileName.replace(/\.[^.]+$/, '');
+    return [normalizeName(stem), `/${fileName}`] as const;
+  }),
+);
+
+const PERSON_IMAGE_ALIASES: Record<string, string> = {
+  drlaxmikantasharma: 'laxmi kant',
+  sodasiojharegmi: 'sodashi regmi ojha',
+  drprakasahgautam: 'prakash gautam',
+  balkrishnasubedi: 'balkrishna',
+  sujantripathi: 'sujan',
+  gitagautampaudel: 'gita gautam',
+  mahendrakumarnapit: 'mahendra kr napit',
+  surendrabahaduracharya: 'surendra bdr acharya',
+};
+
+function getPersonImage(name: string) {
+  const normalized = normalizeName(name);
+  const alias = PERSON_IMAGE_ALIASES[normalized];
+  const matchedKey = alias ? normalizeName(alias) : normalized;
+  return imageLookup.get(matchedKey);
+}
+
 function OrgCard({ name, role, email, accent = 'from-slate-600 to-blue-700' }: OrgPerson) {
   const initials = getInitials(name);
+  const image = getPersonImage(name);
 
   return (
     <div className="org-card group relative w-full max-w-[290px] overflow-hidden rounded-2xl border border-slate-200/90 bg-white/95 shadow-[0_10px_26px_-16px_rgba(15,23,42,0.35)] transition-all duration-300 hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-[0_18px_34px_-18px_rgba(15,23,42,0.45)]">
       <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${accent}`} />
       <div className="flex min-h-[120px] items-start gap-3 p-4 pt-5">
-        <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${accent} text-sm font-bold text-white shadow-sm`}>
-          {initials}
-        </div>
+        {image ? (
+          <img
+            src={image}
+            alt={`${name} profile`}
+            className="h-11 w-11 shrink-0 rounded-full object-cover shadow-sm"
+            loading="lazy"
+          />
+        ) : (
+          <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${accent} text-sm font-bold text-white shadow-sm`}>
+            {initials}
+          </div>
+        )}
         <div className="min-w-0 flex-1">
           <h4 className="text-base font-semibold text-slate-900 sm:text-[1.05rem]">{name}</h4>
           <p className="mt-0.5 line-clamp-3 text-sm leading-5 text-slate-500">{role}</p>
@@ -62,6 +114,7 @@ function OrgCardTrigger({ person, onOpen }: OrgCardTriggerProps) {
 export default function OrganizationTreeSection() {
   const [selectedPerson, setSelectedPerson] = useState<OrgPerson | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
+  const [fullImageOpen, setFullImageOpen] = useState(false);
 
   const openPersonDetails = (person: OrgPerson) => {
     setSelectedPerson(person);
@@ -79,8 +132,8 @@ export default function OrganizationTreeSection() {
   const leadership: OrgPerson[] = [
     { name: 'Sodasi Ojha Regmi', role: 'Deputy Administrator', email: 'Sodasiojha@tu.edu.np', details: 'Supports administration, coordination, and operational follow-through.', accent: 'from-blue-700 to-slate-700' },
     { name: 'Dr. Prakasah Gautam', role: 'NHEP Coordinator', email: 'prakash.gautam@tu.edu.np', details: 'Coordinates NHEP-related planning and execution activities.', accent: 'from-slate-700 to-blue-700' },
-    { name: 'Bal krishna Subedi', role: 'IT Expert', email: 'balkrishna.subedi@tu.edu.np', details: 'Supports digital systems, technical coordination, and IT services.', accent: 'from-blue-700 to-cyan-700' },
-    { name: 'Sujan Tripathi', role: 'Structural Engineering Expert', email: 'sujan.tripathi@tu.edu.np', details: 'Provides structural engineering guidance and review support.', accent: 'from-sky-700 to-blue-700' },
+    { name: 'Bal Krishna Subedi', role: 'IT Expert', email: 'balkrishna.subedi@tu.edu.np', details: 'Assesses university IT needs, develops security-aligned strategies and policies, implements systems, supports partnerships, resolves issues, trains staff, oversees project timelines, budgets, and quality, advises on emerging technologies and data privacy, and leads ongoing monitoring and reporting.', accent: 'from-blue-700 to-cyan-700' },
+    { name: 'Sujan Tripathi', role: 'Structural Engineering Expert', email: 'sujantripathi@ioe.edu.np', details: 'Provides structural engineering guidance and review support.', accent: 'from-sky-700 to-blue-700' },
   ];
 
   const sectionLead: OrgPerson = {
@@ -238,6 +291,7 @@ export default function OrganizationTreeSection() {
         onOpenChange={(open) => {
           setDetailOpen(open);
           if (!open) {
+            setFullImageOpen(false);
             setSelectedPerson(null);
           }
         }}
@@ -253,9 +307,27 @@ export default function OrganizationTreeSection() {
                   <div className="absolute inset-x-0 top-0 h-full bg-[radial-gradient(circle_at_top_right,_rgba(59,130,246,0.18),_transparent_42%)]" />
                   <div className="relative flex flex-col gap-6">
                     <DialogHeader className="space-y-3 text-left">
-                      <div className={`inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br ${selectedPerson.accent ?? 'from-slate-600 to-blue-700'} text-xl font-bold text-white shadow-lg`}>
-                        {getInitials(selectedPerson.name)}
-                      </div>
+                      {getPersonImage(selectedPerson.name) ? (
+                        <button
+                          type="button"
+                          onClick={() => setFullImageOpen(true)}
+                          className="group relative inline-block rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-300"
+                          aria-label={`View full-size image of ${selectedPerson.name}`}
+                        >
+                          <img
+                            src={getPersonImage(selectedPerson.name)}
+                            alt={`${selectedPerson.name} profile`}
+                            className="h-28 w-28 rounded-2xl object-cover shadow-lg transition-transform duration-200 group-hover:scale-[1.03] sm:h-36 sm:w-36"
+                          />
+                          <span className="absolute bottom-1 left-1/2 -translate-x-1/2 rounded-md bg-black/60 px-2 py-0.5 text-[10px] font-medium text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+                            View full screen
+                          </span>
+                        </button>
+                      ) : (
+                        <div className={`inline-flex h-28 w-28 items-center justify-center rounded-2xl bg-gradient-to-br ${selectedPerson.accent ?? 'from-slate-600 to-blue-700'} text-2xl font-bold text-white shadow-lg sm:h-36 sm:w-36 sm:text-3xl`}>
+                          {getInitials(selectedPerson.name)}
+                        </div>
+                      )}
                       <div>
                         <DialogTitle className="text-2xl font-semibold text-white sm:text-3xl">{selectedPerson.name}</DialogTitle>
                         <DialogDescription className="mt-2 text-sm text-slate-300 sm:text-base">
@@ -296,6 +368,24 @@ export default function OrganizationTreeSection() {
                   </div>
                 </div>
               </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={fullImageOpen && !!selectedPerson && !!getPersonImage(selectedPerson.name)}
+        onOpenChange={setFullImageOpen}
+      >
+        <DialogContent className="h-[96vh] w-[96vw] max-w-[96vw] border-0 bg-black/95 p-3 sm:p-6 [&>button]:text-white">
+          {selectedPerson && getPersonImage(selectedPerson.name) && (
+            <div className="flex h-full w-full flex-col items-center justify-center gap-3">
+              <img
+                src={getPersonImage(selectedPerson.name)}
+                alt={`${selectedPerson.name} full size`}
+                className="max-h-[84vh] w-auto max-w-full rounded-xl object-contain"
+              />
+              <p className="text-center text-sm text-slate-200">{selectedPerson.name}</p>
             </div>
           )}
         </DialogContent>

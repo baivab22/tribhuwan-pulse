@@ -164,16 +164,16 @@ function Header() {
               isMobile ? 'text-sm' : 'text-lg'
             } font-semibold  text-indigo-800`}
           >
-            Digital dashboard-Planning Directorate
+            Digital Dashboard-Planning Directorate
           </div>
           {/* Line 3 */}
-          {/* <div
+          <div
             className={`${
               isMobile ? 'text-xs' : 'text-sm'
-            }  text-gray-600`}
+            } font-bold text-indigo-800`}
           >
-            Kirtipur, Kathmandu, Nepal
-          </div> */}
+            VC Office, Kirtipur Kathmandu
+          </div>
         </div>
       </Link>
 

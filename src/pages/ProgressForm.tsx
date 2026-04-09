@@ -13,7 +13,7 @@ import { toast } from 'sonner';
 import { ProgressReport, Program } from '@/types';
 
 interface ProgressFormProps {
-  onSubmit: (data: ProgressReport) => void;
+  onSubmit: (data: ProgressReport) => void | Promise<void>;
   initialData?: ProgressReport;
   isLoading?: boolean;
 }
@@ -496,6 +496,7 @@ export default function ProgressForm({ onSubmit, initialData, isLoading = false 
   const formContainerRef = useRef<HTMLDivElement | null>(null);
   const [uploadingFiles, setUploadingFiles] = useState<{ [key: number]: boolean }>({});
   const [uploadingFinancialFiles, setUploadingFinancialFiles] = useState<{ [key: string]: boolean }>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const scrollNearTop = () => {
     const rectTop = formContainerRef.current?.getBoundingClientRect().top ?? 0;
@@ -958,9 +959,9 @@ export default function ProgressForm({ onSubmit, initialData, isLoading = false 
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    if (isLoading || isSubmitting) return;
 
-    console.log("is last tab value")
     if (!isLastTab) {
       toast.error('Please complete the Declaration step before submitting.');
       return;
@@ -978,8 +979,19 @@ export default function ProgressForm({ onSubmit, initialData, isLoading = false 
       programs,
       totalStudents: programs.reduce((sum, program) => sum + program.totalStudents, 0)
     } as ProgressReport;
-    
-    onSubmit(submitData);
+
+    setIsSubmitting(true);
+    const submitToastId = toast.loading('Submitting progress report...');
+
+    try {
+      await Promise.resolve(onSubmit(submitData));
+      toast.success('Progress report submitted successfully', { id: submitToastId });
+    } catch (error) {
+      console.error('Error submitting progress report:', error);
+      toast.error('Failed to submit progress report. Please try again.', { id: submitToastId });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const financialData = formData.financialStatus || {
@@ -2142,9 +2154,9 @@ export default function ProgressForm({ onSubmit, initialData, isLoading = false 
                 <ChevronRight className="ml-1 h-4 w-4" />
               </Button>
             ) : (
-              <Button type="button" onClick={handleSubmit} disabled={isLoading} className="bg-green-600 hover:bg-green-700">
+              <Button type="button" onClick={handleSubmit} disabled={isLoading || isSubmitting} className="bg-green-600 hover:bg-green-700">
                 <Send className="mr-1 h-4 w-4" />
-                {isLoading ? 'Submitting...' : 'Submit Report'}
+                {isLoading || isSubmitting ? 'Submitting...' : 'Submit Report'}
               </Button>
             )}
             </div>

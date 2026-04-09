@@ -2687,7 +2687,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, ComposedChart, Area } from 'recharts';
-import { Download, Search, Eye, TrendingUp, Users, DollarSign, Building, BookOpen, AlertTriangle, CheckCircle, FileText, GraduationCap, FlaskConical, Wifi, Library, School, PieChart as PieChartIcon, Activity, Target, Award, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import { Download, Search, Eye, TrendingUp, Users, DollarSign, Building, BookOpen, AlertTriangle, CheckCircle, FileText, GraduationCap, FlaskConical, Wifi, Library, School, PieChart as PieChartIcon, Activity, Target, Award, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { ProgressReport, AnalyticsData } from '@/types';
 import { API_BASE } from '@/lib/api';
@@ -2736,13 +2736,37 @@ export default function AdminDashboardForProgress() {
   const [isFullScreenOpen, setIsFullScreenOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [selectedDocument, setSelectedDocument] = useState<{url: string, filename: string, type: string} | null>(null);
+  const [deletingCampusId, setDeletingCampusId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchData();
   }, []);
 
+  const getReportTimestamp = (report: ProgressReport) => {
+    const candidates = [report.createdAt, report.updatedAt, report.submissionDate];
 
-    const filteredReports = reports.filter(report =>
+    for (const candidate of candidates) {
+      if (!candidate) continue;
+      const parsed = new Date(candidate).getTime();
+      if (!Number.isNaN(parsed)) return parsed;
+    }
+
+    return 0;
+  };
+
+  const latestReportsByCampus = reports.reduce((map, report) => {
+    const normalizedCampusId = report.collegeId?.trim().toLowerCase();
+    const key = normalizedCampusId || `__no_campus_id__${String(report.id)}`;
+    const existing = map.get(key);
+
+    if (!existing || getReportTimestamp(report) > getReportTimestamp(existing)) {
+      map.set(key, report);
+    }
+
+    return map;
+  }, new Map<string, ProgressReport>());
+
+  const filteredReports = Array.from(latestReportsByCampus.values()).filter(report =>
     report.collegeName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     report.collegeId?.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -2776,6 +2800,67 @@ export default function AdminDashboardForProgress() {
     }
   };
 
+  const getReportId = (report: ProgressReport) => {
+    const reportWithLegacyId = report as ProgressReport & { _id?: string };
+    return report.id || reportWithLegacyId._id;
+  };
+
+  const handleDeleteCampusProgress = async (report: ProgressReport) => {
+    const normalizedCampusId = report.collegeId?.trim().toLowerCase();
+    const relatedReports = reports.filter((item) => item.collegeId?.trim().toLowerCase() === normalizedCampusId);
+    const reportsToDelete = relatedReports.length > 0 ? relatedReports : [report];
+
+    const confirmDelete = window.confirm(
+      `Delete progress data for ${report.collegeName}? This will remove ${reportsToDelete.length} submission(s) for campus ID ${report.collegeId}.`
+    );
+
+    if (!confirmDelete) return;
+
+    try {
+      setDeletingCampusId(report.collegeId);
+
+      const deleteRequests = reportsToDelete
+        .map((item) => getReportId(item))
+        .filter((id): id is string => Boolean(id))
+        .map((id) => fetch(`${API_BASE_URL}/${id}`, { method: 'DELETE' }));
+
+      if (deleteRequests.length === 0) {
+        toast.error('Unable to delete: report ID is missing');
+        return;
+      }
+
+      const deleteResponses = await Promise.all(deleteRequests);
+      const failedDeletes = deleteResponses.filter((response) => !response.ok).length;
+
+      if (failedDeletes > 0) {
+        toast.error(`Deleted ${deleteResponses.length - failedDeletes} record(s), ${failedDeletes} failed`);
+      } else {
+        toast.success(`Deleted ${deleteResponses.length} progress record(s)`);
+      }
+
+      const deletedIds = new Set(
+        reportsToDelete
+          .map((item) => getReportId(item))
+          .filter((id): id is string => Boolean(id))
+      );
+
+      setReports((prev) => prev.filter((item) => {
+        const id = getReportId(item);
+        return !id || !deletedIds.has(id);
+      }));
+
+      setSelectedCollege((prev) => {
+        if (!prev) return prev;
+        return prev.collegeId?.trim().toLowerCase() === normalizedCampusId ? null : prev;
+      });
+    } catch (error) {
+      console.error('Error deleting progress report:', error);
+      toast.error('Failed to delete campus progress data');
+    } finally {
+      setDeletingCampusId(null);
+    }
+  };
+
   // Pagination functions
   const getCurrentPageData = () => {
     const filtered = filteredReports;
@@ -2784,7 +2869,13 @@ export default function AdminDashboardForProgress() {
     return filtered.slice(startIndex, endIndex);
   };
 
-  const totalPages = Math.ceil(filteredReports.length / itemsPerPage);
+  const totalPages = Math.max(1, Math.ceil(filteredReports.length / itemsPerPage));
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
 
   const goToPage = (page: number) => {
     setCurrentPage(Math.max(1, Math.min(page, totalPages)));
@@ -5225,15 +5316,27 @@ const formatCurrency = (amount: number): string => {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => setSelectedCollege(report)}
-                            className="shadow-sm hover:shadow-md transition-all hover:bg-blue-600 hover:text-white"
-                          >
-                            <Eye className="h-4 w-4 mr-1" />
-                            View Details
-                          </Button>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setSelectedCollege(report)}
+                              className="shadow-sm hover:shadow-md transition-all hover:bg-blue-600 hover:text-white"
+                            >
+                              <Eye className="h-4 w-4 mr-1" />
+                              View Details
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => handleDeleteCampusProgress(report)}
+                              disabled={deletingCampusId === report.collegeId}
+                              className="shadow-sm hover:shadow-md transition-all"
+                            >
+                              <Trash2 className="h-4 w-4 mr-1" />
+                              {deletingCampusId === report.collegeId ? 'Deleting...' : 'Delete'}
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     );
