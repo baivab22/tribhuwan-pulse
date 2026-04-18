@@ -1,5 +1,5 @@
 import { useScrollToTop } from '@/hooks/useScrollToTop';
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,12 +8,14 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
-import { Building2, ClipboardList, Wallet, Building, TrendingUp, BadgeCheck, ChevronLeft, ChevronRight, Save, Send, ImageIcon, FileText, Loader2, Download, Trash2 } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Building2, ClipboardList, Wallet, Building, TrendingUp, BadgeCheck, ChevronLeft, ChevronRight, Save, Send, ImageIcon, FileText, Loader2, Download, Trash2, Mail, ShieldCheck, KeyRound, LockKeyhole, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
+import { API_BASE } from '@/lib/api';
 import { ProgressReport, Program } from '@/types';
 
 interface ProgressFormProps {
-  onSubmit: (data: ProgressReport) => void | Promise<void>;
+  onSubmit: (data: ProgressReport, verificationToken: string) => void | Promise<void>;
   initialData?: ProgressReport;
   isLoading?: boolean;
 }
@@ -449,6 +451,7 @@ export default function ProgressForm({ onSubmit, initialData, isLoading = false 
     initialData || {
       collegeId: '',
       collegeName: '',
+      verificationEmail: '',
       academicYear: '',
       submissionDate: new Date().toISOString().split('T')[0],
       totalStudents: 0,
@@ -497,6 +500,15 @@ export default function ProgressForm({ onSubmit, initialData, isLoading = false 
   const [uploadingFiles, setUploadingFiles] = useState<{ [key: number]: boolean }>({});
   const [uploadingFinancialFiles, setUploadingFinancialFiles] = useState<{ [key: string]: boolean }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [otpCode, setOtpCode] = useState('');
+  const [isOtpSent, setIsOtpSent] = useState(false);
+  const [isOtpVerified, setIsOtpVerified] = useState(Boolean(initialData?.verificationEmail));
+  const [otpSending, setOtpSending] = useState(false);
+  const [otpVerifying, setOtpVerifying] = useState(false);
+  const [isOtpModalOpen, setIsOtpModalOpen] = useState(!Boolean(initialData?.verificationEmail));
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const [verificationToken, setVerificationToken] = useState('');
+  const [verifiedEmail, setVerifiedEmail] = useState(initialData?.verificationEmail?.toLowerCase() || '');
 
   const scrollNearTop = () => {
     const rectTop = formContainerRef.current?.getBoundingClientRect().top ?? 0;
@@ -504,11 +516,37 @@ export default function ProgressForm({ onSubmit, initialData, isLoading = false 
     window.scrollTo({ top: targetTop, behavior: 'smooth' });
   };
 
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+
+    const intervalId = window.setInterval(() => {
+      setResendCooldown((current) => (current > 0 ? current - 1 : 0));
+    }, 1000);
+
+    return () => window.clearInterval(intervalId);
+  }, [resendCooldown]);
+
   const handleInputChange = (field: keyof ProgressReport, value: string | number) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
     }));
+  };
+
+  const handleVerificationEmailChange = (value: string) => {
+    const normalizedValue = value.trim().toLowerCase();
+    handleInputChange('verificationEmail', normalizedValue);
+
+    if (isOtpSent || (verifiedEmail && normalizedValue !== verifiedEmail)) {
+      setIsOtpSent(false);
+      setOtpCode('');
+    }
+
+    if (verifiedEmail && normalizedValue !== verifiedEmail) {
+      setIsOtpVerified(false);
+      setVerificationToken('');
+      setVerifiedEmail('');
+    }
   };
 
   const handleFinancialChange = (category: FinancialCategoryKey, field: string, value: number) => {
@@ -709,6 +747,93 @@ export default function ProgressForm({ onSubmit, initialData, isLoading = false 
 
   const removeProgram = (index: number) => {
     setPrograms(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const requestOtp = async () => {
+    const email = formData.verificationEmail?.trim().toLowerCase() || '';
+
+    if (!email) {
+      toast.error('Enter your email first.');
+      return;
+    }
+
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailPattern.test(email)) {
+      toast.error('Enter a valid email address.');
+      return;
+    }
+
+    setOtpSending(true);
+    try {
+      const response = await fetch(`${API_BASE}/api/progress/otp/request`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(payload.message || 'Failed to send OTP');
+      }
+
+      setIsOtpSent(true);
+      setOtpCode('');
+      setResendCooldown(payload.resendAfterSeconds || 60);
+      if (payload.deliveryMode === 'smtp') {
+        toast.success(payload.message || 'OTP sent to your email address. Check your inbox to continue.');
+      } else {
+        toast.info(payload.message || 'OTP was generated for development and logged on the server. No email was sent.');
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to send OTP');
+    } finally {
+      setOtpSending(false);
+    }
+  };
+
+  const verifyOtp = async () => {
+    const email = formData.verificationEmail?.trim().toLowerCase() || '';
+    const otp = otpCode.trim();
+
+    if (!email) {
+      toast.error('Enter your email first.');
+      return;
+    }
+
+    if (otp.length < 4) {
+      toast.error('Enter the full verification code.');
+      return;
+    }
+
+    setOtpVerifying(true);
+    try {
+      const response = await fetch(`${API_BASE}/api/progress/otp/verify`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, otp }),
+      });
+
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(payload.message || 'Failed to verify OTP');
+      }
+
+      setVerificationToken(payload.verificationToken);
+      setIsOtpVerified(true);
+      setIsOtpSent(true);
+      setVerifiedEmail(email);
+      setActiveTab('basic');
+      setOtpCode('');
+      setIsOtpModalOpen(false);
+      toast.success('Email verified. You can now complete the progress form.');
+      window.requestAnimationFrame(() => {
+        window.requestAnimationFrame(scrollNearTop);
+      });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to verify OTP');
+    } finally {
+      setOtpVerifying(false);
+    }
   };
 
   const handleFileUpload = async (index: number, event: React.ChangeEvent<HTMLInputElement>) => {
@@ -938,9 +1063,51 @@ export default function ProgressForm({ onSubmit, initialData, isLoading = false 
     }
   };
 
-  const validateCurrentTab = (): boolean => true;
+  const validateCurrentTab = (): boolean => {
+    if (activeTab === 'basic') {
+      if (!formData.verificationEmail?.trim()) {
+        toast.error('Enter and verify your email before continuing.');
+        return false;
+      }
+
+      if (!formData.collegeId?.trim() || !formData.collegeName?.trim() || !formData.academicYear?.trim()) {
+        toast.error('Campus ID, campus name, and academic year are required.');
+        return false;
+      }
+    }
+
+    if (activeTab === 'programs') {
+      if (!programs.length) {
+        toast.error('Add at least one program.');
+        return false;
+      }
+
+      const incompleteProgramIndex = programs.findIndex((program) => {
+        return !program.institution.trim() || !program.level.trim() || !program.programName.trim() || !program.approvalLetterPath;
+      });
+
+      if (incompleteProgramIndex !== -1) {
+        toast.error(`Complete program ${incompleteProgramIndex + 1} and upload its approval letter before continuing.`);
+        return false;
+      }
+    }
+
+    if (activeTab === 'declaration') {
+      if (!formData.headName?.trim() || !formData.principalName?.trim() || !formData.submittedBy?.trim()) {
+        toast.error('Fill all declaration fields before submitting.');
+        return false;
+      }
+    }
+
+    return true;
+  };
 
   const handleNext = () => {
+    if (!isOtpVerified) {
+      toast.error('Verify your email first to unlock the progress form.');
+      return;
+    }
+
     if (!validateCurrentTab()) return;
     
     const currentIndex = tabOrder.indexOf(activeTab);
@@ -961,6 +1128,11 @@ export default function ProgressForm({ onSubmit, initialData, isLoading = false 
 
   const handleSubmit = async () => {
     if (isLoading || isSubmitting) return;
+
+    if (!isOtpVerified || !verificationToken) {
+      toast.error('Verify your email before submitting the progress form.');
+      return;
+    }
 
     if (!isLastTab) {
       toast.error('Please complete the Declaration step before submitting.');
@@ -984,7 +1156,7 @@ export default function ProgressForm({ onSubmit, initialData, isLoading = false 
     const submitToastId = toast.loading('Submitting progress report...');
 
     try {
-      await Promise.resolve(onSubmit(submitData));
+      await Promise.resolve(onSubmit(submitData, verificationToken));
       toast.success('Progress report submitted successfully', { id: submitToastId });
     } catch (error) {
       console.error('Error submitting progress report:', error);
@@ -1013,6 +1185,23 @@ export default function ProgressForm({ onSubmit, initialData, isLoading = false 
   const isLastTab = activeTab === 'declaration';
   const isFirstTab = activeTab === 'basic';
   const numberValue = (value: number | null | undefined) => (value === 0 || value == null ? '' : value);
+  const normalizedVerificationEmail = formData.verificationEmail?.trim().toLowerCase() || '';
+  const canRequestOtp = !otpSending && !!normalizedVerificationEmail;
+  const canVerifyOtp = !otpVerifying && isOtpSent && otpCode.trim().length >= 4;
+  const otpStepItems = [
+    {
+      label: 'Enter email',
+      complete: Boolean(normalizedVerificationEmail),
+    },
+    {
+      label: 'Send OTP',
+      complete: isOtpSent,
+    },
+    {
+      label: 'Verify code',
+      complete: isOtpVerified,
+    },
+  ];
   const isImageFile = (filename?: string | null, filePath?: string | null) => {
     const source = `${filename || ''} ${filePath || ''}`.toLowerCase();
     return /(\.png|\.jpe?g|\.gif|\.webp|\.bmp|\.svg)/.test(source);
@@ -1054,7 +1243,193 @@ export default function ProgressForm({ onSubmit, initialData, isLoading = false 
         onSubmit={(e) => e.preventDefault()}
         className="space-y-1 [&_label]:mb-2 [&_label]:block [&_label]:text-sm [&_label]:font-semibold [&_label]:text-slate-800 [&_input]:border-2 [&_input]:border-slate-400 [&_input]:bg-white [&_input]:text-[15px] [&_input]:font-medium [&_input]:text-slate-900 [&_input]:placeholder:text-slate-500 [&_input]:focus-visible:border-blue-600 [&_input]:focus-visible:ring-2 [&_input]:focus-visible:ring-blue-200 [&_textarea]:border-2 [&_textarea]:border-slate-400 [&_textarea]:bg-white [&_textarea]:text-[15px] [&_textarea]:font-medium [&_textarea]:text-slate-900 [&_textarea]:placeholder:text-slate-500 [&_textarea]:focus-visible:border-blue-600 [&_textarea]:focus-visible:ring-2 [&_textarea]:focus-visible:ring-blue-200 [&_button[role=combobox]]:border-2 [&_button[role=combobox]]:border-slate-400 [&_button[role=combobox]]:bg-white [&_button[role=combobox]]:text-[15px] [&_button[role=combobox]]:font-medium [&_button[role=combobox]]:text-slate-900 [&_button[role=combobox]]:focus:ring-2 [&_button[role=combobox]]:focus:ring-blue-200"
       >
-        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as typeof activeTab)} className="space-y-6">
+        <Card className="mb-6 overflow-hidden border-slate-200 bg-gradient-to-br from-slate-950 via-blue-950 to-cyan-950 text-white shadow-2xl shadow-slate-900/20">
+          <CardContent className="grid gap-6 p-6 lg:grid-cols-[1.15fr_0.85fr] lg:p-8">
+            {isOtpVerified ? (
+              <div className="relative overflow-hidden rounded-2xl border border-emerald-400/20 bg-emerald-500/10 p-6 backdrop-blur">
+                <div className="absolute right-0 top-0 h-32 w-32 rounded-full bg-emerald-400/15 blur-3xl" />
+                <div className="relative flex items-center gap-3 text-emerald-50">
+                  <ShieldCheck className="h-6 w-6" />
+                  <div>
+                    <p className="text-sm font-semibold uppercase tracking-[0.16em] text-emerald-100/90">Verification completed</p>
+                    <p className="mt-1 text-sm text-emerald-50/90">{verifiedEmail}</p>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur">
+                  <div className="absolute right-0 top-0 h-32 w-32 rounded-full bg-cyan-400/15 blur-3xl" />
+                  <div className="relative space-y-4">
+                    <div className="inline-flex items-center gap-2 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-cyan-100">
+                      <Sparkles className="h-3.5 w-3.5" />
+                      Verification first
+                    </div>
+                    <div>
+                      <h2 className="text-2xl font-semibold sm:text-3xl">Unlock the progress form with email verification</h2>
+                      <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-200 sm:text-base">
+                        Enter your email, receive a one-time code, and verify it before you can continue to campus details,
+                        program approvals, financials, and the final declaration.
+                      </p>
+                    </div>
+                    <div className="grid gap-3 sm:grid-cols-3">
+                      {[
+                        '1. Enter email',
+                        '2. Verify OTP',
+                        '3. Complete report',
+                      ].map((item) => (
+                        <div key={item} className="rounded-xl border border-white/10 bg-white/5 px-3 py-3 text-sm text-slate-100">
+                          {item}
+                        </div>
+                      ))}
+                    </div>
+                    <div className="flex items-center gap-3 rounded-xl border border-amber-400/30 bg-amber-400/10 px-4 py-3 text-amber-50">
+                      <LockKeyhole className="h-5 w-5" />
+                      <div>
+                        <p className="font-semibold">Form locked</p>
+                        <p className="text-sm text-amber-50/90">The rest of the report remains read-only until verification succeeds.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="rounded-2xl border border-white/10 bg-slate-950/30 p-4 shadow-inner shadow-black/10 backdrop-blur sm:p-5">
+                  <div className="space-y-4">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <p className="text-sm font-semibold uppercase tracking-[0.16em] text-cyan-100/90">Email verification</p>
+                      {isOtpSent ? (
+                        <span className="rounded-full border border-blue-300/40 bg-blue-400/10 px-3 py-1 text-xs font-semibold text-blue-100">
+                          Code sent
+                        </span>
+                      ) : (
+                        <span className="rounded-full border border-amber-300/40 bg-amber-400/10 px-3 py-1 text-xs font-semibold text-amber-100">
+                          Awaiting email
+                        </span>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                      {otpStepItems.map((step, index) => (
+                        <div key={step.label} className={step.complete ? 'rounded-lg border border-emerald-300/40 bg-emerald-400/10 px-3 py-2 text-xs font-semibold text-emerald-100' : 'rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-xs font-medium text-slate-200'}>
+                          {index + 1}. {step.label}
+                        </div>
+                      ))}
+                    </div>
+                    <div className="rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-xs text-slate-200">
+                      <p>Open the verification modal to send the code and confirm your email.</p>
+                      <p className="mt-1 font-medium text-cyan-100">{isOtpSent ? (resendCooldown > 0 ? `Resend available in ${resendCooldown}s` : 'Resend is ready now.') : 'Verification required before report entry.'}</p>
+                    </div>
+                    <Button
+                      type="button"
+                      onClick={() => setIsOtpModalOpen(true)}
+                      className="w-full bg-cyan-500 text-slate-950 hover:bg-cyan-400"
+                    >
+                      <KeyRound className="mr-2 h-4 w-4" />
+                      {isOtpSent ? 'Enter code and verify' : 'Open verification'}
+                    </Button>
+
+                    <Dialog open={isOtpModalOpen} onOpenChange={setIsOtpModalOpen}>
+                      <DialogContent className="max-h-[90vh] overflow-y-auto border-slate-200 bg-white sm:max-w-lg">
+                        <DialogHeader>
+                          <DialogTitle className="flex items-center gap-2 text-slate-900">
+                            <ShieldCheck className="h-5 w-5 text-blue-600" />
+                            Email verification
+                          </DialogTitle>
+                          <DialogDescription>
+                            Send a one-time code to your email and verify it to unlock the progress form.
+                          </DialogDescription>
+                        </DialogHeader>
+
+                        <div className="space-y-4">
+                          {!isOtpSent ? (
+                            <>
+                              <div>
+                                <Label htmlFor="verificationEmail" className="text-slate-900">Verification email</Label>
+                                <div className="relative mt-2">
+                                  <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+                                  <Input
+                                    id="verificationEmail"
+                                    type="email"
+                                    value={formData.verificationEmail || ''}
+                                    onChange={(e) => handleVerificationEmailChange(e.target.value)}
+                                    placeholder="name@example.com"
+                                    className="pl-10"
+                                  />
+                                </div>
+                                <p className="mt-2 text-xs text-slate-500">Use an email you can access now. OTP is valid for 10 minutes.</p>
+                              </div>
+
+                              <Button
+                                type="button"
+                                onClick={requestOtp}
+                                disabled={!canRequestOtp}
+                                className="w-full bg-blue-600 hover:bg-blue-700"
+                              >
+                                {otpSending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <KeyRound className="mr-2 h-4 w-4" />}
+                                Send OTP
+                              </Button>
+                            </>
+                          ) : (
+                            <>
+                              <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-xs text-slate-600">
+                                <p>OTP sent to <span className="font-semibold">{formData.verificationEmail}</span>. Enter the code to verify.</p>
+                                <p className="mt-1 font-semibold text-slate-700">{resendCooldown > 0 ? `Resend available in ${resendCooldown}s` : 'Code ready to verify.'}</p>
+                              </div>
+
+                              <div>
+                                <Label htmlFor="otpCode" className="text-slate-900">Verify token</Label>
+                                <Input
+                                  id="otpCode"
+                                  inputMode="numeric"
+                                  autoComplete="one-time-code"
+                                  value={otpCode}
+                                  onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter' && canVerifyOtp) {
+                                      e.preventDefault();
+                                      verifyOtp();
+                                    }
+                                  }}
+                                  placeholder="Enter the 6-digit token"
+                                  maxLength={6}
+                                  className="mt-2 font-mono tracking-[0.28em] text-center text-lg sm:tracking-[0.4em]"
+                                />
+                              </div>
+
+                              <Button
+                                type="button"
+                                variant="outline"
+                                onClick={verifyOtp}
+                                disabled={!canVerifyOtp}
+                                className="w-full"
+                              >
+                                {otpVerifying ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ShieldCheck className="mr-2 h-4 w-4" />}
+                                Verify now
+                              </Button>
+
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                onClick={() => {
+                                  setIsOtpSent(false);
+                                  setOtpCode('');
+                                }}
+                                className="h-auto justify-start px-0 text-xs font-semibold text-slate-600 hover:bg-transparent hover:text-slate-900"
+                              >
+                                Change email and send OTP again
+                              </Button>
+                            </>
+                          )}
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
+                </div>
+              </>
+            )}
+          </CardContent>
+        </Card>
+
+        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as typeof activeTab)} className={isOtpVerified ? 'space-y-6' : 'pointer-events-none space-y-6 opacity-50'}>
           <TabsList className="grid h-auto w-full grid-cols-2 gap-2 rounded-xl border border-slate-200 bg-slate-50 p-2 md:grid-cols-3 xl:grid-cols-6">
             {tabMeta.map((tab, index) => {
               const Icon = tab.icon;
@@ -2128,33 +2503,39 @@ export default function ProgressForm({ onSubmit, initialData, isLoading = false 
             </Card>
           </TabsContent>
         </Tabs>
-        <div className="mt-6 rounded-xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4">
+        <div className={isOtpVerified ? 'mt-6 rounded-xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4' : 'mt-6 rounded-xl border border-amber-200 bg-amber-50 p-3 shadow-sm sm:p-4'}>
           <div className="mb-3 flex items-center justify-between text-sm">
             <p className="font-medium text-slate-700">Step {currentStepIndex + 1} of {tabOrder.length}</p>
             <p className="text-slate-500">{completionPercentage.toFixed(0)}% complete</p>
           </div>
+          {!isOtpVerified && (
+            <div className="mb-3 flex items-center gap-2 rounded-lg border border-amber-200 bg-white px-3 py-2 text-sm text-amber-900">
+              <LockKeyhole className="h-4 w-4" />
+              Verify your email above to unlock navigation and submission.
+            </div>
+          )}
           <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
             <div>
             {!isFirstTab && (
-              <Button type="button" variant="outline" onClick={handlePrevious}>
+              <Button type="button" variant="outline" onClick={handlePrevious} disabled={!isOtpVerified}>
                 <ChevronLeft className="mr-1 h-4 w-4" />
                 Previous
               </Button>
             )}
             </div>
             <div className="ml-auto flex flex-wrap gap-2 sm:gap-3">
-            <Button type="button" variant="outline">
+            <Button type="button" variant="outline" disabled>
               <Save className="mr-1 h-4 w-4" />
               Save as Draft
             </Button>
             
             {!isLastTab ? (
-              <Button type="button" onClick={handleNext} className="bg-blue-600 hover:bg-blue-700">
+              <Button type="button" onClick={handleNext} disabled={!isOtpVerified} className="bg-blue-600 hover:bg-blue-700">
                 Next
                 <ChevronRight className="ml-1 h-4 w-4" />
               </Button>
             ) : (
-              <Button type="button" onClick={handleSubmit} disabled={isLoading || isSubmitting} className="bg-green-600 hover:bg-green-700">
+              <Button type="button" onClick={handleSubmit} disabled={!isOtpVerified || isLoading || isSubmitting} className="bg-green-600 hover:bg-green-700">
                 <Send className="mr-1 h-4 w-4" />
                 {isLoading || isSubmitting ? 'Submitting...' : 'Submit Report'}
               </Button>

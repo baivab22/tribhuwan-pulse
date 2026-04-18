@@ -615,13 +615,14 @@ function Header() {
 const App = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const handleFormSubmit = async (data: ProgressReport) => {
+    const handleFormSubmit = async (data: ProgressReport, verificationToken: string) => {
     setIsSubmitting(true);
     try {
       const response = await fetch(`${API_BASE}/api/progress`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'x-progress-verification-token': verificationToken,
         },
         body: JSON.stringify(data),
       });

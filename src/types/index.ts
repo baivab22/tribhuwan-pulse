@@ -44,6 +44,7 @@ export interface ProgressReport {
   id?: string;
   collegeId: string;
   collegeName: string;
+  verificationEmail?: string;
   academicYear: string;
   submissionDate: string;
   
