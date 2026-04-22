@@ -132,8 +132,8 @@ export default function OrganizationTreeSection() {
   const leadership: OrgPerson[] = [
     { name: 'Sodasi Ojha Regmi', role: 'Deputy Administrator', email: 'Sodasiojha@tu.edu.np', details: 'Supports administration, coordination, and operational follow-through.', accent: 'from-blue-700 to-slate-700' },
     { name: 'Dr. Prakasah Gautam', role: 'NHEP Coordinator', email: 'prakash.gautam@tu.edu.np', details: 'Coordinates NHEP-related planning and execution activities.', accent: 'from-slate-700 to-blue-700' },
-    { name: 'Bal Krishna Subedi', role: 'IT Expert', email: 'balkrishna.subedi@cdcsit.tu.edu.np', details: 'Assesses university IT needs, develops security-aligned strategies and policies, implements systems, supports partnerships, resolves issues, trains staff, oversees project timelines, budgets, and quality, advises on emerging technologies and data privacy, and leads ongoing monitoring and reporting.', accent: 'from-blue-700 to-cyan-700' },
-    { name: 'Sujan Tripathi', role: 'Structural Engineering Expert', email: 'sujantripathi@ioe.edu.np', details: 'Provides structural engineering guidance and review support.', accent: 'from-sky-700 to-blue-700' },
+    { name: 'Bal Krishna Subedi', role: 'IT Expert /Asst. Professor', email: 'balkrishna.subedi@cdcsit.tu.edu.np', details: 'Assesses university IT needs, develops security-aligned strategies and policies, implements systems, supports partnerships, resolves issues, trains staff, oversees project timelines, budgets, and quality, advises on emerging technologies and data privacy, and leads ongoing monitoring and reporting.', accent: 'from-blue-700 to-cyan-700' },
+    { name: 'Sujan Tripathi', role: 'Structural Engineering Expert /Asst. Professor', email: 'sujantripathi@ioe.edu.np', details: 'Provides structural engineering guidance and review support.', accent: 'from-sky-700 to-blue-700' },
   ];
 
   const sectionLead: OrgPerson = {

@@ -69,6 +69,7 @@ export const UniversityFooter = () => {
 
   const contactInfo = [
     { label: "Phone", value: "+977-1-4330437" },
+    { label: "Phone", value: "014330421" },
     { label: "Email", value: "director.pd@tu.edu.np" },
     { label: "Address", value: "Kirtipur, Kathmandu, Nepal" }
   ];

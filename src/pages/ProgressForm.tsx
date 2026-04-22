@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Building2, ClipboardList, Wallet, Building, TrendingUp, BadgeCheck, ChevronLeft, ChevronRight, Save, Send, ImageIcon, FileText, Loader2, Download, Trash2, Mail, ShieldCheck, KeyRound, LockKeyhole, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import { API_BASE } from '@/lib/api';
@@ -505,7 +505,7 @@ export default function ProgressForm({ onSubmit, initialData, isLoading = false 
   const [isOtpVerified, setIsOtpVerified] = useState(Boolean(initialData?.verificationEmail));
   const [otpSending, setOtpSending] = useState(false);
   const [otpVerifying, setOtpVerifying] = useState(false);
-  const [isOtpModalOpen, setIsOtpModalOpen] = useState(!Boolean(initialData?.verificationEmail));
+  const [isOtpModalOpen, setIsOtpModalOpen] = useState(!(initialData?.verificationEmail));
   const [resendCooldown, setResendCooldown] = useState(0);
   const [verificationToken, setVerificationToken] = useState('');
   const [verifiedEmail, setVerifiedEmail] = useState(initialData?.verificationEmail?.toLowerCase() || '');
@@ -1332,18 +1332,15 @@ export default function ProgressForm({ onSubmit, initialData, isLoading = false 
                         <DialogHeader>
                           <DialogTitle className="flex items-center gap-2 text-slate-900">
                             <ShieldCheck className="h-5 w-5 text-blue-600" />
-                            Email verification
+                            इमेल प्रमाणिकरण
                           </DialogTitle>
-                          <DialogDescription>
-                            Send a one-time code to your email and verify it to unlock the progress form.
-                          </DialogDescription>
                         </DialogHeader>
 
                         <div className="space-y-4">
                           {!isOtpSent ? (
                             <>
                               <div>
-                                <Label htmlFor="verificationEmail" className="text-slate-900">Verification email</Label>
+                                <Label htmlFor="verificationEmail" className="text-slate-900">इमेल</Label>
                                 <div className="relative mt-2">
                                   <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
                                   <Input
@@ -1351,11 +1348,11 @@ export default function ProgressForm({ onSubmit, initialData, isLoading = false 
                                     type="email"
                                     value={formData.verificationEmail || ''}
                                     onChange={(e) => handleVerificationEmailChange(e.target.value)}
-                                    placeholder="name@example.com"
+                                    placeholder="आफ्नो इमेल ठेगाना लेख्नुहोस्"
                                     className="pl-10"
                                   />
                                 </div>
-                                <p className="mt-2 text-xs text-slate-500">Use an email you can access now. OTP is valid for 10 minutes.</p>
+                                <p className="mt-2 text-xs text-slate-500">OTP पठाउन सकिने इमेल लेख्नुहोस्। ओटीपी १० मिनेटका लागि मान्य हुन्छ।</p>
                               </div>
 
                               <Button
@@ -1365,18 +1362,18 @@ export default function ProgressForm({ onSubmit, initialData, isLoading = false 
                                 className="w-full bg-blue-600 hover:bg-blue-700"
                               >
                                 {otpSending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <KeyRound className="mr-2 h-4 w-4" />}
-                                Send OTP
+                                ओटीपी पठाउनुहोस्
                               </Button>
                             </>
                           ) : (
                             <>
                               <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-xs text-slate-600">
-                                <p>OTP sent to <span className="font-semibold">{formData.verificationEmail}</span>. Enter the code to verify.</p>
-                                <p className="mt-1 font-semibold text-slate-700">{resendCooldown > 0 ? `Resend available in ${resendCooldown}s` : 'Code ready to verify.'}</p>
+                                <p>ओटीपी <span className="font-semibold">{formData.verificationEmail}</span> मा पठाइएको छ। तल कोड लेख्नुहोस्।</p>
+                                <p className="mt-1 font-semibold text-slate-700">{resendCooldown > 0 ? `पुन: पठाउन ${resendCooldown} सेकेन्ड कुर्नुहोस्` : 'कोड लेख्न तयार छ।'}</p>
                               </div>
 
                               <div>
-                                <Label htmlFor="otpCode" className="text-slate-900">Verify token</Label>
+                                <Label htmlFor="otpCode" className="text-slate-900">ओटीपी कोड</Label>
                                 <Input
                                   id="otpCode"
                                   inputMode="numeric"
@@ -1389,7 +1386,7 @@ export default function ProgressForm({ onSubmit, initialData, isLoading = false 
                                       verifyOtp();
                                     }
                                   }}
-                                  placeholder="Enter the 6-digit token"
+                                  placeholder="६-अङ्कको कोड लेख्नुहोस्"
                                   maxLength={6}
                                   className="mt-2 font-mono tracking-[0.28em] text-center text-lg sm:tracking-[0.4em]"
                                 />
@@ -1403,7 +1400,7 @@ export default function ProgressForm({ onSubmit, initialData, isLoading = false 
                                 className="w-full"
                               >
                                 {otpVerifying ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ShieldCheck className="mr-2 h-4 w-4" />}
-                                Verify now
+                                प्रमाणित गर्नुहोस्
                               </Button>
 
                               <Button
@@ -1415,7 +1412,7 @@ export default function ProgressForm({ onSubmit, initialData, isLoading = false 
                                 }}
                                 className="h-auto justify-start px-0 text-xs font-semibold text-slate-600 hover:bg-transparent hover:text-slate-900"
                               >
-                                Change email and send OTP again
+                                इमेल परिवर्तन गर्नुहोस् र ओटीपी पुन: पठाउनुहोस्
                               </Button>
                             </>
                           )}
