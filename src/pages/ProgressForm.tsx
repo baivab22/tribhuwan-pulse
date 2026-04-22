@@ -1463,12 +1463,12 @@ export default function ProgressForm({ onSubmit, initialData, isLoading = false 
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div>
-                    <Label htmlFor="collegeId">Campus ID</Label>
+                    <Label htmlFor="collegeId">Campus Code</Label>
                     <Input
                       id="collegeId"
                       value={formData.collegeId}
                       onChange={(e) => handleInputChange('collegeId', e.target.value)}
-                      placeholder="Type your campus ID"
+                      placeholder="Type your campus Code"
                     />
                   </div>
                   <div>
