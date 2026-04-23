@@ -23,6 +23,17 @@ interface ProgressFormProps {
 type FinancialCategoryKey = 'salaries' | 'capital' | 'operational' | 'research';
 
 const tabOrder = ['basic', 'programs', 'financial', 'infrastructure', 'progress', 'declaration'] as const;
+const DRAFT_STORAGE_PREFIX = 'progress_form_draft_v1';
+
+type ProgressDraft = {
+  formData: Partial<ProgressReport>;
+  programs: Program[];
+  activeTab: (typeof tabOrder)[number];
+  maxUnlockedStep: number;
+  verifiedEmail: string;
+  isOtpVerified: boolean;
+  savedAt: string;
+};
 
 // Tribhuvan University Programs Data Structure
 const tuPrograms = {
@@ -509,6 +520,66 @@ export default function ProgressForm({ onSubmit, initialData, isLoading = false 
   const [resendCooldown, setResendCooldown] = useState(0);
   const [verificationToken, setVerificationToken] = useState('');
   const [verifiedEmail, setVerifiedEmail] = useState(initialData?.verificationEmail?.toLowerCase() || '');
+  const [maxUnlockedStep, setMaxUnlockedStep] = useState(0);
+  const autoRestoredEmailRef = useRef('');
+
+  const getDraftKey = (email: string) => `${DRAFT_STORAGE_PREFIX}_${email.trim().toLowerCase()}`;
+
+  const loadDraftForEmail = (email: string): ProgressDraft | null => {
+    if (typeof window === 'undefined' || !email) return null;
+
+    try {
+      const rawDraft = window.localStorage.getItem(getDraftKey(email));
+      if (!rawDraft) return null;
+      return JSON.parse(rawDraft) as ProgressDraft;
+    } catch {
+      return null;
+    }
+  };
+
+  const persistDraftForEmail = (email: string) => {
+    if (typeof window === 'undefined') return;
+
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!normalizedEmail) {
+      toast.error('Enter and verify your email before saving draft.');
+      return;
+    }
+
+    const currentMaxUnlockedStep = Math.max(maxUnlockedStep, tabOrder.indexOf(activeTab));
+    const draftPayload: ProgressDraft = {
+      formData: {
+        ...formData,
+        verificationEmail: normalizedEmail,
+      },
+      programs,
+      activeTab,
+      maxUnlockedStep: currentMaxUnlockedStep,
+      verifiedEmail: normalizedEmail,
+      isOtpVerified,
+      savedAt: new Date().toISOString(),
+    };
+
+    window.localStorage.setItem(getDraftKey(normalizedEmail), JSON.stringify(draftPayload));
+    setMaxUnlockedStep(currentMaxUnlockedStep);
+  };
+
+  const restoreDraft = (draft: ProgressDraft) => {
+    const safeStep = Math.min(
+      Math.max(draft.maxUnlockedStep ?? tabOrder.indexOf(draft.activeTab ?? 'basic'), 0),
+      tabOrder.length - 1
+    );
+    const safeTab = tabOrder[safeStep];
+
+    setFormData(draft.formData);
+    setPrograms(draft.programs?.length ? draft.programs : [createEmptyProgram()]);
+    setMaxUnlockedStep(safeStep);
+    setActiveTab(safeTab);
+    setIsOtpVerified(Boolean(draft.isOtpVerified));
+    setVerifiedEmail(draft.verifiedEmail || draft.formData.verificationEmail?.toLowerCase() || '');
+    setIsOtpModalOpen(!Boolean(draft.isOtpVerified));
+    setIsOtpSent(Boolean(draft.isOtpVerified));
+  };
 
   const scrollNearTop = () => {
     const rectTop = formContainerRef.current?.getBoundingClientRect().top ?? 0;
@@ -525,6 +596,26 @@ export default function ProgressForm({ onSubmit, initialData, isLoading = false 
 
     return () => window.clearInterval(intervalId);
   }, [resendCooldown]);
+
+  useEffect(() => {
+    const normalizedEmail = formData.verificationEmail?.trim().toLowerCase() || '';
+    if (!normalizedEmail || isOtpVerified) return;
+    if (autoRestoredEmailRef.current === normalizedEmail) return;
+
+    const savedDraft = loadDraftForEmail(normalizedEmail);
+    if (savedDraft?.isOtpVerified) {
+      restoreDraft(savedDraft);
+      autoRestoredEmailRef.current = normalizedEmail;
+      toast.success('Saved draft restored. Continuing from your last saved step.');
+    }
+  }, [formData.verificationEmail, isOtpVerified]);
+
+  useEffect(() => {
+    const currentStep = tabOrder.indexOf(activeTab);
+    if (currentStep > maxUnlockedStep) {
+      setMaxUnlockedStep(currentStep);
+    }
+  }, [activeTab, maxUnlockedStep]);
 
   const handleInputChange = (field: keyof ProgressReport, value: string | number) => {
     setFormData(prev => ({
@@ -826,6 +917,11 @@ export default function ProgressForm({ onSubmit, initialData, isLoading = false 
       setOtpCode('');
       setIsOtpModalOpen(false);
       toast.success('Email verified. You can now complete the progress form.');
+      const savedDraft = loadDraftForEmail(email);
+      if (savedDraft?.isOtpVerified) {
+        restoreDraft(savedDraft);
+        toast.success('Saved draft found. Continued from your last saved position.');
+      }
       window.requestAnimationFrame(() => {
         window.requestAnimationFrame(scrollNearTop);
       });
@@ -1112,7 +1208,12 @@ export default function ProgressForm({ onSubmit, initialData, isLoading = false 
     
     const currentIndex = tabOrder.indexOf(activeTab);
     if (currentIndex < tabOrder.length - 1) {
-      setActiveTab(tabOrder[currentIndex + 1]);
+      const nextIndex = currentIndex + 1;
+      setMaxUnlockedStep((previousMaxStep) => Math.max(previousMaxStep, nextIndex));
+      setActiveTab(tabOrder[nextIndex]);
+      if (verifiedEmail) {
+        persistDraftForEmail(verifiedEmail);
+      }
       window.requestAnimationFrame(() => {
         window.requestAnimationFrame(scrollNearTop);
       });
@@ -1157,6 +1258,9 @@ export default function ProgressForm({ onSubmit, initialData, isLoading = false 
 
     try {
       await Promise.resolve(onSubmit(submitData, verificationToken));
+      if (typeof window !== 'undefined' && verifiedEmail) {
+        window.localStorage.removeItem(getDraftKey(verifiedEmail));
+      }
       toast.success('Progress report submitted successfully', { id: submitToastId });
     } catch (error) {
       console.error('Error submitting progress report:', error);
@@ -1426,7 +1530,19 @@ export default function ProgressForm({ onSubmit, initialData, isLoading = false 
           </CardContent>
         </Card>
 
-        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as typeof activeTab)} className={isOtpVerified ? 'space-y-6' : 'pointer-events-none space-y-6 opacity-50'}>
+        <Tabs
+          value={activeTab}
+          onValueChange={(value) => {
+            const targetTab = value as typeof activeTab;
+            const targetIndex = tabOrder.indexOf(targetTab);
+            if (targetIndex > maxUnlockedStep) {
+              toast.info(`Complete previous sections first. You can continue up to step ${maxUnlockedStep + 1}.`);
+              return;
+            }
+            setActiveTab(targetTab);
+          }}
+          className={isOtpVerified ? 'space-y-6' : 'pointer-events-none space-y-6 opacity-50'}
+        >
           <TabsList className="grid h-auto w-full grid-cols-2 gap-2 rounded-xl border border-slate-200 bg-slate-50 p-2 md:grid-cols-3 xl:grid-cols-6">
             {tabMeta.map((tab, index) => {
               const Icon = tab.icon;
@@ -2521,7 +2637,19 @@ export default function ProgressForm({ onSubmit, initialData, isLoading = false 
             )}
             </div>
             <div className="ml-auto flex flex-wrap gap-2 sm:gap-3">
-            <Button type="button" variant="outline" disabled>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                if (!isOtpVerified || !verifiedEmail) {
+                  toast.error('Verify your email first to save draft.');
+                  return;
+                }
+                persistDraftForEmail(verifiedEmail);
+                toast.success('Draft saved successfully.');
+              }}
+              disabled={!isOtpVerified}
+            >
               <Save className="mr-1 h-4 w-4" />
               Save as Draft
             </Button>
