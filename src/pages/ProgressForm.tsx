@@ -32,6 +32,7 @@ type ProgressDraft = {
   maxUnlockedStep: number;
   verifiedEmail: string;
   isOtpVerified: boolean;
+  verificationToken: string;
   savedAt: string;
 };
 
@@ -557,6 +558,7 @@ export default function ProgressForm({ onSubmit, initialData, isLoading = false 
       maxUnlockedStep: currentMaxUnlockedStep,
       verifiedEmail: normalizedEmail,
       isOtpVerified,
+      verificationToken,
       savedAt: new Date().toISOString(),
     };
 
@@ -576,6 +578,7 @@ export default function ProgressForm({ onSubmit, initialData, isLoading = false 
     setMaxUnlockedStep(safeStep);
     setActiveTab(safeTab);
     setIsOtpVerified(Boolean(draft.isOtpVerified));
+    setVerificationToken(draft.verificationToken || '');
     setVerifiedEmail(draft.verifiedEmail || draft.formData.verificationEmail?.toLowerCase() || '');
     setIsOtpModalOpen(!Boolean(draft.isOtpVerified));
     setIsOtpSent(Boolean(draft.isOtpVerified));
