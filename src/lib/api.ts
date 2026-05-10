@@ -112,6 +112,8 @@ export interface CampusListItem {
   principlename?: string;
   contactNumber?: string;
   emailAddress?: string;
+  location?: string | null;
+  collegeType?: string;
 }
 
 export interface CampusListPayload {
@@ -123,6 +125,8 @@ export interface CampusListPayload {
   principlename?: string;
   contactNumber?: string;
   emailAddress?: string;
+  location?: string | null;
+  collegeType?: string;
 }
 
 export interface CollegeFormPayload {
@@ -1300,6 +1304,8 @@ export async function listCampusRecords(params: {
   page?: number;
   limit?: number;
   district?: string;
+  collegeType?: string;
+  campusType?: string;
   search?: string;
 }) {
   const response = await api.get<{

@@ -15,7 +15,7 @@ import {
   listCampusRecords,
 } from '@/lib/api';
 import districts from '@/data/districts.json';
-import { Edit, Plus, RefreshCcw, Trash2 } from 'lucide-react';
+import { Edit, ExternalLink, MapPin, Plus, RefreshCcw, Trash2 } from 'lucide-react';
 
 type FormMode = 'create' | 'edit';
 
@@ -29,6 +29,8 @@ type CampusFormState = {
   principlename: string;
   contactNumber: string;
   emailAddress: string;
+  location: string;
+  collegeType: string;
 };
 
 const PAGE_SIZE = 12;
@@ -42,6 +44,8 @@ const emptyForm: CampusFormState = {
   principlename: '',
   contactNumber: '',
   emailAddress: '',
+  location: '',
+  collegeType: '',
 };
 
 const toFormState = (record: CampusListItem): CampusFormState => ({
@@ -54,6 +58,8 @@ const toFormState = (record: CampusListItem): CampusFormState => ({
   principlename: record.principlename || '',
   contactNumber: record.contactNumber || '',
   emailAddress: record.emailAddress || '',
+  location: record.location || '',
+  collegeType: record.collegeType || '',
 });
 
 const toPayload = (form: CampusFormState): CampusListPayload => ({
@@ -65,7 +71,31 @@ const toPayload = (form: CampusFormState): CampusListPayload => ({
   principlename: form.principlename.trim() || undefined,
   contactNumber: form.contactNumber.trim() || undefined,
   emailAddress: form.emailAddress.trim() || undefined,
+  location: form.location.trim(),
+  collegeType: form.collegeType.trim() || undefined,
 });
+
+const isValidHttpUrl = (value: string) => {
+  try {
+    const url = new URL(value);
+    return url.protocol === 'http:' || url.protocol === 'https:';
+  } catch {
+    return false;
+  }
+};
+
+const getCampusMapUrl = (campus: Pick<CampusFormState | CampusListItem, 'campusname' | 'fullAddress' | 'District' | 'location'>) => {
+  const location = campus.location?.trim();
+  if (location && isValidHttpUrl(location)) {
+    return location;
+  }
+
+  const query = [campus.campusname, campus.fullAddress, campus.District, 'Nepal']
+    .filter(Boolean)
+    .join(', ');
+
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+};
 
 const AdminCampusList = () => {
   const [rows, setRows] = useState<CampusListItem[]>([]);
@@ -87,6 +117,8 @@ const AdminCampusList = () => {
     const names = districts.map((d) => d.name);
     return [...new Set(names)].sort((a, b) => a.localeCompare(b));
   }, []);
+
+  const campusTypeOptions = ['Community', 'Govt', 'Private', 'Public'];
 
   const loadRows = async (targetPage = page) => {
     setLoading(true);
@@ -152,6 +184,7 @@ const AdminCampusList = () => {
     if (!form.campusname.trim()) return 'Campus name is required.';
     if (!form.District.trim()) return 'District is required.';
     if (form.SN && (!Number.isFinite(Number(form.SN)) || Number(form.SN) <= 0)) return 'SN must be a positive number.';
+    if (form.location.trim() && !isValidHttpUrl(form.location.trim())) return 'Google Map location must start with http:// or https://.';
     return '';
   };
 
@@ -256,7 +289,9 @@ const AdminCampusList = () => {
                 <tr>
                   <th className="p-3 text-left">SN</th>
                   <th className="p-3 text-left">Campus Name</th>
+                  <th className="p-3 text-left">Type</th>
                   <th className="p-3 text-left">District</th>
+                  <th className="p-3 text-left">Map</th>
                   <th className="p-3 text-left">Principal</th>
                   <th className="p-3 text-left">Contact</th>
                   <th className="p-3 text-left">Actions</th>
@@ -265,18 +300,34 @@ const AdminCampusList = () => {
               <tbody>
                 {loading ? (
                   <tr>
-                    <td className="p-4 text-center" colSpan={6}>Loading campus records...</td>
+                    <td className="p-4 text-center" colSpan={8}>Loading campus records...</td>
                   </tr>
                 ) : rows.length === 0 ? (
                   <tr>
-                    <td className="p-4 text-center text-muted-foreground" colSpan={6}>No campus records found.</td>
+                    <td className="p-4 text-center text-muted-foreground" colSpan={8}>No campus records found.</td>
                   </tr>
                 ) : (
                   rows.map((row) => (
                     <tr key={row._id} className="border-t">
                       <td className="p-3">{row.SN}</td>
                       <td className="p-3 font-medium">{row.campusname}</td>
+                      <td className="p-3">{row.collegeType || '-'}</td>
                       <td className="p-3">{row.District || '-'}</td>
+                      <td className="p-3">
+                        {row.location ? (
+                          <a
+                            href={getCampusMapUrl(row)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-primary hover:underline"
+                          >
+                            Map
+                            <ExternalLink className="h-3 w-3" />
+                          </a>
+                        ) : (
+                          <span className="text-muted-foreground">Not set</span>
+                        )}
+                      </td>
                       <td className="p-3">{row.principlename || '-'}</td>
                       <td className="p-3">{row.contactNumber || '-'}</td>
                       <td className="p-3">
@@ -358,6 +409,22 @@ const AdminCampusList = () => {
             </div>
 
             <div className="space-y-2">
+              <Label>Campus Type</Label>
+              <Select value={form.collegeType || undefined} onValueChange={(value) => setForm((p) => ({ ...p, collegeType: value }))}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select campus type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {campusTypeOptions.map((type) => (
+                    <SelectItem key={type} value={type}>
+                      {type}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
               <Label>Local Address</Label>
               <Input value={form.localAddress} onChange={(e) => setForm((p) => ({ ...p, localAddress: e.target.value }))} />
             </div>
@@ -380,6 +447,32 @@ const AdminCampusList = () => {
             <div className="space-y-2 md:col-span-2">
               <Label>Email Address</Label>
               <Input type="email" value={form.emailAddress} onChange={(e) => setForm((p) => ({ ...p, emailAddress: e.target.value }))} />
+            </div>
+
+            <div className="space-y-2 md:col-span-2">
+              <Label>Google Map Location</Label>
+              <div className="flex gap-2">
+                <Input
+                  type="url"
+                  placeholder="https://maps.app.goo.gl/..."
+                  value={form.location}
+                  onChange={(e) => setForm((p) => ({ ...p, location: e.target.value }))}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  disabled={!form.location.trim() || !isValidHttpUrl(form.location.trim())}
+                  onClick={() => window.open(getCampusMapUrl(form), '_blank', 'noopener,noreferrer')}
+                  aria-label="Open Google Map location"
+                  title="Open location"
+                >
+                  <MapPin className="h-4 w-4" />
+                </Button>
+              </div>
+              {form.location.trim() && !isValidHttpUrl(form.location.trim()) ? (
+                <p className="text-xs text-red-600">Enter a full map URL beginning with http:// or https://.</p>
+              ) : null}
             </div>
           </div>
 

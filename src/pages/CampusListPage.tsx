@@ -1,6 +1,6 @@
 import { useScrollToTop } from '@/hooks/useScrollToTop';
 import React, { useEffect, useMemo, useState } from 'react';
-import { Eye } from 'lucide-react';
+import { ExternalLink, Eye, MapPin } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
@@ -27,6 +27,7 @@ const CampusList: React.FC = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [province, setProvince] = useState<string>('all');
   const [district, setDistrict] = useState<string>('all');
+  const [campusType, setCampusType] = useState<string>('all');
   const [search, setSearch] = useState<string>('');
   const [page, setPage] = useState<number>(1);
   const [allCampuses, setAllCampuses] = useState<CampusListItem[]>([]);
@@ -76,16 +77,30 @@ const CampusList: React.FC = () => {
     return [{ value: 'all', label: 'All Districts' }, ...opts];
   }, [province]);
 
+  const campusTypeOptions = useMemo(() => {
+    const types = allCampuses
+      .map((campus) => campus.collegeType?.trim())
+      .filter((type): type is string => Boolean(type));
+
+    return [
+      { value: 'all', label: 'All Campus Types' },
+      ...Array.from(new Set(types))
+        .sort((a, b) => a.localeCompare(b))
+        .map((type) => ({ value: type, label: type })),
+    ];
+  }, [allCampuses]);
+
   const filtered = useMemo(() => {
     return allCampuses.filter((c) => {
       const districtObj = (districts as DistrictOptionSource[]).find((d) => d.name === c.District);
       const campusProvinceId = districtObj ? districtObj.province_id.toString() : null;
       const provinceMatch = province === 'all' || campusProvinceId === province;
       const districtMatch = district === 'all' || c.District === district;
+      const campusTypeMatch = campusType === 'all' || c.collegeType === campusType;
       const searchMatch = search.trim() === '' || (c.campusname || '').toLowerCase().includes(search.trim().toLowerCase());
-      return provinceMatch && districtMatch && searchMatch;
+      return provinceMatch && districtMatch && campusTypeMatch && searchMatch;
     });
-  }, [allCampuses, district, province, search]);
+  }, [allCampuses, campusType, district, province, search]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
   const paginated = filtered.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
@@ -106,9 +121,26 @@ const CampusList: React.FC = () => {
     setPage(1);
   };
 
+  const handleCampusTypeChange = (value: string) => {
+    setCampusType(value);
+    setPage(1);
+  };
+
   const handleSearchChange = (value: string) => {
     setSearch(value);
     setPage(1);
+  };
+
+  const getMapUrl = (campus: CampusListItem) => {
+    if (campus.location && /^https?:\/\//i.test(campus.location)) {
+      return campus.location;
+    }
+
+    const query = [campus.campusname, campus.fullAddress, campus.District, 'Nepal']
+      .filter(Boolean)
+      .join(', ');
+
+    return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
   };
 
   return (
@@ -141,6 +173,18 @@ const CampusList: React.FC = () => {
             </SelectContent>
           </Select>
         </div>
+        <div className="w-full md:w-64">
+          <Select value={campusType} onValueChange={handleCampusTypeChange}>
+            <SelectTrigger>
+              <SelectValue placeholder="Filter by Campus Type" />
+            </SelectTrigger>
+            <SelectContent>
+              {campusTypeOptions.map((type) => (
+                <SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
         <div className="w-full md:w-72">
           <input
             type="text"
@@ -158,8 +202,10 @@ const CampusList: React.FC = () => {
             <tr>
               <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">SN</th>
               <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Campus Name</th>
+              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Type</th>
               <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">District</th>
               <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Address</th>
+              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Google Map</th>
               <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Principal</th>
               <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Contact</th>
               <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Action</th>
@@ -169,7 +215,7 @@ const CampusList: React.FC = () => {
             {loading
               ? Array.from({ length: ITEMS_PER_PAGE }).map((_, i) => (
                   <tr key={i}>
-                    <td colSpan={7} className="px-4 py-3">
+                    <td colSpan={9} className="px-4 py-3">
                       <Skeleton className="h-6 w-full" />
                     </td>
                   </tr>
@@ -177,21 +223,34 @@ const CampusList: React.FC = () => {
               : error
               ? (
                 <tr>
-                  <td colSpan={7} className="text-center py-8 text-red-500">{error}</td>
+                  <td colSpan={9} className="text-center py-8 text-red-500">{error}</td>
                 </tr>
               )
               : paginated.length === 0
               ? (
                 <tr>
-                  <td colSpan={7} className="text-center py-8 text-gray-500">No campuses found.</td>
+                  <td colSpan={9} className="text-center py-8 text-gray-500">No campuses found.</td>
                 </tr>
               )
               : paginated.map((campus, idx: number) => (
                   <tr key={campus._id} className="hover:bg-indigo-50 transition">
                     <td className="px-4 py-3 text-sm text-gray-600">{campus.SN || (page - 1) * ITEMS_PER_PAGE + idx + 1}</td>
                     <td className="px-4 py-3 text-sm font-medium text-gray-900">{campus.campusname || '-'}</td>
+                    <td className="px-4 py-3 text-sm text-gray-700">{campus.collegeType || '-'}</td>
                     <td className="px-4 py-3 text-sm text-gray-700">{campus.District || '-'}</td>
                     <td className="px-4 py-3 text-sm text-gray-700">{campus.fullAddress || '-'}</td>
+                    <td className="px-4 py-3 text-sm">
+                      <a
+                        href={getMapUrl(campus)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-indigo-600 hover:text-indigo-800 hover:underline"
+                      >
+                        <MapPin className="h-4 w-4" />
+                        Map
+                        <ExternalLink className="h-3 w-3" />
+                      </a>
+                    </td>
                     <td className="px-4 py-3 text-sm text-gray-700">{campus.principlename || '-'}</td>
                     <td className="px-4 py-3 text-sm text-gray-700">{campus.contactNumber || '-'}</td>
                     <td className="px-4 py-3">
@@ -242,8 +301,20 @@ const CampusList: React.FC = () => {
           {selectedCampus && (
             <div className="space-y-2 text-gray-800">
               <div><span className="font-semibold">Campus Name:</span> {selectedCampus.campusname || '-'}</div>
+              <div><span className="font-semibold">Campus Type:</span> {selectedCampus.collegeType || '-'}</div>
               <div><span className="font-semibold">District:</span> {selectedCampus.District || '-'}</div>
               <div><span className="font-semibold">Address:</span> {selectedCampus.fullAddress || '-'}</div>
+              <div>
+                <span className="font-semibold">Google Map:</span>{' '}
+                <a
+                  href={getMapUrl(selectedCampus)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-indigo-600 hover:text-indigo-800 hover:underline"
+                >
+                  Open location
+                </a>
+              </div>
               <div><span className="font-semibold">Principal:</span> {selectedCampus.principlename || '-'}</div>
               <div><span className="font-semibold">Contact Number:</span> {selectedCampus.contactNumber || '-'}</div>
               <div><span className="font-semibold">Email:</span> {selectedCampus.emailAddress || '-'}</div>
